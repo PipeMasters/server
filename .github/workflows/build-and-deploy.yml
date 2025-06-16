@@ -18,12 +18,12 @@ jobs:
       - uses: actions/checkout@v4
         with: { fetch-depth: 0 }
 
-      - name: Set up Maven & JDK 21
-        uses: s4u/setup-maven-action@v1.13.0
-        with:
-          java-version: 21
-          maven-version: 3.9.6
-          cache: true
+      # - name: Set up Maven & JDK 21
+      #   uses: s4u/setup-maven-action@v1.13.0
+      #   with:
+      #     java-version: 21
+      #     maven-version: 3.9.6
+      #     cache: true
 
       - name: Calculate semantic version
         id: version
