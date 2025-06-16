@@ -28,7 +28,7 @@ jobs:
         set -e
         MAJOR=${{ env.MAJOR_VERSION }}
 
-        last_tag() { git tag --list "$1" --sort=-v:refname | head -n 1 | sed 's/^v//'; }
+        last_tag() { git tag --list "v$1" --sort=-v:refname | head -n1 | sed 's/^v//'; }
 
         if [[ "${GITHUB_REF_NAME}" == "master" ]]; then
           LAST=$( last_tag "${MAJOR}.*" )
