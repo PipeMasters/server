@@ -1,0 +1,107 @@
+name: Build, tag, push & deploy
+
+on:
+  push:
+    branches: [dev, master]
+permissions:
+  contents: write
+  packages: write
+env:
+  DOCKER_REGISTRY: docker.io
+  MAJOR_VERSION: 0             # ручками тольк))
+jobs:
+  build-push:
+    runs-on: self-hosted
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        fetch-tags: true
+
+    - name: Calculate semantic version
+      id: version
+      shell: bash
+      run: |
+        set -e
+        MAJOR=${{ env.MAJOR_VERSION }}
+
+        last_tag() { git tag --list "v$1" --sort=-v:refname | head -n1 | sed 's/^v//'; }
+
+        if [[ "${GITHUB_REF_NAME}" == "master" ]]; then
+          LAST=$( last_tag "${MAJOR}.*" )
+          MINOR=$([[ -z "$LAST" ]] && echo 0 || echo $(( $(cut -d. -f2 <<<"$LAST") + 1 )) )
+          PATCH=0
+        else
+          LAST_DEV=$( last_tag "${MAJOR}.*.*-dev" )
+          LAST_MASTER=$( last_tag "${MAJOR}.*" )
+          MINOR=$([[ -z "$LAST_MASTER" ]] && echo 0 || cut -d. -f2 <<<"$LAST_MASTER")
+          PATCH=$([[ -z "$LAST_DEV" ]] && echo 1 || echo $(( $(cut -d. -f3 <<<"${LAST_DEV%%-*}") + 1 )) )
+        fi
+
+        VERSION="${MAJOR}.${MINOR}.${PATCH}"
+        [[ "${GITHUB_REF_NAME}" == "dev" ]] && VERSION="${VERSION}-dev"
+
+        echo "version=$VERSION" >>"$GITHUB_OUTPUT"
+        echo "::notice title=Calculated version::$VERSION"
+
+    - name: Normalise repo name
+      id: repo
+      run: echo "value=${GITHUB_REPOSITORY,,}" >>"$GITHUB_OUTPUT"
+
+    - name: Set pom version
+      run: mvn -q versions:set -DnewVersion=${{ steps.version.outputs.version }} -DgenerateBackupPoms=false
+
+    - name: Build OCI image
+      env:
+        IMAGE: ${{ env.DOCKER_REGISTRY }}/${{ steps.repo.outputs.value }}:${{ steps.version.outputs.version }}
+      run: |
+        mvn -B spring-boot:build-image \
+            -DskipTests \
+            -Dspring-boot.build-image.imageName="$IMAGE"
+
+    - uses: docker/login-action@v3
+      with:
+        registry: ${{ env.DOCKER_REGISTRY }}
+        username: ${{ secrets.REGISTRY_USER }}
+        password: ${{ secrets.REGISTRY_PASSWORD }}
+
+    - name: Push image
+      env:
+        IMAGE: ${{ env.DOCKER_REGISTRY }}/${{ steps.repo.outputs.value }}:${{ steps.version.outputs.version }}
+      run: docker push "$IMAGE"
+
+    - name: Create & push git tag
+      shell: bash
+      run: |
+        set -e
+        git config --global user.name  "github-actions"
+        git config --global user.email "github-actions@noreply.github.com"
+        TAG="v${{ steps.version.outputs.version }}"
+        git tag -a "$TAG" -m "CI build $TAG" || true
+        git push --tags
+
+  deploy:
+    needs: build-push
+    runs-on: self-hosted
+
+    steps:
+    - name: Deploy via SSH
+      uses: appleboy/ssh-action@v1.0.3
+      env:
+        STACK:   ${{ github.ref_name }}
+        VERSION: ${{ needs.build-push.outputs.version }}
+      with:
+        host: ${{ secrets.SSH_HOST }}
+        username: ${{ secrets.SSH_USER }}
+        key: ${{ secrets.SSH_KEY }}
+        envs: STACK,VERSION
+        script: |
+          set -e
+          DIR=/opt/${STACK}
+          [ -d "$DIR" ] || { echo "Creating $DIR"; sudo mkdir -p "$DIR"; }
+          cd "$DIR"
+          docker compose pull
+          docker compose up -d --remove-orphans
