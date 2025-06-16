@@ -5,74 +5,83 @@ on:
     branches: [dev, master]
 
 env:
-  DOCKER_REGISTRY: index.docker.io
+  DOCKER_REGISTRY: docker.io
   MAJOR_VERSION: 0
 
 jobs:
   build-push:
     runs-on: self-hosted
+    outputs:
+      version: ${{ steps.version.outputs.version }}
 
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+        with: { fetch-depth: 0 }
 
-      - uses: actions/setup-java@v4
+      - name: Set up Maven & JDK 21
+        uses: s4u/setup-maven-action@v1.13.0
         with:
-          distribution: temurin
           java-version: 21
-          cache: maven
+          maven-version: 3.9.6
+          cache: true
 
       - name: Calculate semantic version
         id: version
         shell: bash
         run: |
+          set -e
           MAJOR=${{ env.MAJOR_VERSION }}
+
           last_tag() {
             git tag --list "$1" --sort=-v:refname | head -n 1 | sed 's/^v//'
           }
 
           if [[ "${GITHUB_REF_NAME}" == "master" ]]; then
-            # grow MINOR, сбрасываем PATCH
             LAST=$( last_tag "${MAJOR}.*" )
             MINOR=$([[ -z "$LAST" ]] && echo 0 || echo $(( $(cut -d. -f2 <<<"$LAST") + 1 )) )
             PATCH=0
           else
             LAST_DEV=$( last_tag "${MAJOR}.*.*-dev" )
             LAST_MASTER=$( last_tag "${MAJOR}.*" )
-            if [[ -z "$LAST_MASTER" ]]; then MINOR=0; else MINOR=$(cut -d. -f2 <<<"$LAST_MASTER"); fi
+            MINOR=$([[ -z "$LAST_MASTER" ]] && echo 0 || cut -d. -f2 <<<"$LAST_MASTER")
             PATCH=$([[ -z "$LAST_DEV" ]] && echo 1 || echo $(( $(cut -d. -f3 <<<"${LAST_DEV%%-*}") + 1 )) )
           fi
 
           VERSION="${MAJOR}.${MINOR}.${PATCH}"
           [[ "${GITHUB_REF_NAME}" == "dev" ]] && VERSION="${VERSION}-dev"
 
-          echo "version=$VERSION"      >> $GITHUB_OUTPUT
-          echo "Calculated version: $VERSION"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "::notice title=Calculated version::$VERSION"
+
+      - name: Normalise repo name to lowercase
+        id: repo
+        run: echo "value=${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
 
       - name: Set pom version
         run: mvn -q versions:set -DnewVersion=${{ steps.version.outputs.version }} -DgenerateBackupPoms=false
 
       - name: Build OCI image
+        env:
+          IMAGE: ${{ env.DOCKER_REGISTRY }}/${{ steps.repo.outputs.value }}:${{ steps.version.outputs.version }}
         run: |
-          IMAGE=${{ env.DOCKER_REGISTRY }}/${{ github.repository }}:${{ steps.version.outputs.version }}
-          mvn -B -Pnative spring-boot:build-image \
+          mvn -B spring-boot:build-image \
               -DskipTests \
-              -Dspring-boot.build-image.imageName="$IMAGE"
+              -Dspring-boot.build-image.imageName="${IMAGE}"
 
-      - name: Log in to registry
-        uses: docker/login-action@v3
+      - uses: docker/login-action@v3
+        name: Log in to registry
         with:
           registry: ${{ env.DOCKER_REGISTRY }}
           username: ${{ secrets.REGISTRY_USER }}
           password: ${{ secrets.REGISTRY_PASSWORD }}
 
       - name: Push image
-        run: |
-          docker push ${{ env.DOCKER_REGISTRY }}/${{ github.repository }}:${{ steps.version.outputs.version }}
+        env:
+          IMAGE: ${{ env.DOCKER_REGISTRY }}/${{ steps.repo.outputs.value }}:${{ steps.version.outputs.version }}
+        run: docker push "${IMAGE}"
 
       - name: Create & push git tag
-        if: ${{ github.ref_name == 'master' }}
+        if: github.ref_name == 'master'
         run: |
           git config --global user.name  "github-actions"
           git config --global user.email "github-actions@noreply.github.com"
@@ -87,13 +96,15 @@ jobs:
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.0.3
         env:
-          STACK: ${{ github.ref_name }}
+          STACK:   ${{ github.ref_name }}
           VERSION: ${{ needs.build-push.outputs.version }}
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
+          envs: STACK,VERSION
           script: |
+            set -e
             cd /opt/${STACK}
             docker compose pull
             docker compose up -d --remove-orphans
