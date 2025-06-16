@@ -86,14 +86,14 @@
     <!-- ───────────────────────────── Build  ───────────────────────────── -->
     <build>
         <plugins>
-            <!-- Spring Boot plugin with fixed builder -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+
                 <configuration>
-                    <!-- пока noble-builder не опубликован, используем jammy -->
-                    <builder>paketobuildpacks/builder-jammy-java:latest</builder>
-                    <!-- позволяет override'ить тег/имя через -Dspring-boot.build-image.imageName -->
+                    <image>
+                        <builder>paketobuildpacks/builder-jammy-java:latest</builder>
+                    </image>
                 </configuration>
             </plugin>
         </plugins>
