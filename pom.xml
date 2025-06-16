@@ -92,7 +92,7 @@
 
                 <configuration>
                     <image>
-                        <builder>paketobuildpacks/builder-jammy-base:latest</builder>
+                        <builder>gcr.io/buildpacks/builder:google-22</builder>
                     </image>
                 </configuration>
             </plugin>
