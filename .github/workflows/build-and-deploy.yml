@@ -3,7 +3,9 @@ name: Build, tag, push & deploy
 on:
   push:
     branches: [dev, master]
-
+permissions:
+  contents: write
+  packages: write
 env:
   DOCKER_REGISTRY: docker.io
   MAJOR_VERSION: 0             # ручками тольк))
