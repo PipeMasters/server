@@ -1,35 +1,64 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="
+           http://maven.apache.org/POM/4.0.0
+           https://maven.apache.org/xsd/maven-4.0.0.xsd">
+
     <modelVersion>4.0.0</modelVersion>
-    <parent>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.5.0</version>
-        <relativePath/> <!-- lookup parent from repository -->
-    </parent>
+
+    <!-- ─────────────────────────────  GAV  ────────────────────────────── -->
     <groupId>com.pipemasters</groupId>
     <artifactId>server</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>server</name>
-    <description>server</description>
-    <url/>
+    <description>Spring Boot 3.5 backend for PipeMasters</description>
+
+    <!-- ───────────────────────────── Parent  ──────────────────────────── -->
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.5.0</version>
+        <relativePath/>          <!-- use bom from central -->
+    </parent>
+
+    <!-- ────────────────────────── Project info  ───────────────────────── -->
+    <url>https://github.com/PipeMasters/server</url>
+
     <licenses>
-        <license/>
+        <license>
+            <name>MIT License</name>
+            <url>https://opensource.org/licenses/MIT</url>
+        </license>
     </licenses>
+
     <developers>
-        <developer/>
+        <developer>
+            <id>pipemasters</id>
+            <name>PipeMasters Team</name>
+            <email>dev@pipemasters.com</email>
+        </developer>
     </developers>
+
     <scm>
-        <connection/>
-        <developerConnection/>
-        <tag/>
-        <url/>
+        <url>https://github.com/PipeMasters/server</url>
+        <connection>scm:git:https://github.com/PipeMasters/server.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/PipeMasters/server.git</developerConnection>
+        <tag>HEAD</tag>
     </scm>
+
+    <!-- ─────────────────────────── Properties  ────────────────────────── -->
     <properties>
         <java.version>21</java.version>
     </properties>
+
+    <!-- ────────────────────────── Dependencies  ───────────────────────── -->
     <dependencies>
+        <!-- Spring Boot starters -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
@@ -38,16 +67,15 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
-        </dependency>
 
+        <!-- Database -->
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
             <scope>runtime</scope>
         </dependency>
+
+        <!-- Test -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
@@ -55,11 +83,18 @@
         </dependency>
     </dependencies>
 
+    <!-- ───────────────────────────── Build  ───────────────────────────── -->
     <build>
         <plugins>
+            <!-- Spring Boot plugin with fixed builder -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <!-- пока noble-builder не опубликован, используем jammy -->
+                    <builder>paketobuildpacks/builder-jammy-java:latest</builder>
+                    <!-- позволяет override'ить тег/имя через -Dspring-boot.build-image.imageName -->
+                </configuration>
             </plugin>
         </plugins>
     </build>
