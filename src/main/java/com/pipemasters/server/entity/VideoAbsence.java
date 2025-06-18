@@ -26,6 +26,10 @@ public class VideoAbsence extends BaseEntity {
         this.comment = comment;
     }
 
+    protected VideoAbsence() {
+
+    }
+
     public UploadBatch getRecord() {
         return uploadBatch;
     }
