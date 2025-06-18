@@ -27,6 +27,62 @@ public class MediaFile extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "record_id")
-    private Record record;
+    private UploadBatch uploadBatch;
 
+    public MediaFile(String filename, FileType fileType, UploadBatch uploadBatch) {
+        this.filename = filename;
+        this.fileType = fileType;
+        this.uploadBatch = uploadBatch;
+    }
+
+    public MediaFile(String filename, FileType fileType, Instant uploadedAt, MediaFile source, UploadBatch uploadBatch) {
+        this.filename = filename;
+        this.fileType = fileType;
+        this.uploadedAt = uploadedAt;
+        this.source = source;
+        this.uploadBatch = uploadBatch;
+    }
+
+    public MediaFile() {
+    }
+
+    public String getFilename() {
+        return filename;
+    }
+
+    public void setFilename(String filename) {
+        this.filename = filename;
+    }
+
+    public FileType getFileType() {
+        return fileType;
+    }
+
+    public void setFileType(FileType fileType) {
+        this.fileType = fileType;
+    }
+
+    public Instant getUploadedAt() {
+        return uploadedAt;
+    }
+
+    public void setUploadedAt(Instant uploadedAt) {
+        this.uploadedAt = uploadedAt;
+    }
+
+    public MediaFile getSource() {
+        return source;
+    }
+
+    public void setSource(MediaFile source) {
+        this.source = source;
+    }
+
+    public UploadBatch getRecord() {
+        return uploadBatch;
+    }
+
+    public void setRecord(UploadBatch uploadBatch) {
+        this.uploadBatch = uploadBatch;
+    }
 }
