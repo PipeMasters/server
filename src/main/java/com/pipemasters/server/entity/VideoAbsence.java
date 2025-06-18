@@ -20,6 +20,14 @@ public class VideoAbsence extends BaseEntity {
     @Column(length = 1024)
     private String comment;
 
+    protected VideoAbsence() {
+    }
+
+    public VideoAbsence(Record record, AbsenceCause cause, String comment) {
+        this.record = record;
+        this.cause = cause;
+        this.comment = comment;
+    }
 
     public Record getRecord() {
         return record;

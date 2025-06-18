@@ -10,8 +10,7 @@ public class VideoAbsenceDto extends BaseDto{
     public VideoAbsenceDto() {
     }
 
-    public VideoAbsenceDto(Long id, RecordDto record, AbsenceCause cause, String comment) {
-        super(id);
+    public VideoAbsenceDto( RecordDto record, AbsenceCause cause, String comment) {
         this.record = record;
         this.cause = cause;
         this.comment = comment;

@@ -1,7 +1,5 @@
 package com.pipemasters.server.dto;
 
-import com.pipemasters.server.entity.MediaFile;
-import com.pipemasters.server.entity.Record;
 import com.pipemasters.server.entity.enums.FileType;
 
 import java.time.Instant;
@@ -16,8 +14,7 @@ public class MediaFileDto extends BaseDto{
     public MediaFileDto() {
     }
 
-    public MediaFileDto(Long id, String filename, FileType fileType, Instant uploadedAt, MediaFileDto source, RecordDto record) {
-        super(id);
+    public MediaFileDto( String filename, FileType fileType, Instant uploadedAt, MediaFileDto source, RecordDto record) {
         this.filename = filename;
         this.fileType = fileType;
         this.uploadedAt = uploadedAt;

@@ -9,8 +9,7 @@ public class TrainDto extends BaseDto{
     public TrainDto() {
     }
 
-    public TrainDto(Long id, Long trainNumber, String routeMessage, Integer consistCount, String chief) {
-        super(id);
+    public TrainDto( Long trainNumber, String routeMessage, Integer consistCount, String chief) {
         this.trainNumber = trainNumber;
         this.routeMessage = routeMessage;
         this.consistCount = consistCount;

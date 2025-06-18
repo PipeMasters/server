@@ -8,8 +8,7 @@ public class BranchDto extends BaseDto{
     public BranchDto() {
     }
 
-    public BranchDto(Long id, String name, BranchDto parent) {
-        super(id);
+    public BranchDto(String name, BranchDto parent) {
         this.name = name;
         this.parent = parent;
     }

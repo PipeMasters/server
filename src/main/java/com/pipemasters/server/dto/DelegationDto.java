@@ -13,8 +13,7 @@ public class DelegationDto extends BaseDto{
     public DelegationDto() {
     }
 
-    public DelegationDto(Long id, UserDto delegator, UserDto substitute, LocalDate fromDate, LocalDate toDate) {
-        super(id);
+    public DelegationDto( UserDto delegator, UserDto substitute, LocalDate fromDate, LocalDate toDate) {
         this.delegator = delegator;
         this.substitute = substitute;
         this.fromDate = fromDate;

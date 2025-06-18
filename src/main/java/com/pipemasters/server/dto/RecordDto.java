@@ -18,15 +18,14 @@ public class RecordDto extends BaseDto{
     private Instant deletedAt;
     private boolean deleted;
     private List<MediaFileDto> files = new ArrayList<>();
-    private VideoAbsence absence;
+    private VideoAbsenceDto absence;
 
     public RecordDto() {
     }
 
-    public RecordDto(Long id, String directory, UserDto uploadedBy, Instant createdAt, LocalDate trainDeparted,
+    public RecordDto( String directory, UserDto uploadedBy, Instant createdAt, LocalDate trainDeparted,
                      TrainDto train, String comment, Set<String> keywords, BranchDto branch,
-                     Instant deletedAt, boolean deleted, List<MediaFileDto> files, VideoAbsence absence) {
-        super(id);
+                     Instant deletedAt, boolean deleted, List<MediaFileDto> files, VideoAbsenceDto absence) {
         this.directory = directory;
         this.uploadedBy = uploadedBy;
         this.createdAt = createdAt;
@@ -129,11 +128,11 @@ public class RecordDto extends BaseDto{
         this.files = files;
     }
 
-    public VideoAbsence getAbsence() {
+    public VideoAbsenceDto getAbsence() {
         return absence;
     }
 
-    public void setAbsence(VideoAbsence absence) {
+    public void setAbsence(VideoAbsenceDto absence) {
         this.absence = absence;
     }
 }

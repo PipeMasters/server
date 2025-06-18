@@ -15,8 +15,7 @@ public class UserDto extends BaseDto{
     public UserDto() {
     }
 
-    public UserDto(Long id, String name, String surname, String patronymic, Set<Role> roles, BranchDto branch) {
-        super(id);
+    public UserDto( String name, String surname, String patronymic, Set<Role> roles, BranchDto branch) {
         this.name = name;
         this.surname = surname;
         this.patronymic = patronymic;
