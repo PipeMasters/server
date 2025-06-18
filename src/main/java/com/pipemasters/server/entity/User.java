@@ -7,8 +7,9 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Entity
-@Table(name = "users",
-        uniqueConstraints = @UniqueConstraint(columnNames = "ad_sid"))
+@Table(name = "users"
+//        , uniqueConstraints = @UniqueConstraint(columnNames = "ad_sid")
+)
 public class User extends BaseEntity {
 
 //    на будущее, для астры и тд.
