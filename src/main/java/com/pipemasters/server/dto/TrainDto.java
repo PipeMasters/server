@@ -1,0 +1,51 @@
+package com.pipemasters.server.dto;
+
+public class TrainDto extends BaseDto{
+    private Long trainNumber;
+    private String routeMessage;
+    private Integer consistCount;
+    private String chief;
+
+    public TrainDto() {
+    }
+
+    public TrainDto(Long id, Long trainNumber, String routeMessage, Integer consistCount, String chief) {
+        super(id);
+        this.trainNumber = trainNumber;
+        this.routeMessage = routeMessage;
+        this.consistCount = consistCount;
+        this.chief = chief;
+    }
+
+    public Long getTrainNumber() {
+        return trainNumber;
+    }
+
+    public void setTrainNumber(Long trainNumber) {
+        this.trainNumber = trainNumber;
+    }
+
+    public String getRouteMessage() {
+        return routeMessage;
+    }
+
+    public void setRouteMessage(String routeMessage) {
+        this.routeMessage = routeMessage;
+    }
+
+    public Integer getConsistCount() {
+        return consistCount;
+    }
+
+    public void setConsistCount(Integer consistCount) {
+        this.consistCount = consistCount;
+    }
+
+    public String getChief() {
+        return chief;
+    }
+
+    public void setChief(String chief) {
+        this.chief = chief;
+    }
+}
