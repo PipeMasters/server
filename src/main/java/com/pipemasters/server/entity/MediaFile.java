@@ -20,7 +20,7 @@ public class MediaFile extends BaseEntity {
     @Column(nullable = false, updatable = false)
     private Instant uploadedAt = Instant.now();
 
-    /* video → audio; ссылка на исходный файл-«родителя» */
+    /* video -> audio; ссылка на исходный файл-«родителя» */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "source_id")
     private MediaFile source;
