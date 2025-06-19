@@ -1,6 +1,6 @@
 package com.pipemasters.server.controller;
 
-import com.pipemasters.server.dto.TrainDTO;
+import com.pipemasters.server.dto.TrainDto;
 import com.pipemasters.server.service.TrainService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,22 +17,22 @@ public class TrainController {
         this.trainService = trainService;
     }
     @PostMapping
-    public ResponseEntity<TrainDTO> create(@RequestBody TrainDTO dto) {
+    public ResponseEntity<TrainDto> create(@RequestBody TrainDto dto) {
         return new ResponseEntity<>(trainService.save(dto), HttpStatus.CREATED);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<TrainDTO> get(@PathVariable Long id) {
+    public ResponseEntity<TrainDto> get(@PathVariable Long id) {
         return new ResponseEntity<>(trainService.getById(id), HttpStatus.OK);
     }
 
     @GetMapping
-    public ResponseEntity<List<TrainDTO>> getAll() {
+    public ResponseEntity<List<TrainDto>> getAll() {
         return new ResponseEntity<>(trainService.getAll(), HttpStatus.OK);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<TrainDTO> update(@PathVariable Long id, @RequestBody TrainDTO dto) {
+    public ResponseEntity<TrainDto> update(@PathVariable Long id, @RequestBody TrainDto dto) {
         return new ResponseEntity<>(trainService.update(id, dto), HttpStatus.OK);
     }
 
