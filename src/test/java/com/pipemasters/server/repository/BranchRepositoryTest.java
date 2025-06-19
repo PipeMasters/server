@@ -34,4 +34,28 @@ class BranchRepositoryTest {
         assertNotNull(foundChild.getParent());
         assertEquals(parent.getId(), foundChild.getParent().getId());
     }
+    @Test
+    void findAllReturnsEmptyListWhenNoBranchesExist() {
+        List<Branch> all = branchRepository.findAll();
+        assertTrue(all.isEmpty());
+    }
+
+    @Test
+    void findByIdReturnsEmptyOptionalForNonExistentBranch() {
+        assertTrue(branchRepository.findById(999L).isEmpty());
+    }
+
+    @Test
+    void existsByIdReturnsFalseForNonExistentBranch() {
+        assertFalse(branchRepository.existsById(12345L));
+    }
+
+    @Test
+    void saveBranchWithNullParentPersistsSuccessfully() {
+        Branch branch = new Branch("Root", null);
+        Branch saved = branchRepository.save(branch);
+        assertNotNull(saved.getId());
+        assertNull(saved.getParent());
+        assertEquals("Root", saved.getName());
+    }
 }

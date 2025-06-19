@@ -9,8 +9,8 @@ public class VideoAbsence extends BaseEntity {
 
     /* Связь на тот же Record, к которому не хватает видео */
     @OneToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "record_id", unique = true)
-    private Record record;
+    @JoinColumn(name = "upload_batch_id", unique = true)
+    private UploadBatch uploadBatch;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 32)
@@ -20,21 +20,22 @@ public class VideoAbsence extends BaseEntity {
     @Column(length = 1024)
     private String comment;
 
-    protected VideoAbsence() {
-    }
-
-    public VideoAbsence(Record record, AbsenceCause cause, String comment) {
-        this.record = record;
+    public VideoAbsence(UploadBatch uploadBatch, AbsenceCause cause, String comment) {
+        this.uploadBatch = uploadBatch;
         this.cause = cause;
         this.comment = comment;
     }
 
-    public Record getRecord() {
-        return record;
+    protected VideoAbsence() {
+
     }
 
-    public void setRecord(Record record) {
-        this.record = record;
+    public UploadBatch getRecord() {
+        return uploadBatch;
+    }
+
+    public void setRecord(UploadBatch uploadBatch) {
+        this.uploadBatch = uploadBatch;
     }
 
     public AbsenceCause getCause() {

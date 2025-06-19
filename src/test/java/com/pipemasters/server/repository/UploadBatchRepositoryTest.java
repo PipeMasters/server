@@ -1,7 +1,7 @@
 package com.pipemasters.server.repository;
 
 import com.pipemasters.server.entity.Branch;
-import com.pipemasters.server.entity.Record;
+import com.pipemasters.server.entity.UploadBatch;
 import com.pipemasters.server.entity.Train;
 import com.pipemasters.server.entity.User;
 import com.pipemasters.server.entity.enums.Role;
@@ -16,10 +16,10 @@ import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 @DataJpaTest
-class RecordRepositoryTest {
+class UploadBatchRepositoryTest {
 
     @Autowired
-    private RecordRepository recordRepository;
+    private UploadBatchRepository uploadBatchRepository;
     @Autowired
     private BranchRepository branchRepository;
     @Autowired
@@ -34,11 +34,11 @@ class RecordRepositoryTest {
                 EnumSet.of(Role.USER), branch));
         Train train = trainRepository.save(new Train(100L, "A-B", 1, "Chief"));
 
-        Record record = new Record(UUID.randomUUID(), user, Instant.now(), LocalDate.now(),
+        UploadBatch uploadBatch = new UploadBatch(UUID.randomUUID(), user, Instant.now(), LocalDate.now(),
                 train, "test", Set.of("key"), branch, null, false, new ArrayList<>());
-        recordRepository.save(record);
+        uploadBatchRepository.save(uploadBatch);
 
-        Record found = recordRepository.findById(record.getId()).orElseThrow();
+        UploadBatch found = uploadBatchRepository.findById(uploadBatch.getId()).orElseThrow();
         assertEquals(user.getId(), found.getUploadedBy().getId());
         assertEquals(train.getId(), found.getTrain().getId());
         assertEquals(branch.getId(), found.getBranch().getId());

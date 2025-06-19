@@ -27,17 +27,23 @@ public class MediaFile extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "record_id")
-    private Record record;
+    private UploadBatch uploadBatch;
 
-    protected MediaFile() {
+    public MediaFile(String filename, FileType fileType, UploadBatch uploadBatch) {
+        this.filename = filename;
+        this.fileType = fileType;
+        this.uploadBatch = uploadBatch;
     }
 
-    public MediaFile(String filename, FileType fileType, Instant uploadedAt, MediaFile source, Record record) {
+    public MediaFile(String filename, FileType fileType, Instant uploadedAt, MediaFile source, UploadBatch uploadBatch) {
         this.filename = filename;
         this.fileType = fileType;
         this.uploadedAt = uploadedAt;
         this.source = source;
-        this.record = record;
+        this.uploadBatch = uploadBatch;
+    }
+
+    public MediaFile() {
     }
 
     public String getFilename() {
@@ -72,11 +78,11 @@ public class MediaFile extends BaseEntity {
         this.source = source;
     }
 
-    public Record getRecord() {
-        return record;
+    public UploadBatch getRecord() {
+        return uploadBatch;
     }
 
-    public void setRecord(Record record) {
-        this.record = record;
+    public void setRecord(UploadBatch uploadBatch) {
+        this.uploadBatch = uploadBatch;
     }
 }
