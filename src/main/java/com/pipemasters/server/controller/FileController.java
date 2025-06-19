@@ -1,6 +1,6 @@
 package com.pipemasters.server.controller;
 
-import com.pipemasters.server.dto.FileUploadRequestDTO;
+import com.pipemasters.server.dto.FileUploadRequestDto;
 import com.pipemasters.server.service.FileService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,7 +16,7 @@ public class FileController {
     }
 
     @PostMapping("/upload-url")
-    public ResponseEntity<String> getPresignedUploadUrl(@RequestBody FileUploadRequestDTO request) {
+    public ResponseEntity<String> getPresignedUploadUrl(@RequestBody FileUploadRequestDto request) {
         String url = fileService.generatePresignedUploadUrl(request);
         return ResponseEntity.ok(url);
     }

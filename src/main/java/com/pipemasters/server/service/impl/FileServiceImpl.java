@@ -1,6 +1,6 @@
 package com.pipemasters.server.service.impl;
 
-import com.pipemasters.server.dto.FileUploadRequestDTO;
+import com.pipemasters.server.dto.FileUploadRequestDto;
 import com.pipemasters.server.entity.UploadBatch;
 import com.pipemasters.server.entity.MediaFile;
 import com.pipemasters.server.repository.MediaFileRepository;
@@ -39,7 +39,7 @@ public class FileServiceImpl implements FileService {
 
     @Override
     @Transactional
-    public String generatePresignedUploadUrl(FileUploadRequestDTO fileUploadRequestDTO) {
+    public String generatePresignedUploadUrl(FileUploadRequestDto fileUploadRequestDTO) {
         UploadBatch uploadBatch = uploadBatchRepository.findById(fileUploadRequestDTO.getUploadBatchId())
                 .orElseThrow(() -> new RuntimeException("UploadBatch not found with ID: " + fileUploadRequestDTO.getUploadBatchId()));
 

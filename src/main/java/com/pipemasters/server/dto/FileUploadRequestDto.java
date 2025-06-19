@@ -2,12 +2,12 @@ package com.pipemasters.server.dto;
 
 import com.pipemasters.server.entity.enums.FileType;
 
-public class FileUploadRequestDTO {
+public class FileUploadRequestDto {
     private Long uploadBatchId;
     private String filename;
     private FileType fileType;
 
-    public FileUploadRequestDTO() {}
+    public FileUploadRequestDto() {}
 
     public Long getUploadBatchId() {
         return uploadBatchId;
@@ -28,5 +28,14 @@ public class FileUploadRequestDTO {
     }
     public void setFileType(FileType fileType) {
         this.fileType = fileType;
+    }
+
+    @Override
+    public String toString() {
+        return "FileUploadRequestDto{" +
+                "uploadBatchId=" + uploadBatchId +
+                ", filename='" + filename + '\'' +
+                ", fileType=" + fileType +
+                '}';
     }
 }
