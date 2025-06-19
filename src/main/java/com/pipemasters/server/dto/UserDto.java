@@ -1,9 +1,11 @@
 package com.pipemasters.server.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.pipemasters.server.entity.enums.Role;
 
 import java.util.Set;
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class UserDto extends BaseDto{
     //    private String adSid;
     private String name;

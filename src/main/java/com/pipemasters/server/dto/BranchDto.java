@@ -1,7 +1,12 @@
 package com.pipemasters.server.dto;
 
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import jakarta.validation.constraints.NotNull;
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class BranchDto extends BaseDto{
+    @NotNull(message = "Name cannot be empty")
     private String name;
     private BranchDto parent;
 

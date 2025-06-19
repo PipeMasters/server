@@ -1,13 +1,20 @@
 package com.pipemasters.server.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.pipemasters.server.entity.enums.FileType;
+import jakarta.validation.constraints.NotNull;
 
 import java.time.Instant;
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class MediaFileDto extends BaseDto{
+    @NotNull(message = "FileName cannot be empty")
     private String filename;
+    @NotNull(message = "fileType cannot be empty")
     private FileType fileType;
+    @NotNull(message = "UploadedAt cannot be empty")
     private Instant uploadedAt;
+    @NotNull(message = "Source cannot be empty")
     private MediaFileDto source;
     private RecordDto record;
 

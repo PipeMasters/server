@@ -1,11 +1,13 @@
 package com.pipemasters.server.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.pipemasters.server.entity.*;
 
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.*;
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class RecordDto extends BaseDto{
     private String directory;
     private UserDto uploadedBy;

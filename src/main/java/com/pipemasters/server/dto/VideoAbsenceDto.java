@@ -1,7 +1,9 @@
 package com.pipemasters.server.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.pipemasters.server.entity.enums.AbsenceCause;
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class VideoAbsenceDto extends BaseDto{
     private RecordDto record;
     private AbsenceCause cause;

@@ -1,13 +1,20 @@
 package com.pipemasters.server.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.pipemasters.server.entity.User;
+import jakarta.validation.constraints.NotNull;
 
 import java.time.LocalDate;
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class DelegationDto extends BaseDto{
+    @NotNull(message = "Delegator cannot be empty")
     private UserDto delegator;
+    @NotNull(message = "Substitute cannot be empty")
     private UserDto substitute;
+    @NotNull(message = "FromDate cannot be empty")
     private LocalDate fromDate;
+    @NotNull(message = "ToDate cannot be empty")
     private LocalDate toDate;
 
     public DelegationDto() {
