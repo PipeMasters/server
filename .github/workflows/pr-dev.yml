@@ -22,5 +22,28 @@ jobs:
           java-version: 21
           cache: maven
 
-      - name: Build & test
-        run: mvn -B verify
+      - name: Export vars from /opt/dev/env
+        run: |
+          ENV_FILE="/opt/dev/env"
+
+          if [[ ! -f "$ENV_FILE" ]]; then
+            echo "::error::Файл $ENV_FILE не найден"
+            exit 1
+          fi
+
+          echo "Using $ENV_FILE"
+          echo "::group::Writing variables to GITHUB_ENV"
+          while IFS='=' read -r key val || [[ -n "$key" ]]; do
+            [[ "$key" =~ ^\s*# || -z "$key" ]] && continue
+            echo "$key=$val" >> "$GITHUB_ENV"
+          done < "$ENV_FILE"
+          echo "::endgroup::"
+
+          cp "$ENV_FILE" "$GITHUB_WORKSPACE/.env"
+        shell: bash
+
+      - name: Unit tests (Surefire)
+        run: |
+          mvn -B --no-transfer-progress \
+              test-compile             \
+              surefire:test
