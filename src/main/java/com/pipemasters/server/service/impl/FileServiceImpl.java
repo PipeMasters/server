@@ -48,7 +48,7 @@ public class FileServiceImpl implements FileService {
         MediaFile mediaFile = new MediaFile();
         mediaFile.setFilename(s3Key);
         mediaFile.setFileType(fileUploadRequestDTO.getFileType());
-        mediaFile.setRecord(uploadBatch);
+        mediaFile.setUploadBatch(uploadBatch);
         mediaFileRepository.save(mediaFile);
 
         PutObjectRequest putObjectRequest = PutObjectRequest.builder()
