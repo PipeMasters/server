@@ -18,9 +18,9 @@ public class ModelMapperConfig {
                 .addMapping(e -> e.getSubstitute().getId(), DelegationDto::setSubstituteId);
 
         configureBranchMapping(modelMapper);
-        configureMediaFileMapping(modelMapper);
+//        configureMediaFileMapping(modelMapper);
 //        configureUploadBatchMapping(modelMapper);
-        configureVideoAbsenceDtoMapping(modelMapper);
+//        configureVideoAbsenceDtoMapping(modelMapper);
 
 
         modelMapper.validate();
@@ -59,6 +59,7 @@ public class ModelMapperConfig {
         modelMapper.typeMap(VideoAbsence.class, VideoAbsenceDto.class)
                 .addMappings(mapper -> {
                     mapper.skip(VideoAbsenceDto::setUploadBatch);
+                    mapper.skip(VideoAbsenceDto::setCause);
                 });
     }
 }
