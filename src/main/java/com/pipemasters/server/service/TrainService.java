@@ -1,12 +1,12 @@
 package com.pipemasters.server.service;
 
-import com.pipemasters.server.dto.TrainDTO;
+import com.pipemasters.server.dto.TrainDto;
 import java.util.List;
 
 public interface TrainService {
-    TrainDTO save(TrainDTO trainDto);
-    TrainDTO getById(Long id);
-    List<TrainDTO> getAll();
-    TrainDTO update(Long id, TrainDTO trainDto);
+    TrainDto save(TrainDto trainDto);
+    TrainDto getById(Long id);
+    List<TrainDto> getAll();
+    TrainDto update(Long id, TrainDto trainDto);
     void delete(Long id);
 }
