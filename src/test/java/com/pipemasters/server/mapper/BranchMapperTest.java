@@ -1,15 +1,18 @@
 package com.pipemasters.server.mapper;
 
+import com.pipemasters.server.TestEnvInitializer;
 import com.pipemasters.server.dto.BranchDto;
 import com.pipemasters.server.entity.Branch;
 import org.junit.jupiter.api.Test;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ContextConfiguration;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
+@ContextConfiguration(initializers = TestEnvInitializer.class)
 public class BranchMapperTest {
 
     @Autowired

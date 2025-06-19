@@ -1,5 +1,6 @@
 package com.pipemasters.server.mapper;
 
+import com.pipemasters.server.TestEnvInitializer;
 import com.pipemasters.server.dto.MediaFileDto;
 import com.pipemasters.server.dto.UploadBatchDto;
 import com.pipemasters.server.dto.VideoAbsenceDto;
@@ -11,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ContextConfiguration;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -23,6 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @SpringBootTest
+@ContextConfiguration(initializers = TestEnvInitializer.class)
 public class MappingTests {
 
     @Autowired
