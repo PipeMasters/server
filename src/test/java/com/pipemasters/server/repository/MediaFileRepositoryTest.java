@@ -121,7 +121,7 @@ public class MediaFileRepositoryTest {
     }
 
     @Test
-    void saveMediaFileWithNullRecordThrowsException() {
+    void saveMediaFileWithNullUploadBatchThrowsException() {
         MediaFile file = new MediaFile("file.mp4", FileType.VIDEO, null);
         assertThrows(Exception.class, () -> mediaFileRepository.save(file));
     }
@@ -201,7 +201,7 @@ public class MediaFileRepositoryTest {
         file.setSource(source);
         MediaFile saved = mediaFileRepository.save(file);
         assertEquals(source.getId(), saved.getSource().getId());
-        assertEquals(batch2.getId(), saved.getRecord().getId());
+        assertEquals(batch2.getId(), saved.getUploadBatch().getId());
     }
 
     @Test

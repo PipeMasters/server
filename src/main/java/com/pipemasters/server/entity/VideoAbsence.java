@@ -7,7 +7,7 @@ import jakarta.persistence.*;
 @Table(name = "video_absences")
 public class VideoAbsence extends BaseEntity {
 
-    /* Связь на тот же Record, к которому не хватает видео */
+    /* Связь на тот же UploadBatch, к которому не хватает видео */
     @OneToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "upload_batch_id", unique = true)
     private UploadBatch uploadBatch;
@@ -30,11 +30,11 @@ public class VideoAbsence extends BaseEntity {
 
     }
 
-    public UploadBatch getRecord() {
+    public UploadBatch getUploadBatch() {
         return uploadBatch;
     }
 
-    public void setRecord(UploadBatch uploadBatch) {
+    public void setUploadBatch(UploadBatch uploadBatch) {
         this.uploadBatch = uploadBatch;
     }
 

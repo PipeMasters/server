@@ -1,19 +1,18 @@
 package com.pipemasters.server.mapper;
 
 import com.pipemasters.server.dto.BranchDto;
-import com.pipemasters.server.dto.RecordDto;
+import com.pipemasters.server.dto.UploadBatchDto;
 import com.pipemasters.server.dto.TrainDto;
 import com.pipemasters.server.dto.UserDto;
 import com.pipemasters.server.entity.*;
-import com.pipemasters.server.entity.Record;
-import com.pipemasters.server.entity.enums.AbsenceCause;
+import com.pipemasters.server.entity.UploadBatch;
 import com.pipemasters.server.entity.enums.FileType;
 import com.pipemasters.server.entity.enums.Role;
+import com.pipemasters.server.repository.MediaFileRepository;
 import org.junit.jupiter.api.Test;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -22,19 +21,20 @@ import java.time.LocalDate;
 import java.util.*;
 
 @SpringBootTest
-public class RecordMappingTest {
+public class UploadBatchMappingTest {
 
     @Autowired
     private ModelMapper modelMapper;
-
+    @Autowired
+    private MediaFileRepository mediaFileRepository;
     @Test
-    void shouldMapRecordToDtoCorrectly() {
+    void shouldMapUploadBatchToDtoCorrectly() {
         Branch parentBranch = new Branch("Parent Branch", null);
         Branch branch = new Branch("Child Branch", parentBranch);
         User user = new User("Иван", "Иванов", "Иванович", Set.of(Role.USER), branch);
         Train train = new Train(123L, "Route 123", 5, "Chief");
 
-        Record record = new Record(
+        UploadBatch UploadBatch = new UploadBatch(
                 UUID.randomUUID(),
                 user,
                 Instant.parse("2024-01-01T10:00:00Z"),
@@ -48,19 +48,19 @@ public class RecordMappingTest {
                 List.of()
         );
 
-        RecordDto dto = modelMapper.map(record, RecordDto.class);
+        UploadBatchDto dto = modelMapper.map(UploadBatch, UploadBatchDto.class);
 
-        assertEquals(record.getDirectory().toString(), dto.getDirectory());
-        assertEquals(record.getUploadedBy().getName(), dto.getUploadedBy().getName());
-        assertEquals(record.getTrainDeparted(), dto.getTrainDeparted());
-        assertEquals(record.getBranch().getName(), dto.getBranch().getName());
-        assertEquals(record.getKeywords(), dto.getKeywords());
+        assertEquals(UploadBatch.getDirectory().toString(), dto.getDirectory());
+        assertEquals(UploadBatch.getUploadedBy().getName(), dto.getUploadedBy().getName());
+        assertEquals(UploadBatch.getTrainDeparted(), dto.getTrainDeparted());
+        assertEquals(UploadBatch.getBranch().getName(), dto.getBranch().getName());
+        assertEquals(UploadBatch.getKeywords(), dto.getKeywords());
         assertNull(dto.getAbsence()); // проверка отключенной рекурсии
         assertTrue(dto.getFiles().isEmpty());
     }
 
     @Test
-    void shouldMapDtoToRecordCorrectly() {
+    void shouldMapDtoToUploadBatchCorrectly() {
         BranchDto parentBranchDto = new BranchDto();
         parentBranchDto.setName("Parent Branch");
 
@@ -74,7 +74,7 @@ public class RecordMappingTest {
         trainDto.setTrainNumber(123L);
         trainDto.setRouteMessage("Route 123");
 
-        RecordDto dto = new RecordDto(
+        UploadBatchDto dto = new UploadBatchDto(
                 UUID.randomUUID().toString(),
                 userDto,
                 Instant.parse("2024-01-01T10:00:00Z"),
@@ -89,13 +89,13 @@ public class RecordMappingTest {
                 null // отсутствие
         );
 
-        Record record = modelMapper.map(dto, Record.class);
+        UploadBatch UploadBatch = modelMapper.map(dto, UploadBatch.class);
 
-        assertEquals(UUID.fromString(dto.getDirectory()), record.getDirectory());
-        assertEquals(dto.getUploadedBy().getName(), record.getUploadedBy().getName());
-        assertEquals(dto.getTrainDeparted(), record.getTrainDeparted());
-        assertEquals(dto.getBranch().getName(), record.getBranch().getName());
-        assertTrue(record.getFiles().isEmpty());
+        assertEquals(UUID.fromString(dto.getDirectory()), UploadBatch.getDirectory());
+        assertEquals(dto.getUploadedBy().getName(), UploadBatch.getUploadedBy().getName());
+        assertEquals(dto.getTrainDeparted(), UploadBatch.getTrainDeparted());
+        assertEquals(dto.getBranch().getName(), UploadBatch.getBranch().getName());
+        assertTrue(UploadBatch.getFiles().isEmpty());
     }
 
     @Test
@@ -109,11 +109,11 @@ public class RecordMappingTest {
     }
 
     @Test
-    void shouldAvoidRecursionInRecordDto() {
+    void shouldAvoidRecursionInUploadBatchDto() {
         Branch branch = new Branch("Branch", null);
         User user = new User("Иван", "Иванов", "Иванович", Set.of(Role.USER), branch);
         Train train = new Train(123L, "Route", 4, "Chief");
-        Record record = new Record(
+        UploadBatch UploadBatch = new UploadBatch(
                 UUID.randomUUID(),
                 user,
                 Instant.now(),
@@ -127,7 +127,29 @@ public class RecordMappingTest {
                 new ArrayList<>()
         );
 
-        RecordDto dto = modelMapper.map(record, RecordDto.class);
+        UploadBatchDto dto = modelMapper.map(UploadBatch, UploadBatchDto.class);
         assertNull(dto.getAbsence(), "Поле absence должно быть null, чтобы избежать рекурсии");
     }
+
+        @Test
+        void saveMediaFileWithEmptyFilenameThrowsException() {
+            Branch branch = new Branch("Branch", null);
+            User user = new User("Иван", "Иванов", "Иванович", Set.of(Role.USER), branch);
+            Train train = new Train(123L, "Route", 4, "Chief");
+            UploadBatch batch = new UploadBatch(
+                    UUID.randomUUID(),
+                    user,
+                    Instant.now(),
+                    LocalDate.now(),
+                    train,
+                    "Комментарий",
+                    Set.of("тест"),
+                    branch,
+                    null,
+                    false,
+                    new ArrayList<>()
+            );
+            MediaFile file = new MediaFile("", FileType.VIDEO, batch);
+            assertThrows(Exception.class, () -> mediaFileRepository.save(file));
+        }
 }

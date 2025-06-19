@@ -2,30 +2,37 @@ package com.pipemasters.server.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.pipemasters.server.entity.*;
+import jakarta.validation.constraints.NotNull;
 
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.*;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class RecordDto extends BaseDto{
+public class UploadBatchDto extends BaseDto{
+    @NotNull(message = "Directory cannot be empty")
     private String directory;
+    @NotNull(message = "UploadedBy cannot be empty")
     private UserDto uploadedBy;
+    @NotNull(message = "CreatedAt cannot be empty")
     private Instant createdAt;
+    @NotNull(message = "TrainDeparted cannot be empty")
     private LocalDate trainDeparted;
+    @NotNull(message = "Train cannot be empty")
     private TrainDto train;
     private String comment;
     private Set<String> keywords = new HashSet<>();
+    @NotNull(message = "Branch cannot be empty")
     private BranchDto branch;
     private Instant deletedAt;
     private boolean deleted;
     private List<MediaFileDto> files = new ArrayList<>();
     private VideoAbsenceDto absence;
 
-    public RecordDto() {
+    public UploadBatchDto() {
     }
 
-    public RecordDto( String directory, UserDto uploadedBy, Instant createdAt, LocalDate trainDeparted,
+    public UploadBatchDto( String directory, UserDto uploadedBy, Instant createdAt, LocalDate trainDeparted,
                      TrainDto train, String comment, Set<String> keywords, BranchDto branch,
                      Instant deletedAt, boolean deleted, List<MediaFileDto> files, VideoAbsenceDto absence) {
         this.directory = directory;

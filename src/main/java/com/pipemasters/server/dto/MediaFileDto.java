@@ -14,19 +14,20 @@ public class MediaFileDto extends BaseDto{
     private FileType fileType;
     @NotNull(message = "UploadedAt cannot be empty")
     private Instant uploadedAt;
-    @NotNull(message = "Source cannot be empty")
+//    @NotNull(message = "Source cannot be empty")
     private MediaFileDto source;
-    private RecordDto record;
+    @NotNull(message = "ToDate cannot be empty")
+    private UploadBatchDto uploadBatch;
 
     public MediaFileDto() {
     }
 
-    public MediaFileDto( String filename, FileType fileType, Instant uploadedAt, MediaFileDto source, RecordDto record) {
+    public MediaFileDto( String filename, FileType fileType, Instant uploadedAt, MediaFileDto source, UploadBatchDto uploadBatch) {
         this.filename = filename;
         this.fileType = fileType;
         this.uploadedAt = uploadedAt;
         this.source = source;
-        this.record = record;
+        this.uploadBatch = uploadBatch;
     }
 
     public String getFilename() {
@@ -61,11 +62,11 @@ public class MediaFileDto extends BaseDto{
         this.source = source;
     }
 
-    public RecordDto getRecord() {
-        return record;
+    public UploadBatchDto getUploadBatch() {
+        return uploadBatch;
     }
 
-    public void setRecord(RecordDto record) {
-        this.record = record;
+    public void setUploadBatch(UploadBatchDto uploadBatch) {
+        this.uploadBatch = uploadBatch;
     }
 }

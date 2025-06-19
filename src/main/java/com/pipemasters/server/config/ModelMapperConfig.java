@@ -1,12 +1,13 @@
 package com.pipemasters.server.config;
 
 import com.pipemasters.server.dto.DelegationDTO;
+import com.pipemasters.server.dto.UploadBatchDto;
 import com.pipemasters.server.entity.Delegation;
 import com.pipemasters.server.dto.BranchDto;
 import com.pipemasters.server.dto.MediaFileDto;
-import com.pipemasters.server.dto.RecordDto;
 import com.pipemasters.server.entity.Branch;
 import com.pipemasters.server.entity.MediaFile;
+import com.pipemasters.server.entity.UploadBatch;
 import org.modelmapper.ModelMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -20,6 +21,7 @@ public class ModelMapperConfig {
         modelMapper.typeMap(Delegation.class, DelegationDTO.class)
                 .addMapping(e -> e.getDelegator().getId(), DelegationDTO::setDelegatorId)
                 .addMapping(e -> e.getSubstitute().getId(), DelegationDTO::setSubstituteId);
+
         configureBranchMapping(modelMapper);
 //        configureRecordMapping(modelMapper);
 //        configureRecordMapping(modelMapper);
@@ -44,10 +46,10 @@ public class ModelMapperConfig {
     }
 
     private void configureRecordMapping(ModelMapper modelMapper) {
-        modelMapper.typeMap(Record.class, RecordDto.class)
+        modelMapper.typeMap(UploadBatch.class, UploadBatchDto.class)
                 .addMappings(mapper -> {
-                    mapper.skip(RecordDto::setAbsence);
-                    mapper.skip(RecordDto::setFiles);
+                    mapper.skip(UploadBatchDto::setAbsence);
+                    mapper.skip(UploadBatchDto::setFiles);
                 });
     }
 }
