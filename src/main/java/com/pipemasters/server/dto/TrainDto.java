@@ -13,6 +13,8 @@ public class TrainDto {
         this.chief = chief;
     }
 
+    public TrainDto() {
+    }
 
     public Long getTrainNumber() {
         return trainNumber;
