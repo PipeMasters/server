@@ -1,14 +1,9 @@
 package com.pipemasters.server.config;
 
-import com.pipemasters.server.dto.DelegationDto;
-import com.pipemasters.server.dto.UploadBatchDto;
-import com.pipemasters.server.entity.Delegation;
-import com.pipemasters.server.dto.BranchDto;
-import com.pipemasters.server.dto.MediaFileDto;
-import com.pipemasters.server.entity.Branch;
-import com.pipemasters.server.entity.MediaFile;
-import com.pipemasters.server.entity.UploadBatch;
+import com.pipemasters.server.dto.*;
+import com.pipemasters.server.entity.*;
 import org.modelmapper.ModelMapper;
+import org.modelmapper.TypeMap;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -23,8 +18,9 @@ public class ModelMapperConfig {
                 .addMapping(e -> e.getSubstitute().getId(), DelegationDto::setSubstituteId);
 
         configureBranchMapping(modelMapper);
-//        configureRecordMapping(modelMapper);
-//        configureRecordMapping(modelMapper);
+        configureMediaFileMapping(modelMapper);
+//        configureUploadBatchMapping(modelMapper);
+        configureVideoAbsenceDtoMapping(modelMapper);
 
 
         modelMapper.validate();
@@ -39,17 +35,30 @@ public class ModelMapperConfig {
     }
 
     private void configureMediaFileMapping(ModelMapper modelMapper) {
-        modelMapper.typeMap(MediaFile.class, MediaFileDto.class)
-                .addMappings(mapper -> {
-                    mapper.skip(MediaFileDto::setSource);
-                });
+        TypeMap<MediaFile, MediaFileDto> typeMap = modelMapper.createTypeMap(MediaFile.class, MediaFileDto.class);
+
+        typeMap.addMappings(mapper -> {
+            mapper.map(MediaFile::getFilename, MediaFileDto::setFilename);
+            mapper.map(MediaFile::getFileType, MediaFileDto::setFileType);
+            mapper.map(MediaFile::getUploadedAt, MediaFileDto::setUploadedAt);
+
+            mapper.skip(MediaFileDto::setSource);
+            mapper.skip(MediaFileDto::setUploadBatch);
+        });
     }
 
-    private void configureRecordMapping(ModelMapper modelMapper) {
+    private void configureUploadBatchMapping(ModelMapper modelMapper) {
         modelMapper.typeMap(UploadBatch.class, UploadBatchDto.class)
                 .addMappings(mapper -> {
                     mapper.skip(UploadBatchDto::setAbsence);
                     mapper.skip(UploadBatchDto::setFiles);
+                });
+    }
+
+    private void configureVideoAbsenceDtoMapping(ModelMapper modelMapper) {
+        modelMapper.typeMap(VideoAbsence.class, VideoAbsenceDto.class)
+                .addMappings(mapper -> {
+                    mapper.skip(VideoAbsenceDto::setUploadBatch);
                 });
     }
 }
