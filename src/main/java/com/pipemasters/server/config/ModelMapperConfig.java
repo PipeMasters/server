@@ -1,6 +1,6 @@
 package com.pipemasters.server.config;
 
-import com.pipemasters.server.dto.DelegationDTO;
+import com.pipemasters.server.dto.DelegationDto;
 import com.pipemasters.server.dto.UploadBatchDto;
 import com.pipemasters.server.entity.Delegation;
 import com.pipemasters.server.dto.BranchDto;
@@ -18,9 +18,9 @@ public class ModelMapperConfig {
     public ModelMapper modelMapper() {
         ModelMapper modelMapper = new ModelMapper();
 
-        modelMapper.typeMap(Delegation.class, DelegationDTO.class)
-                .addMapping(e -> e.getDelegator().getId(), DelegationDTO::setDelegatorId)
-                .addMapping(e -> e.getSubstitute().getId(), DelegationDTO::setSubstituteId);
+        modelMapper.typeMap(Delegation.class, DelegationDto.class)
+                .addMapping(e -> e.getDelegator().getId(), DelegationDto::setDelegatorId)
+                .addMapping(e -> e.getSubstitute().getId(), DelegationDto::setSubstituteId);
 
         configureBranchMapping(modelMapper);
 //        configureRecordMapping(modelMapper);

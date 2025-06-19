@@ -6,7 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class DelegationDTO {
+public class DelegationDto {
     @NotNull(message = "DelegatorId cannot be empty")
     private Long delegatorId;
     @NotNull(message = "SubstituteId cannot be empty")
@@ -16,13 +16,13 @@ public class DelegationDTO {
     @NotNull(message = "ToDate cannot be empty")
     private LocalDate toDate;
 
-    public DelegationDTO(Long delegatorId, Long substituteId, LocalDate fromDate, LocalDate toDate) {
+    public DelegationDto(Long delegatorId, Long substituteId, LocalDate fromDate, LocalDate toDate) {
         this.delegatorId = delegatorId;
         this.substituteId = substituteId;
         this.fromDate = fromDate;
         this.toDate = toDate;
     }
-    public DelegationDTO() {}
+    public DelegationDto() {}
 
     public Long getDelegatorId() {
         return delegatorId;
@@ -58,7 +58,7 @@ public class DelegationDTO {
 
     @Override
     public String toString() {
-        return "DelegationDTO{" +
+        return "DelegationDto{" +
                 "delegatorId=" + delegatorId +
                 ", substituteId=" + substituteId +
                 ", fromDate=" + fromDate +
