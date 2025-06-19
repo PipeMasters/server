@@ -7,7 +7,7 @@ import java.time.LocalDate;
 import java.util.*;
 
 @Entity
-@Table(name = "upload_batches", indexes = {@Index(columnList = "directory"), @Index(columnList = "branch_id"), @Index(columnList = "trainDeparted")})
+@Table(name = "upload_batches", indexes = {@Index(columnList = "directory"), @Index(columnList = "branch_id"), @Index(columnList = "train_departed")})
 public class UploadBatch extends BaseEntity {
 
     /* UUID папки в S3 */
@@ -74,7 +74,7 @@ public class UploadBatch extends BaseEntity {
         this.files = files;
     }
 
-    protected UploadBatch() {
+    public UploadBatch() {
     }
 
     public UUID getDirectory() {
@@ -165,4 +165,11 @@ public class UploadBatch extends BaseEntity {
         this.files = files;
     }
 
+    public VideoAbsence getAbsence() {
+        return absence;
+    }
+
+    public void setAbsence(VideoAbsence absence) {
+        this.absence = absence;
+    }
 }

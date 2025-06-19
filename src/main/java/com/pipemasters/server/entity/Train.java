@@ -7,7 +7,7 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "trains",
-        indexes = {@Index(columnList = "trainNumber")})
+        indexes = {@Index(columnList = "train_number")})
 public class Train extends BaseEntity {
 
     @Column(nullable = false)

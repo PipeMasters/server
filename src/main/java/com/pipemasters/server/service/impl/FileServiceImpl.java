@@ -6,6 +6,8 @@ import com.pipemasters.server.entity.MediaFile;
 import com.pipemasters.server.repository.MediaFileRepository;
 import com.pipemasters.server.repository.UploadBatchRepository;
 import com.pipemasters.server.service.FileService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
@@ -28,8 +30,9 @@ public class FileServiceImpl implements FileService {
     private final String minioBucketName;
     private final MediaFileRepository mediaFileRepository;
     private final UploadBatchRepository uploadBatchRepository;
+    private final Logger logger = LoggerFactory.getLogger(FileServiceImpl.class);
 
-    @Autowired
+    //    @Autowired
     public FileServiceImpl(S3Presigner s3Presigner, String minioBucketName, MediaFileRepository mediaFileRepository, UploadBatchRepository uploadBatchRepository) {
         this.s3Presigner = s3Presigner;
         this.minioBucketName = minioBucketName;
@@ -43,17 +46,20 @@ public class FileServiceImpl implements FileService {
         UploadBatch uploadBatch = uploadBatchRepository.findById(fileUploadRequestDTO.getUploadBatchId())
                 .orElseThrow(() -> new RuntimeException("UploadBatch not found with ID: " + fileUploadRequestDTO.getUploadBatchId()));
 
-        String s3Key = minioBucketName + "/" + uploadBatch.getDirectory() + "/" + UUID.randomUUID() + "_" + fileUploadRequestDTO.getFilename();
-
+        String s3Key = fileUploadRequestDTO.getFilename();
+        logger.debug("Generated S3 key: {}", uploadBatch.getDirectory() + "/" + s3Key);
         MediaFile mediaFile = new MediaFile();
         mediaFile.setFilename(s3Key);
         mediaFile.setFileType(fileUploadRequestDTO.getFileType());
         mediaFile.setUploadBatch(uploadBatch);
+        if (fileUploadRequestDTO.getSourceId() != null) {
+            mediaFile.setSource(mediaFileRepository.findById(fileUploadRequestDTO.getSourceId()).orElseThrow(() -> new RuntimeException("Source MediaFile not found with ID: " + fileUploadRequestDTO.getSourceId())));
+        }
         mediaFileRepository.save(mediaFile);
 
         PutObjectRequest putObjectRequest = PutObjectRequest.builder()
                 .bucket(minioBucketName)
-                .key(s3Key)
+                .key(uploadBatch.getDirectory() + "/" + s3Key)
                 .build();
 
         PutObjectPresignRequest presignRequest = PutObjectPresignRequest.builder()
@@ -66,12 +72,13 @@ public class FileServiceImpl implements FileService {
     }
 
     @Override
+    @Transactional
     public String generatePresignedDownloadUrl(Long mediaFileId) {
         MediaFile mediaFile = mediaFileRepository.findById(mediaFileId)
                 .orElseThrow(() -> new RuntimeException("MediaFile not found with ID: " + mediaFileId));
 
-        String s3Key = mediaFile.getFilename();
-
+        String s3Key = mediaFile.getUploadBatch().getDirectory() + "/" + mediaFile.getFilename();
+        logger.debug("Generated S3 key for download: {}", s3Key);
         GetObjectRequest getObjectRequest = GetObjectRequest.builder()
                 .bucket(minioBucketName)
                 .key(s3Key)

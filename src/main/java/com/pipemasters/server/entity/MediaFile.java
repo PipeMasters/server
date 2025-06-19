@@ -7,7 +7,7 @@ import java.time.Instant;
 
 @Entity
 @Table(name = "media_files",
-        indexes = {@Index(columnList = "UploadBatch_id")})
+        indexes = {@Index(columnList = "upload_batch_id")})
 public class MediaFile extends BaseEntity {
 
     @Column(nullable = false, length = 512)
@@ -26,7 +26,7 @@ public class MediaFile extends BaseEntity {
     private MediaFile source;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "UploadBatch_id")
+    @JoinColumn(name = "upload_batch_id")
     private UploadBatch uploadBatch;
 
     public MediaFile(String filename, FileType fileType, UploadBatch uploadBatch) {
