@@ -27,7 +27,7 @@ jobs:
           ENV_FILE="/opt/dev/env"
 
           if [[ ! -f "$ENV_FILE" ]]; then
-            echo "::error::Файл $ENV_FILE не найден"
+            echo "::error::File $ENV_FILE not found"
             exit 1
           fi
 
