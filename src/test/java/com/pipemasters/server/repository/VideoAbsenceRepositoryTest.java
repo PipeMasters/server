@@ -67,7 +67,7 @@ public class VideoAbsenceRepositoryTest {
         assertNotNull(saved.getId());
         assertEquals(AbsenceCause.DEVICE_FAILURE, saved.getCause());
         assertEquals("Camera broken", saved.getComment());
-        assertEquals(batch.getId(), saved.getRecord().getId());
+        assertEquals(batch.getId(), saved.getUploadBatch().getId());
     }
 
     @Test

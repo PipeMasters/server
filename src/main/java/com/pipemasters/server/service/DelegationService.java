@@ -1,7 +1,7 @@
 package com.pipemasters.server.service;
 
-import com.pipemasters.server.dto.DelegationDTO;
+import com.pipemasters.server.dto.DelegationDto;
 
 public interface DelegationService {
-    public DelegationDTO delegate(DelegationDTO delegationDTO);
+    public DelegationDto delegate(DelegationDto delegationDTO);
 }

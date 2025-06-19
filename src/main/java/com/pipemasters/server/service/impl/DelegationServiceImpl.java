@@ -1,6 +1,6 @@
 package com.pipemasters.server.service.impl;
 
-import com.pipemasters.server.dto.DelegationDTO;
+import com.pipemasters.server.dto.DelegationDto;
 import com.pipemasters.server.entity.Delegation;
 import com.pipemasters.server.entity.User;
 import com.pipemasters.server.repository.DelegationRepository;
@@ -22,7 +22,7 @@ public class DelegationServiceImpl implements DelegationService {
     }
 
     @Override
-    public DelegationDTO delegate(DelegationDTO delegationDTO) {
+    public DelegationDto delegate(DelegationDto delegationDTO) {
         if (delegationDTO.getFromDate() == null || delegationDTO.getToDate() == null) {
             throw new IllegalArgumentException("Start date or/and end date cannot be null");
         }
@@ -36,6 +36,6 @@ public class DelegationServiceImpl implements DelegationService {
         Delegation delegation = new Delegation(delegator, substitute, delegationDTO.getFromDate(), delegationDTO.getToDate());
         delegationRepository.save(delegation);
 
-        return modelMapper.map(delegation, DelegationDTO.class);
+        return modelMapper.map(delegation, DelegationDto.class);
     }
 }

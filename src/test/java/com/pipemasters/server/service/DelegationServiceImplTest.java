@@ -1,6 +1,6 @@
 package com.pipemasters.server.service;
 
-import com.pipemasters.server.dto.DelegationDTO;
+import com.pipemasters.server.dto.DelegationDto;
 import com.pipemasters.server.entity.Delegation;
 import com.pipemasters.server.entity.User;
 import com.pipemasters.server.repository.DelegationRepository;
@@ -40,7 +40,7 @@ class DelegationServiceImplTest {
 
     @Test
     void delegateShouldThrowExceptionWhenStartDateIsAfterEndDate() {
-        DelegationDTO delegationDTO = new DelegationDTO();
+        DelegationDto delegationDTO = new DelegationDto();
         delegationDTO.setFromDate(LocalDate.of(2023, 10, 10));
         delegationDTO.setToDate(LocalDate.of(2023, 10, 5));
 
@@ -49,7 +49,7 @@ class DelegationServiceImplTest {
 
     @Test
     void delegateShouldThrowExceptionWhenStartDateOrEndDateIsNull() {
-        DelegationDTO delegationDTO = new DelegationDTO();
+        DelegationDto delegationDTO = new DelegationDto();
         delegationDTO.setFromDate(null);
         delegationDTO.setToDate(LocalDate.of(2023, 10, 10));
 
@@ -63,7 +63,7 @@ class DelegationServiceImplTest {
 
     @Test
     void delegateShouldThrowExceptionWhenDelegatorNotFound() {
-        DelegationDTO delegationDTO = new DelegationDTO();
+        DelegationDto delegationDTO = new DelegationDto();
         delegationDTO.setFromDate(LocalDate.of(2023, 10, 5));
         delegationDTO.setToDate(LocalDate.of(2023, 10, 10));
         delegationDTO.setDelegatorId(1L);
@@ -76,7 +76,7 @@ class DelegationServiceImplTest {
 
     @Test
     void delegateShouldThrowExceptionWhenSubstituteNotFound() {
-        DelegationDTO delegationDTO = new DelegationDTO();
+        DelegationDto delegationDTO = new DelegationDto();
         delegationDTO.setFromDate(LocalDate.of(2023, 10, 5));
         delegationDTO.setToDate(LocalDate.of(2023, 10, 10));
         delegationDTO.setDelegatorId(1L);
@@ -89,8 +89,8 @@ class DelegationServiceImplTest {
     }
 
     @Test
-    void delegateShouldSaveDelegationAndReturnDelegationDTO() {
-        DelegationDTO delegationDTO = new DelegationDTO();
+    void delegateShouldSaveDelegationAndReturnDelegationDto() {
+        DelegationDto delegationDTO = new DelegationDto();
         delegationDTO.setFromDate(LocalDate.of(2023, 10, 5));
         delegationDTO.setToDate(LocalDate.of(2023, 10, 10));
         delegationDTO.setDelegatorId(1L);
@@ -99,15 +99,15 @@ class DelegationServiceImplTest {
         User delegator = new User();
         User substitute = new User();
         Delegation delegation = new Delegation(delegator, substitute, delegationDTO.getFromDate(), delegationDTO.getToDate());
-        DelegationDTO expectedDelegationDTO = new DelegationDTO();
+        DelegationDto expectedDelegationDto = new DelegationDto();
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(delegator));
         when(userRepository.findById(2L)).thenReturn(Optional.of(substitute));
         when(delegationRepository.save(any(Delegation.class))).thenReturn(delegation);
-        when(modelMapper.map(any(Delegation.class), eq(DelegationDTO.class))).thenReturn(expectedDelegationDTO);
+        when(modelMapper.map(any(Delegation.class), eq(DelegationDto.class))).thenReturn(expectedDelegationDto);
 
-        DelegationDTO result = delegationService.delegate(delegationDTO);
+        DelegationDto result = delegationService.delegate(delegationDTO);
 
-        assertEquals(expectedDelegationDTO, result);
+        assertEquals(expectedDelegationDto, result);
     }
 }
