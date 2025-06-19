@@ -2,8 +2,10 @@ package com.pipemasters.server.service.impl;
 
 import com.pipemasters.server.dto.FileUploadRequestDto;
 import com.pipemasters.server.entity.MediaFile;
+import com.pipemasters.server.entity.UploadBatch;
 import com.pipemasters.server.entity.enums.FileType;
 import com.pipemasters.server.repository.MediaFileRepository;
+import com.pipemasters.server.repository.UploadBatchRepository;
 import com.pipemasters.server.service.AudioService;
 import com.pipemasters.server.service.FileService;
 import org.slf4j.Logger;
@@ -30,14 +32,16 @@ import java.util.concurrent.CompletableFuture;
 public class AudioServiceImpl implements AudioService {
 
     private final MediaFileRepository mediaFileRepository;
+    private final UploadBatchRepository uploadBatchRepository;
     private final FileService fileService;
     private final Logger log = LoggerFactory.getLogger(AudioServiceImpl.class);
     private final HttpClient httpClient = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(30))
             .build();
 
-    public AudioServiceImpl(MediaFileRepository mediaFileRepository, FileService fileService) {
+    public AudioServiceImpl(MediaFileRepository mediaFileRepository, UploadBatchRepository uploadBatchRepository, FileService fileService) {
         this.mediaFileRepository = mediaFileRepository;
+        this.uploadBatchRepository = uploadBatchRepository;
         this.fileService = fileService;
     }
 
@@ -110,6 +114,21 @@ public class AudioServiceImpl implements AudioService {
                 safeDelete(audioFile);
             }
         });
+    }
+
+    @Override
+    @Transactional
+    public void processUploadedVideo(String uuid, String filename) {
+            UploadBatch uploadBatch = uploadBatchRepository.findByDirectory(UUID.fromString(uuid))
+                    .orElseThrow(() -> new IllegalArgumentException("Upload batch not found for UUID: " + uuid));
+            uploadBatch.getFiles().forEach(f ->{
+                if (f.getFilename().equals(filename)) {
+                    log.debug("Processing file: {}", f.getFilename());
+                    extractAudio(f.getId());
+                } else {
+                    log.debug("Skipping file: {}", f.getFilename());
+                }
+            });
     }
 
 
