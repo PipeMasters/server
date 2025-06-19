@@ -41,7 +41,7 @@ public class User extends BaseEntity {
         this.branch = branch;
     }
 
-    protected User() {
+    public User() {
     }
 
     public String getName() {
@@ -82,5 +82,16 @@ public class User extends BaseEntity {
 
     public void setBranch(Branch branch) {
         this.branch = branch;
+    }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "name='" + name + '\'' +
+                ", surname='" + surname + '\'' +
+                ", patronymic='" + patronymic + '\'' +
+                ", roles=" + roles +
+                ", branch=" + branch +
+                '}';
     }
 }

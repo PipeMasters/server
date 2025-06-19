@@ -13,11 +13,11 @@ public class Train extends BaseEntity {
     @Column(nullable = false)
     private Long trainNumber;           // № поезда
 
-    @Column(length = 256)
+    @Column(length = 256, nullable = false)
     private String routeMessage;        // например «Москва — Сочи»
 
     private Integer consistCount;       // кол-во составов
-
+    @Column(nullable = false)
     private String chief;               // Ф. И. О. начальника
 
     public Train(Long trainNumber, String routeMessage, Integer consistCount, String chief) {

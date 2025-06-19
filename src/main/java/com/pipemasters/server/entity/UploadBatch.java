@@ -7,8 +7,8 @@ import java.time.LocalDate;
 import java.util.*;
 
 @Entity
-@Table(name = "records", indexes = {@Index(columnList = "directory"), @Index(columnList = "branch_id"), @Index(columnList = "trainDeparted")})
-public class Record extends BaseEntity {
+@Table(name = "upload_batches", indexes = {@Index(columnList = "directory"), @Index(columnList = "branch_id"), @Index(columnList = "trainDeparted")})
+public class UploadBatch extends BaseEntity {
 
     /* UUID папки в S3 */
     @Column(nullable = false, unique = true, columnDefinition = "uuid")
@@ -36,7 +36,7 @@ public class Record extends BaseEntity {
 
     /* ключевые слова для полнотекстового поиска */
     @ElementCollection
-    @CollectionTable(name = "record_keywords", joinColumns = @JoinColumn(name = "record_id"))
+    @CollectionTable(name = "upload_batch_keywords", joinColumns = @JoinColumn(name = "upload_batch_id"))
     @Column(name = "keyword")
     private Set<String> keywords = new HashSet<>();
 
@@ -50,17 +50,17 @@ public class Record extends BaseEntity {
     private boolean deleted;
 
     /* файлы, каскад + orphanRemoval */
-    @OneToMany(mappedBy = "record", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "uploadBatch", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<MediaFile> files = new ArrayList<>();
 
-    @OneToOne(mappedBy = "record",
+    @OneToOne(mappedBy = "uploadBatch",
             cascade = CascadeType.ALL,
             orphanRemoval = true,
             fetch = FetchType.LAZY)
     private VideoAbsence absence;
 
 
-    public Record(UUID directory, User uploadedBy, Instant createdAt, LocalDate trainDeparted, Train train, String comment, Set<String> keywords, Branch branch, Instant deletedAt, boolean deleted, List<MediaFile> files) {
+    public UploadBatch(UUID directory, User uploadedBy, Instant createdAt, LocalDate trainDeparted, Train train, String comment, Set<String> keywords, Branch branch, Instant deletedAt, boolean deleted, List<MediaFile> files) {
         this.directory = directory;
         this.uploadedBy = uploadedBy;
         this.createdAt = createdAt;
@@ -74,7 +74,7 @@ public class Record extends BaseEntity {
         this.files = files;
     }
 
-    protected Record() {
+    protected UploadBatch() {
     }
 
     public UUID getDirectory() {

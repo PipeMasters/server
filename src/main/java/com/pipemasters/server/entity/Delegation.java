@@ -60,4 +60,14 @@ public class Delegation extends BaseEntity {
     public void setToDate(LocalDate toDate) {
         this.toDate = toDate;
     }
+
+    @Override
+    public String toString() {
+        return "Delegation{" +
+                "delegator=" + delegator +
+                ", substitute=" + substitute +
+                ", fromDate=" + fromDate +
+                ", toDate=" + toDate +
+                '}';
+    }
 }
