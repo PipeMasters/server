@@ -1,6 +1,6 @@
 package com.pipemasters.server.controller;
 
-import com.pipemasters.server.dto.DelegationDTO;
+import com.pipemasters.server.dto.DelegationDto;
 import com.pipemasters.server.service.DelegationService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,7 +19,7 @@ public class DelegationController {
     }
 
     @PostMapping("/delegate")
-    public ResponseEntity<DelegationDTO> delegate(@RequestBody DelegationDTO delegationDTO) {
-        return new ResponseEntity<DelegationDTO>(delegationService.delegate(delegationDTO), HttpStatus.CREATED);
+    public ResponseEntity<DelegationDto> delegate(@RequestBody DelegationDto delegationDTO) {
+        return new ResponseEntity<DelegationDto>(delegationService.delegate(delegationDTO), HttpStatus.CREATED);
     }
 }
