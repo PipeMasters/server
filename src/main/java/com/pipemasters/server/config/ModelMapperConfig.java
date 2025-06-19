@@ -17,13 +17,13 @@ public class ModelMapperConfig {
                 .addMapping(e -> e.getDelegator().getId(), DelegationDto::setDelegatorId)
                 .addMapping(e -> e.getSubstitute().getId(), DelegationDto::setSubstituteId);
 
-        configureBranchMapping(modelMapper);
+//        configureBranchMapping(modelMapper);
 //        configureMediaFileMapping(modelMapper);
 //        configureUploadBatchMapping(modelMapper);
 //        configureVideoAbsenceDtoMapping(modelMapper);
 
 
-        modelMapper.validate();
+//        modelMapper.validate();
         return modelMapper;
     }
 

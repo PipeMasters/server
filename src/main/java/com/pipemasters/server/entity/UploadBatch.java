@@ -164,4 +164,5 @@ public class UploadBatch extends BaseEntity {
     public void setFiles(List<MediaFile> files) {
         this.files = files;
     }
+
 }
