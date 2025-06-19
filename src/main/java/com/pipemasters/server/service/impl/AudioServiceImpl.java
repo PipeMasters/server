@@ -119,22 +119,29 @@ public class AudioServiceImpl implements AudioService {
     @Override
     @Transactional
     public void processUploadedVideo(String uuid, String filename) {
-            UploadBatch uploadBatch = uploadBatchRepository.findByDirectory(UUID.fromString(uuid))
-                    .orElseThrow(() -> new IllegalArgumentException("Upload batch not found for UUID: " + uuid));
-            uploadBatch.getFiles().forEach(f ->{
-                if (f.getFilename().equals(filename)) {
-                    log.debug("Processing file: {}", f.getFilename());
-                    extractAudio(f.getId());
-                } else {
-                    log.debug("Skipping file: {}", f.getFilename());
-                }
-            });
+        MediaFile mediaFile = mediaFileRepository.findByFilenameAndUploadBatchDirectory(filename, UUID.fromString(uuid))
+                .orElseThrow(() -> new IllegalArgumentException("Media file not found: " + filename + " in batch " + uuid));
+        extractAudio(mediaFile.getId());
+
+//        UploadBatch uploadBatch = uploadBatchRepository.findByDirectory(UUID.fromString(uuid))
+//                .orElseThrow(() -> new IllegalArgumentException("Upload batch not found for UUID: " + uuid));
+//        uploadBatch.getFiles().forEach(f -> {
+//            if (f.getFilename().equals(filename)) {
+//                log.debug("Processing file: {}", f.getFilename());
+//                extractAudio(f.getId());
+//            } else {
+//                log.debug("Skipping file: {}", f.getFilename());
+//            }
+//        });
     }
 
 
     private static void safeDelete(Path path) {
         if (path != null) {
-            try { Files.deleteIfExists(path); } catch (IOException ignored) { }
+            try {
+                Files.deleteIfExists(path);
+            } catch (IOException ignored) {
+            }
         }
     }
 }

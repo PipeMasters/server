@@ -35,7 +35,6 @@ public class AudioController {
 
         log.debug("Received MinIO event: {}", payload);
 
-        // ⚠️ если включали MINIO_NOTIFY_WEBHOOK_AUTH_TOKEN_audio, проверьте его здесь
         if (auth != null && !"Bearer my-super-secret".equals(auth)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
@@ -50,7 +49,7 @@ public class AudioController {
             String eventName = (String) record.get("eventName");
             if (eventName == null || !eventName.startsWith("s3:ObjectCreated")) {
                 log.debug("Skip event {}", eventName);
-                continue;                           // ← игнорируем Delete и все чужие события
+                continue;
             }
 
             Map<String, Object> s3      = (Map<String, Object>) record.get("s3");
@@ -76,7 +75,7 @@ public class AudioController {
             log.info("Uploaded file {} in dir {}", filename, uuid);
             try {
                 log.debug("Processing uploaded file: {}", filename);
-                audioService.processUploadedVideo(uuid, filename);   // ваша логика
+                audioService.processUploadedVideo(uuid, filename);
             } catch (Exception ex) {
                 log.error("Error while processing {}: {}", filename, ex.getMessage(), ex);
             }
