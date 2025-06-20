@@ -2,9 +2,10 @@ package com.pipemasters.server.service.impl;
 
 import com.pipemasters.server.dto.BranchDto;
 import com.pipemasters.server.entity.Branch;
+import com.pipemasters.server.exceptions.branch.BranchNotFoundException;
+import com.pipemasters.server.exceptions.branch.InvalidBranchHierarchyException;
 import com.pipemasters.server.repository.BranchRepository;
 import com.pipemasters.server.service.BranchService;
-import jakarta.persistence.EntityNotFoundException;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
@@ -24,7 +25,7 @@ public class BranchServiceImpl implements BranchService {
         Branch parent = null;
         if (branchDto.getParent() != null && branchDto.getParent().getId() != null) {
             parent = branchRepository.findById(branchDto.getParent().getId())
-                    .orElseThrow(() -> new EntityNotFoundException("Parent branch not found"));
+                    .orElseThrow(() -> new BranchNotFoundException("Parent branch not found with ID: " + branchDto.getParent().getId()));
         }
 
         Branch branch = new Branch(branchDto.getName(), parent);
@@ -35,7 +36,7 @@ public class BranchServiceImpl implements BranchService {
     @Override
     public BranchDto updateBranchName(Long id, String newName) {
         Branch branch = branchRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Branch not found"));
+                .orElseThrow(() -> new BranchNotFoundException("Branch not found with ID: " + id));
 
         branch.setName(newName);
         branch = branchRepository.save(branch);
@@ -45,12 +46,16 @@ public class BranchServiceImpl implements BranchService {
     @Override
     public BranchDto reassignParent(Long id, Long newParentId) {
         Branch branch = branchRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Branch not found"));
+                .orElseThrow(() -> new BranchNotFoundException("Branch not found with ID: " + id));
 
         Branch newParent = null;
         if (newParentId != null) {
             newParent = branchRepository.findById(newParentId)
-                    .orElseThrow(() -> new EntityNotFoundException("Parent not found"));
+                    .orElseThrow(() -> new BranchNotFoundException("New parent branch not found with ID: " + newParentId));
+        }
+
+        if (newParent != null && newParent.getId().equals(branch.getId())) {
+            throw new InvalidBranchHierarchyException("A branch cannot be its own parent.");
         }
 
         branch.setParent(newParent);
