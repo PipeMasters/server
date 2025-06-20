@@ -12,6 +12,7 @@ public class ModelMapperConfig {
     @Bean
     public ModelMapper modelMapper() {
         ModelMapper modelMapper = new ModelMapper();
+        modelMapper.getConfiguration().setSkipNullEnabled(true); // пропуск null полей
 
         modelMapper.typeMap(Delegation.class, DelegationDto.class)
                 .addMapping(e -> e.getDelegator().getId(), DelegationDto::setDelegatorId)
