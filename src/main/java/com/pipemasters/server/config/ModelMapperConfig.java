@@ -18,6 +18,10 @@ public class ModelMapperConfig {
                 .addMapping(e -> e.getDelegator().getId(), DelegationDto::setDelegatorId)
                 .addMapping(e -> e.getSubstitute().getId(), DelegationDto::setSubstituteId);
 
+        modelMapper.typeMap(Branch.class, BranchDto.class).addMappings(m ->
+                m.skip(BranchDto::setParent)
+        );
+
 //        configureBranchMapping(modelMapper);
 //        configureMediaFileMapping(modelMapper);
 //        configureUploadBatchMapping(modelMapper);

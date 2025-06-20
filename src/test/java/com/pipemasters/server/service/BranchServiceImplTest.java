@@ -1,0 +1,104 @@
+package com.pipemasters.server.service;
+
+import com.pipemasters.server.dto.BranchDto;
+import com.pipemasters.server.entity.Branch;
+import com.pipemasters.server.repository.BranchRepository;
+import com.pipemasters.server.service.impl.BranchServiceImpl;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.modelmapper.ModelMapper;
+
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+@ExtendWith(MockitoExtension.class)
+class BranchServiceImplTest {
+
+    @Mock
+    private BranchRepository branchRepository;
+
+    @Mock
+    private ModelMapper modelMapper;
+
+    @InjectMocks
+    private BranchServiceImpl branchService;
+
+    @Test
+    void createBranch_withParent() {
+        BranchDto inputDto = new BranchDto();
+        inputDto.setName("Child");
+        BranchDto parentDto = new BranchDto();
+        parentDto.setId(1L);
+        inputDto.setParent(parentDto);
+
+        Branch parent = new Branch("Parent", null);
+        parent.setId(1L);
+
+        Branch child = new Branch("Child", parent);
+        child.setId(2L);
+
+        when(branchRepository.findById(1L)).thenReturn(Optional.of(parent));
+        when(branchRepository.save(any())).thenReturn(child);
+        when(modelMapper.map(any(Branch.class), eq(BranchDto.class))).thenReturn(inputDto);
+
+        BranchDto result = branchService.createBranch(inputDto);
+
+        assertEquals("Child", result.getName());
+        verify(branchRepository).save(any());
+    }
+
+    @Test
+    void updateBranchName_success() {
+        Branch branch = new Branch("Old", null);
+        branch.setId(1L);
+
+        Branch updated = new Branch("New", null);
+        updated.setId(1L);
+
+        BranchDto resultDto = new BranchDto();
+        resultDto.setId(1L);
+        resultDto.setName("New");
+
+        when(branchRepository.findById(1L)).thenReturn(Optional.of(branch));
+        when(branchRepository.save(any())).thenReturn(updated);
+        when(modelMapper.map(any(Branch.class), eq(BranchDto.class))).thenReturn(resultDto);
+
+        BranchDto result = branchService.updateBranchName(1L, "New");
+
+        assertEquals("New", result.getName());
+    }
+
+    @Test
+    void reassignParent_success() {
+        Branch child = new Branch("Child", null);
+        child.setId(2L);
+
+        Branch newParent = new Branch("Parent", null);
+        newParent.setId(1L);
+
+        Branch reassigned = new Branch("Child", newParent);
+        reassigned.setId(2L);
+
+        BranchDto resultDto = new BranchDto();
+        resultDto.setId(2L);
+        resultDto.setName("Child");
+
+        when(branchRepository.findById(2L)).thenReturn(Optional.of(child));
+        when(branchRepository.findById(1L)).thenReturn(Optional.of(newParent));
+        when(branchRepository.save(any())).thenReturn(reassigned);
+        when(modelMapper.map(any(Branch.class), eq(BranchDto.class))).thenReturn(resultDto);
+
+        BranchDto result = branchService.reassignParent(2L, 1L);
+
+        assertEquals(2L, result.getId());
+        verify(branchRepository).save(any());
+    }
+}
