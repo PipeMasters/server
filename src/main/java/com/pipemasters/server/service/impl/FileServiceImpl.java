@@ -48,6 +48,9 @@ public class FileServiceImpl implements FileService {
 
         String s3Key = fileUploadRequestDTO.getFilename();
         logger.debug("Generated S3 key for uploadUrl: {}", uploadBatch.getDirectory() + "/" + s3Key);
+        if (mediaFileRepository.existsByFilenameAndUploadBatchDirectory(fileUploadRequestDTO.getFilename(), uploadBatch.getDirectory())) {
+            throw new RuntimeException("File with the same name already exists in this upload batch.");
+        }
         MediaFile mediaFile = new MediaFile();
         mediaFile.setFilename(s3Key);
         mediaFile.setFileType(fileUploadRequestDTO.getFileType());
