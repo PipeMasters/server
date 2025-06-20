@@ -33,7 +33,6 @@ public class FileServiceImpl implements FileService {
     private final UploadBatchRepository uploadBatchRepository;
     private final Logger logger = LoggerFactory.getLogger(FileServiceImpl.class);
 
-    //    @Autowired
     public FileServiceImpl(S3Presigner s3Presigner, String minioBucketName, MediaFileRepository mediaFileRepository, UploadBatchRepository uploadBatchRepository) {
         this.s3Presigner = s3Presigner;
         this.minioBucketName = minioBucketName;
