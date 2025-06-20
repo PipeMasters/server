@@ -1,6 +1,7 @@
 package com.pipemasters.server.entity;
 
 import com.pipemasters.server.entity.enums.FileType;
+import com.pipemasters.server.entity.enums.MediaFileStatus;
 import jakarta.persistence.*;
 
 import java.time.Instant;
@@ -16,6 +17,11 @@ public class MediaFile extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 16)
     private FileType fileType;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 16)
+    private MediaFileStatus status = MediaFileStatus.PENDING;
+
 
     @Column(nullable = false, updatable = false)
     private Instant uploadedAt = Instant.now();
@@ -84,5 +90,13 @@ public class MediaFile extends BaseEntity {
 
     public void setUploadBatch(UploadBatch uploadBatch) {
         this.uploadBatch = uploadBatch;
+    }
+
+    public MediaFileStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(MediaFileStatus status) {
+        this.status = status;
     }
 }

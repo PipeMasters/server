@@ -3,6 +3,7 @@ package com.pipemasters.server.service.impl;
 import com.pipemasters.server.dto.FileUploadRequestDto;
 import com.pipemasters.server.entity.UploadBatch;
 import com.pipemasters.server.entity.MediaFile;
+import com.pipemasters.server.entity.enums.MediaFileStatus;
 import com.pipemasters.server.repository.MediaFileRepository;
 import com.pipemasters.server.repository.UploadBatchRepository;
 import com.pipemasters.server.service.FileService;
@@ -47,11 +48,12 @@ public class FileServiceImpl implements FileService {
                 .orElseThrow(() -> new RuntimeException("UploadBatch not found with ID: " + fileUploadRequestDTO.getUploadBatchId()));
 
         String s3Key = fileUploadRequestDTO.getFilename();
-        logger.debug("Generated S3 key: {}", uploadBatch.getDirectory() + "/" + s3Key);
+        logger.debug("Generated S3 key for uploadUrl: {}", uploadBatch.getDirectory() + "/" + s3Key);
         MediaFile mediaFile = new MediaFile();
         mediaFile.setFilename(s3Key);
         mediaFile.setFileType(fileUploadRequestDTO.getFileType());
         mediaFile.setUploadBatch(uploadBatch);
+        mediaFile.setStatus(MediaFileStatus.PENDING);
         if (fileUploadRequestDTO.getSourceId() != null) {
             mediaFile.setSource(mediaFileRepository.findById(fileUploadRequestDTO.getSourceId()).orElseThrow(() -> new RuntimeException("Source MediaFile not found with ID: " + fileUploadRequestDTO.getSourceId())));
         }
@@ -78,7 +80,7 @@ public class FileServiceImpl implements FileService {
                 .orElseThrow(() -> new RuntimeException("MediaFile not found with ID: " + mediaFileId));
 
         String s3Key = mediaFile.getUploadBatch().getDirectory() + "/" + mediaFile.getFilename();
-        logger.debug("Generated S3 key for download: {}", s3Key);
+        logger.debug("Generated S3 key for downloadUrl: {}", s3Key);
         GetObjectRequest getObjectRequest = GetObjectRequest.builder()
                 .bucket(minioBucketName)
                 .key(s3Key)
