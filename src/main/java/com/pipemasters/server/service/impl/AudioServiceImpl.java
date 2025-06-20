@@ -88,7 +88,9 @@ public class AudioServiceImpl implements AudioService {
                     throw new IllegalStateException("FFmpeg exited with status " + exit);
                 }
 
-                String targetName = source.getFilename() + "_audio.mp3";
+                String sourceFileName = source.getFilename().substring(0, source.getFilename().lastIndexOf('.'));
+
+                String targetName = sourceFileName + "_audio.mp3";
 
                 FileUploadRequestDto uploadDto = new FileUploadRequestDto(
                         source.getUploadBatch().getId(), targetName, FileType.AUDIO, mediaFileId);
