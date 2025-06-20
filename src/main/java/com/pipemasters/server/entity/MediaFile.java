@@ -1,13 +1,14 @@
 package com.pipemasters.server.entity;
 
 import com.pipemasters.server.entity.enums.FileType;
+import com.pipemasters.server.entity.enums.MediaFileStatus;
 import jakarta.persistence.*;
 
 import java.time.Instant;
 
 @Entity
 @Table(name = "media_files",
-        indexes = {@Index(columnList = "UploadBatch_id")})
+        indexes = {@Index(columnList = "upload_batch_id")})
 public class MediaFile extends BaseEntity {
 
     @Column(nullable = false, length = 512)
@@ -16,6 +17,11 @@ public class MediaFile extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 16)
     private FileType fileType;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 16)
+    private MediaFileStatus status = MediaFileStatus.PENDING;
+
 
     @Column(nullable = false, updatable = false)
     private Instant uploadedAt = Instant.now();
@@ -26,7 +32,7 @@ public class MediaFile extends BaseEntity {
     private MediaFile source;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "UploadBatch_id")
+    @JoinColumn(name = "upload_batch_id")
     private UploadBatch uploadBatch;
 
     public MediaFile(String filename, FileType fileType, UploadBatch uploadBatch) {
@@ -84,5 +90,13 @@ public class MediaFile extends BaseEntity {
 
     public void setUploadBatch(UploadBatch uploadBatch) {
         this.uploadBatch = uploadBatch;
+    }
+
+    public MediaFileStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(MediaFileStatus status) {
+        this.status = status;
     }
 }

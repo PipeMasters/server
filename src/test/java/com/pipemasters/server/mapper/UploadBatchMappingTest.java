@@ -1,5 +1,6 @@
 package com.pipemasters.server.mapper;
 
+import com.pipemasters.server.TestEnvInitializer;
 import com.pipemasters.server.dto.BranchDto;
 import com.pipemasters.server.dto.UploadBatchDto;
 import com.pipemasters.server.dto.TrainDto;
@@ -13,6 +14,7 @@ import org.junit.jupiter.api.Test;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ContextConfiguration;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -21,6 +23,7 @@ import java.time.LocalDate;
 import java.util.*;
 
 @SpringBootTest
+@ContextConfiguration(initializers = TestEnvInitializer.class)
 public class UploadBatchMappingTest {
 
     @Autowired
