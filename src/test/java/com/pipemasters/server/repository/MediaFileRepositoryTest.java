@@ -211,11 +211,30 @@ public class MediaFileRepositoryTest {
         MediaFile saved = mediaFileRepository.save(file);
         assertNotNull(saved.getUploadedAt());
     }
-// TODO: this should be implemented on validation part
-//    @Test
-//    void saveMediaFileWithEmptyFilenameThrowsException() {
-//        UploadBatch batch = createUploadBatch();
-//        MediaFile file = new MediaFile("", FileType.VIDEO, batch);
-//        assertThrows(Exception.class, () -> mediaFileRepository.save(file));
-//    }
+    @Test
+    void findByFilenameAndUploadBatchDirectoryReturnsMediaFileWhenExists() {
+        UploadBatch batch = createUploadBatch();
+        MediaFile file = new MediaFile("unique.mp4", FileType.VIDEO, batch);
+        mediaFileRepository.save(file);
+        Optional<MediaFile> found = mediaFileRepository.findByFilenameAndUploadBatchDirectory("unique.mp4", batch.getDirectory());
+        assertTrue(found.isPresent());
+        assertEquals(file.getId(), found.get().getId());
+    }
+
+    @Test
+    void findByFilenameAndUploadBatchDirectoryReturnsEmptyOptionalWhenNotExists() {
+        UploadBatch batch = createUploadBatch();
+        Optional<MediaFile> found = mediaFileRepository.findByFilenameAndUploadBatchDirectory("nonexistent.mp4", batch.getDirectory());
+        assertTrue(found.isEmpty());
+    }
+
+    @Test
+    void findByFilenameAndUploadBatchDirectoryReturnsEmptyOptionalForDifferentBatch() {
+        UploadBatch batch1 = createUploadBatch();
+        UploadBatch batch2 = createUploadBatch();
+        MediaFile file = new MediaFile("shared.mp4", FileType.VIDEO, batch1);
+        mediaFileRepository.save(file);
+        Optional<MediaFile> found = mediaFileRepository.findByFilenameAndUploadBatchDirectory("shared.mp4", batch2.getDirectory());
+        assertTrue(found.isEmpty());
+    }
 }
