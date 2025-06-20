@@ -33,10 +33,12 @@ public class ProcessingQueueConsumer {
                 .orElseThrow(() -> new IllegalArgumentException("Media file not found: " + id));
         file.setStatus(MediaFileStatus.PROCESSING);
         mediaFileRepository.save(file);
+        log.debug("Media file with ID {} status updated to {}", id, file.getStatus());
         log.info("Processing media file with ID: {}", id);
         audioService.extractAudio(id).join();
         file.setStatus(MediaFileStatus.PROCESSED);
         mediaFileRepository.save(file);
+        log.debug("Media file with ID {} status updated to {}", id, file.getStatus());
         log.info("Finished processing media file with ID: {}", id);
         producerService.send("processed", id.toString());
     }

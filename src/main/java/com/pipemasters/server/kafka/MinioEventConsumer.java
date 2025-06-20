@@ -12,6 +12,8 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -38,15 +40,20 @@ public class MinioEventConsumer {
                 String eventName = record.path("eventName").asText();
                 if (eventName.startsWith("s3:ObjectCreated:")) {
                     String key = record.path("s3").path("object").path("key").asText();
-                    String[] parts = key.split("/", 2);
+                    String decodedKey = URLDecoder.decode(key, StandardCharsets.UTF_8);
+                    String[] parts = decodedKey.split("/", 2);
                     if (parts.length != 2) continue;
                     String batch = parts[0];
                     String filename = parts[1];
+                    log.debug("Looking for file with filename: {} and batch: {}", filename, batch);
                     Optional<MediaFile> opt = mediaFileRepository.findByFilenameAndUploadBatchDirectory(filename, UUID.fromString(batch));
                     if (opt.isPresent()) {
                         MediaFile file = opt.get();
                         file.setStatus(MediaFileStatus.UPLOADED);
+                        mediaFileRepository.save(file);
+                        log.debug("Media file with ID {} status updated to {}", file.getId(), file.getStatus());
                         if (file.getFileType() == FileType.VIDEO) {
+                            log.debug("Video file uploaded: {}", file.getFilename());
                             producerService.send("processing-queue", file.getId().toString());
                         }
                     } else {
@@ -54,6 +61,6 @@ public class MinioEventConsumer {
                     }
                 }
             }
-        }
+        } else log.debug("No Records field in kafka payload");
     }
 }
