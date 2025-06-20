@@ -4,6 +4,9 @@ import com.pipemasters.server.TestEnvInitializer;
 import com.pipemasters.server.dto.BranchDto;
 import com.pipemasters.server.entity.Branch;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -18,7 +21,7 @@ public class BranchMapperTest {
     @Autowired
     private ModelMapper modelMapper;
 
-//    @Test
+    @Test
     void shouldMapBranchToBranchDtoCorrectly() {
         Branch parent = new Branch("Head Office", null);
         Branch child = new Branch("Regional Office", parent);
@@ -41,7 +44,7 @@ public class BranchMapperTest {
         assertEquals("Head Office", entity.getParent().getName());
     }
 
-//    @Test
+    @Test
     void shouldNotCauseRecursionWhenMappingEntityWithDeepHierarchy() {
         Branch root = new Branch("Root", null);
         Branch level1 = new Branch("Level1", root);
