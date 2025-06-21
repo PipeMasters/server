@@ -6,6 +6,7 @@ import com.pipemasters.server.repository.TrainRepository;
 import com.pipemasters.server.service.TrainService;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -27,12 +28,14 @@ public class TrainServiceImpl implements TrainService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public TrainDto getById(Long id) {
         Train train = trainRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Train not found"));
         return modelMapper.map(train, TrainDto.class);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<TrainDto> getAll() {
         return trainRepository.findAll().stream()
                 .map(train -> modelMapper.map(train, TrainDto.class))

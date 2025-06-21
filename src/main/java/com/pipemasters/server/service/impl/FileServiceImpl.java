@@ -10,6 +10,7 @@ import com.pipemasters.server.service.FileService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
@@ -76,8 +77,10 @@ public class FileServiceImpl implements FileService {
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public String generatePresignedDownloadUrl(Long mediaFileId) {
+        logger.debug("Is transaction active? {}", TransactionSynchronizationManager.isActualTransactionActive());
+        logger.debug("Is transaction read-only? {}", TransactionSynchronizationManager.isCurrentTransactionReadOnly());
         MediaFile mediaFile = mediaFileRepository.findById(mediaFileId)
                 .orElseThrow(() -> new RuntimeException("MediaFile not found with ID: " + mediaFileId));
 

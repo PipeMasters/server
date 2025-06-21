@@ -5,8 +5,11 @@ import com.pipemasters.server.entity.enums.AbsenceCause;
 import com.pipemasters.server.entity.enums.FileType;
 import com.pipemasters.server.entity.enums.Role;
 import com.pipemasters.server.repository.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -21,6 +24,7 @@ public class TestDataRunner implements CommandLineRunner {
     private final TrainRepository trainRepository;
     private final UploadBatchRepository uploadBatchRepository;
     private final DelegationRepository delegationRepository;
+    private final static Logger log = LoggerFactory.getLogger(TestDataRunner.class);
 
     public TestDataRunner(BranchRepository branchRepository,
                           UserRepository userRepository,
@@ -35,20 +39,25 @@ public class TestDataRunner implements CommandLineRunner {
     }
 
     @Override
+    @Transactional(readOnly = false)
     public void run(String... args) {
         // Branches
+        log.info("Initializing test data...");
         if (branchRepository.existsByName("Main Branch")) return;
-
+        log.debug("Creating test branches and users...");
         Branch mainBranch = new Branch("Main Branch", null);
         branchRepository.save(mainBranch);
+        log.debug("Main branch created: {}", mainBranch.getName());
         Branch subBranch = new Branch("Sub Branch", mainBranch);
         branchRepository.save(subBranch);
+        log.debug("Sub branch created: {} under {}", subBranch.getName(), mainBranch.getName());
 
         // Users
         User uploader = new User("Alexey", "Sidorov", "Petrovich",
                 Set.of(Role.USER), mainBranch);
         User substitute = new User("Maria", "Ivanova", "Alexandrovna",
                 Set.of(Role.USER, Role.BRANCH_ADMIN), subBranch);
+        log.debug("Creating test users: {}, {}", uploader.getName(), substitute.getName());
         userRepository.saveAll(List.of(uploader, substitute));
 
         // Delegation
