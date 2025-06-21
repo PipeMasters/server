@@ -4,12 +4,15 @@ import com.pipemasters.server.dto.FileUploadRequestDto;
 import com.pipemasters.server.entity.UploadBatch;
 import com.pipemasters.server.entity.MediaFile;
 import com.pipemasters.server.entity.enums.MediaFileStatus;
+import com.pipemasters.server.exceptions.file.MediaFileNotFoundException;
+import com.pipemasters.server.exceptions.file.FileAlreadyExistsException;
+import com.pipemasters.server.exceptions.file.FileGenerationException;
+import com.pipemasters.server.exceptions.file.UploadBatchNotFoundException;
 import com.pipemasters.server.repository.MediaFileRepository;
 import com.pipemasters.server.repository.UploadBatchRepository;
 import com.pipemasters.server.service.FileService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
@@ -22,7 +25,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 
 import java.time.Duration;
-import java.util.UUID;
 
 @Service
 public class FileServiceImpl implements FileService {
@@ -44,12 +46,12 @@ public class FileServiceImpl implements FileService {
     @Transactional
     public String generatePresignedUploadUrl(FileUploadRequestDto fileUploadRequestDTO) {
         UploadBatch uploadBatch = uploadBatchRepository.findById(fileUploadRequestDTO.getUploadBatchId())
-                .orElseThrow(() -> new RuntimeException("UploadBatch not found with ID: " + fileUploadRequestDTO.getUploadBatchId()));
+                .orElseThrow(() -> new UploadBatchNotFoundException("UploadBatch not found with ID: " + fileUploadRequestDTO.getUploadBatchId()));
 
         String s3Key = fileUploadRequestDTO.getFilename();
         logger.debug("Generated S3 key for uploadUrl: {}", uploadBatch.getDirectory() + "/" + s3Key);
         if (mediaFileRepository.existsByFilenameAndUploadBatchDirectory(fileUploadRequestDTO.getFilename(), uploadBatch.getDirectory())) {
-            throw new RuntimeException("File with the same name already exists in this upload batch.");
+            throw new FileAlreadyExistsException("File with the same name '" + fileUploadRequestDTO.getFilename() + "' already exists in this upload batch with ID: " + uploadBatch.getDirectory());
         }
         MediaFile mediaFile = new MediaFile();
         mediaFile.setFilename(s3Key);
@@ -57,43 +59,54 @@ public class FileServiceImpl implements FileService {
         mediaFile.setUploadBatch(uploadBatch);
         mediaFile.setStatus(MediaFileStatus.PENDING);
         if (fileUploadRequestDTO.getSourceId() != null) {
-            mediaFile.setSource(mediaFileRepository.findById(fileUploadRequestDTO.getSourceId()).orElseThrow(() -> new RuntimeException("Source MediaFile not found with ID: " + fileUploadRequestDTO.getSourceId())));
+            mediaFile.setSource(mediaFileRepository.findById(fileUploadRequestDTO.getSourceId()).orElseThrow(() -> new MediaFileNotFoundException("Source MediaFile not found with ID: " + fileUploadRequestDTO.getSourceId())));
         }
         mediaFileRepository.save(mediaFile);
 
-        PutObjectRequest putObjectRequest = PutObjectRequest.builder()
-                .bucket(minioBucketName)
-                .key(uploadBatch.getDirectory() + "/" + s3Key)
-                .build();
+        try {
+            PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+                    .bucket(minioBucketName)
+                    .key(uploadBatch.getDirectory() + "/" + s3Key)
+                    .build();
 
-        PutObjectPresignRequest presignRequest = PutObjectPresignRequest.builder()
-                .signatureDuration(Duration.ofMinutes(5))
-                .putObjectRequest(putObjectRequest)
-                .build();
+            PutObjectPresignRequest presignRequest = PutObjectPresignRequest.builder()
+                    .signatureDuration(Duration.ofMinutes(5))
+                    .putObjectRequest(putObjectRequest)
+                    .build();
 
-        PresignedPutObjectRequest presignedRequest = s3Presigner.presignPutObject(presignRequest);
-        return presignedRequest.url().toString();
+            PresignedPutObjectRequest presignedRequest = s3Presigner.presignPutObject(presignRequest);
+            return presignedRequest.url().toString();
+        } catch (Exception e) {
+            logger.error("Failed to generate presigned upload URL for file: {}", s3Key, e);
+            throw new FileGenerationException("Failed to generate presigned upload URL for file: " + s3Key, e);
+        }
     }
 
     @Override
     @Transactional
     public String generatePresignedDownloadUrl(Long mediaFileId) {
         MediaFile mediaFile = mediaFileRepository.findById(mediaFileId)
-                .orElseThrow(() -> new RuntimeException("MediaFile not found with ID: " + mediaFileId));
+                .orElseThrow(() -> new MediaFileNotFoundException("MediaFile not found with ID: " + mediaFileId));
 
         String s3Key = mediaFile.getUploadBatch().getDirectory() + "/" + mediaFile.getFilename();
         logger.debug("Generated S3 key for downloadUrl: {}", s3Key);
-        GetObjectRequest getObjectRequest = GetObjectRequest.builder()
-                .bucket(minioBucketName)
-                .key(s3Key)
-                .build();
 
-        GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
-                .signatureDuration(Duration.ofMinutes(10))
-                .getObjectRequest(getObjectRequest)
-                .build();
+        try {
+            GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+                    .bucket(minioBucketName)
+                    .key(s3Key)
+                    .build();
 
-        PresignedGetObjectRequest presignedRequest = s3Presigner.presignGetObject(presignRequest);
-        return presignedRequest.url().toString();
+            GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
+                    .signatureDuration(Duration.ofMinutes(10))
+                    .getObjectRequest(getObjectRequest)
+                    .build();
+
+            PresignedGetObjectRequest presignedRequest = s3Presigner.presignGetObject(presignRequest);
+            return presignedRequest.url().toString();
+        } catch (Exception e) {
+            logger.error("Failed to generate presigned download URL for mediaFileId: {}", mediaFileId, e);
+            throw new FileGenerationException("Failed to generate presigned download URL for mediaFileId: " + mediaFileId, e);
+        }
     }
 }

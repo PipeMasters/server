@@ -2,6 +2,7 @@ package com.pipemasters.server.service;
 
 import com.pipemasters.server.dto.TrainDto;
 import com.pipemasters.server.entity.Train;
+import com.pipemasters.server.exceptions.train.TrainNotFoundException;
 import com.pipemasters.server.repository.TrainRepository;
 import com.pipemasters.server.service.impl.TrainServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
@@ -66,7 +67,7 @@ class TrainServiceImplTest {
         when(trainRepository.findById(99L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> trainService.getById(99L))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(TrainNotFoundException.class)
                 .hasMessageContaining("Train not found");
     }
 
