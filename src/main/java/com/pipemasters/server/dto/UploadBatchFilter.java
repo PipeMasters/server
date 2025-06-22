@@ -1,6 +1,7 @@
 package com.pipemasters.server.dto;
 
 import java.time.LocalDate;
+import java.util.Set;
 
 public class UploadBatchFilter {
     private LocalDate dateFrom;
@@ -9,7 +10,7 @@ public class UploadBatchFilter {
     private String trainNumber;
     private String chiefName;
     private String uploadedByName;
-    private String keyword;
+    private Set<String> keywords;
 
     public LocalDate getDateFrom() {
         return dateFrom;
@@ -59,11 +60,11 @@ public class UploadBatchFilter {
         this.uploadedByName = uploadedByName;
     }
 
-    public String getKeyword() {
-        return keyword;
+    public Set<String> getKeywords() {
+        return keywords;
     }
 
-    public void setKeyword(String keyword) {
-        this.keyword = keyword;
+    public void setKeywords(Set<String> keywords) {
+        this.keywords = keywords;
     }
 }

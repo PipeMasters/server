@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/api/v1/batch")
@@ -34,7 +35,7 @@ public class UploadBatchController {
             @RequestParam(required = false) String trainNumber,
             @RequestParam(required = false) String chiefName,
             @RequestParam(required = false) String uploadedByName,
-            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) Set<String> keywords,
             @PageableDefault(size = 15, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
         UploadBatchFilter filter = new UploadBatchFilter();
         filter.setDateFrom(dateFrom);
@@ -43,7 +44,7 @@ public class UploadBatchController {
         filter.setTrainNumber(trainNumber);
         filter.setChiefName(chiefName);
         filter.setUploadedByName(uploadedByName);
-        filter.setKeyword(keyword);
+        filter.setKeywords(keywords);
 
         return new ResponseEntity<>(uploadBatchService.getFilteredBatches(filter, pageable), HttpStatus.OK);
     }

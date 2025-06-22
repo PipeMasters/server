@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
@@ -39,6 +40,8 @@ class UploadBatchControllerTest {
         when(uploadBatchService.getFilteredBatches(any(UploadBatchFilter.class), any(Pageable.class)))
                 .thenReturn(page);
 
+        Set<String> keywords = Set.of("ключевое", "видео", "путь");
+
         // when
         ResponseEntity<Page<UploadBatchDto>> response = uploadBatchController.getFiltered(
                 LocalDate.of(2024, 1, 1),
@@ -47,7 +50,7 @@ class UploadBatchControllerTest {
                 "123",
                 "Иванов",
                 "Петров",
-                "ключевое",
+                keywords,
                 pageable
         );
 

@@ -53,8 +53,12 @@ public class UploadBatchFilterRepositoryImpl implements UploadBatchFilterReposit
             predicates.add(cb.like(cb.lower(uploadedByJoin.get("fullName")), "%" + filter.getUploadedByName().toLowerCase() + "%"));
         }
 
-        if (filter.getKeyword() != null) {
-            predicates.add(cb.isMember(filter.getKeyword().toLowerCase(), root.get("keywords")));
+        if (filter.getKeywords() != null && !filter.getKeywords().isEmpty()) {
+            List<Predicate> keywordPredicates = new ArrayList<>();
+            for (String keyword : filter.getKeywords()) {
+                keywordPredicates.add(cb.isMember(keyword.toLowerCase(), root.get("keywords")));
+            }
+            predicates.add(cb.or(keywordPredicates.toArray(new Predicate[0])));
         }
 
         cq.where(predicates.toArray(new Predicate[0]));
