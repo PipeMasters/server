@@ -15,6 +15,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 
 import java.util.List;
 
@@ -39,18 +42,20 @@ class UploadBatchServiceImplTest {
         UploadBatchFilter filter = new UploadBatchFilter();
         Pageable pageable = PageRequest.of(0, 10);
 
-        UploadBatch batch = new UploadBatch();
+        UploadBatch entity = new UploadBatch();
         UploadBatchDto dto = new UploadBatchDto();
 
-        Page<UploadBatch> entityPage = new PageImpl<>(List.of(batch));
-        when(uploadBatchRepository.findFiltered(filter, pageable)).thenReturn(entityPage);
-        when(modelMapper.map(batch, UploadBatchDto.class)).thenReturn(dto);
+        Page<UploadBatch> entityPage = new PageImpl<>(List.of(entity));
+        when(uploadBatchRepository.findAll(any(Specification.class), eq(pageable)))
+                .thenReturn(entityPage);
+        when(modelMapper.map(entity, UploadBatchDto.class)).thenReturn(dto);
 
         Page<UploadBatchDto> result = uploadBatchService.getFilteredBatches(filter, pageable);
 
         assertEquals(1, result.getTotalElements());
         assertEquals(dto, result.getContent().getFirst());
-        verify(uploadBatchRepository).findFiltered(filter, pageable);
-        verify(modelMapper).map(batch, UploadBatchDto.class);
+
+        verify(uploadBatchRepository).findAll(any(Specification.class), eq(pageable));
+        verify(modelMapper).map(entity, UploadBatchDto.class);
     }
 }
