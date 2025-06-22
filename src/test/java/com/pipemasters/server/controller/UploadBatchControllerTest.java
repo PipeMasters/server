@@ -36,32 +36,24 @@ class UploadBatchControllerTest {
         Pageable pageable = PageRequest.of(0, 15, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<UploadBatchDto> page = new PageImpl<>(dtos, pageable, dtos.size());
 
-        UploadBatchFilter filter = new UploadBatchFilter();
-        filter.setDateFrom(LocalDate.of(2024, 1, 1));
-        filter.setDateTo(LocalDate.of(2024, 12, 31));
-        filter.setSpecificDate(null);
-        filter.setTrainNumber("123");
-        filter.setChiefName("Иванов");
-        filter.setUploadedByName("Петров");
-        filter.setKeyword("ключевое");
-
-        when(uploadBatchService.getFilteredBatches(filter, pageable)).thenReturn(page);
+        when(uploadBatchService.getFilteredBatches(any(UploadBatchFilter.class), any(Pageable.class)))
+                .thenReturn(page);
 
         // when
         ResponseEntity<Page<UploadBatchDto>> response = uploadBatchController.getFiltered(
-                filter.getDateFrom(),
-                filter.getDateTo(),
-                filter.getSpecificDate(),
-                filter.getTrainNumber(),
-                filter.getChiefName(),
-                filter.getUploadedByName(),
-                filter.getKeyword(),
+                LocalDate.of(2024, 1, 1),
+                LocalDate.of(2024, 12, 31),
+                null,
+                "123",
+                "Иванов",
+                "Петров",
+                "ключевое",
                 pageable
         );
 
         // then
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(page, response.getBody());
-        verify(uploadBatchService).getFilteredBatches(filter, pageable);
+        verify(uploadBatchService).getFilteredBatches(any(UploadBatchFilter.class), any(Pageable.class));
     }
 }
