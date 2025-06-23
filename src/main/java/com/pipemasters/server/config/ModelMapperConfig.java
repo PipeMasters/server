@@ -48,19 +48,14 @@ public class ModelMapperConfig {
         });
     }
 
-    // DeletedAt(с датой нормальной в UploadBatchDTO) -> DeletedAt (null в UploadBatch)
     private void configureUploadBatchMapping(ModelMapper modelMapper) {
         modelMapper.typeMap(UploadBatch.class, UploadBatchDto.class)
                 .addMappings(mapper -> {
                     mapper.map(UploadBatch::getDeletedAt, UploadBatchDto::setDeletedAt);
-//                    mapper.skip(UploadBatchDto::setAbsence);
-//                    mapper.skip(UploadBatchDto::setFiles);
                 });
         modelMapper.typeMap(UploadBatchDto.class, UploadBatch.class)
                 .addMappings(mapper -> {
                     mapper.map(UploadBatchDto::getDeletedAt, UploadBatch::setDeletedAt);
-//                    mapper.skip(UploadBatchDto::setAbsence);
-//                    mapper.skip(UploadBatchDto::setFiles);
                 });
     }
 

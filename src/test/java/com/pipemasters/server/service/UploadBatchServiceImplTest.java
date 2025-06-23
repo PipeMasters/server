@@ -1,25 +1,16 @@
 package com.pipemasters.server.service;
 
-import com.pipemasters.server.dto.FileUploadRequestDto;
 import com.pipemasters.server.dto.UploadBatchDto;
 import com.pipemasters.server.entity.UploadBatch;
-import com.pipemasters.server.entity.enums.FileType;
-import com.pipemasters.server.repository.MediaFileRepository;
 import com.pipemasters.server.repository.UploadBatchRepository;
-import com.pipemasters.server.service.impl.FileServiceImpl;
 import com.pipemasters.server.service.impl.UploadBatchServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
+import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.modelmapper.ModelMapper;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -28,15 +19,8 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.modelmapper.ModelMapper;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
-import static org.junit.jupiter.api.Assertions.*;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -69,30 +53,47 @@ class UploadBatchServiceImplTest {
         testEntity.setDirectory(UUID.randomUUID());
         testEntity.setCreatedAt(Instant.now());
     }
-// Плохо сравнивает даты, 1.5 секунды разница возникает в одинаковых DeletedAt
-//    Expected :2025-12-17T16:35:21.632205500Z
-//    Actual   :2025-12-17T16:35:21.634300400Z
-//    @Test
-    void save_ShouldSetDefaultValuesAndSave() {
-        // Arrange
-        when(modelMapper.map(testDto, UploadBatch.class)).thenReturn(testEntity);
-        when(uploadBatchRepository.save(any(UploadBatch.class))).thenReturn(testEntity);
-        when(modelMapper.map(testEntity, UploadBatchDto.class)).thenReturn(testDto);
 
-        // Act
-        UploadBatchDto result = uploadBatchService.save(testDto);
 
-        // Assert
-        assertNotNull(result);
-        verify(uploadBatchRepository).save(any(UploadBatch.class));
+@Test
+void save_ShouldSetDefaultValuesAndSave() {
+    // Arrange
+    when(modelMapper.map(any(UploadBatchDto.class), eq(UploadBatch.class)))
+            .thenAnswer(invocation -> {
+                UploadBatchDto dto = invocation.getArgument(0);
+                UploadBatch entity = new UploadBatch();
+                entity.setDirectory(UUID.fromString(dto.getDirectory()));
+                entity.setCreatedAt(dto.getCreatedAt());
+                entity.setDeletedAt(dto.getDeletedAt());
+                entity.setDeleted(dto.isDeleted());
+                return entity;
+            });
 
-        // Verify default values are set
-        assertNotNull(testEntity.getDirectory());
-        assertNotNull(testEntity.getCreatedAt());
-        assertNotNull(testEntity.getDeletedAt());
-        assertFalse(testEntity.isDeleted());
-        assertEquals(testEntity.getCreatedAt().plus(180, ChronoUnit.DAYS), testEntity.getDeletedAt());
-    }
+    when(modelMapper.map(any(UploadBatch.class), eq(UploadBatchDto.class)))
+            .thenReturn(testDto);
+
+    ArgumentCaptor<UploadBatch> captor = ArgumentCaptor.forClass(UploadBatch.class);
+    when(uploadBatchRepository.save(captor.capture()))
+            .thenAnswer(invocation -> invocation.getArgument(0));
+
+    // Act
+    UploadBatchDto result = uploadBatchService.save(testDto);
+
+    // Assert
+    assertNotNull(result);
+
+    UploadBatch savedEntity = captor.getValue();
+    assertNotNull(savedEntity.getDirectory());
+    assertNotNull(savedEntity.getCreatedAt());
+    assertNotNull(savedEntity.getDeletedAt());
+    assertFalse(savedEntity.isDeleted());
+
+    assertEquals(
+            savedEntity.getCreatedAt().plus(180, ChronoUnit.DAYS),
+            savedEntity.getDeletedAt()
+    );
+}
+
 
     @Test
     void getById_ShouldReturnDtoWhenExists() {

@@ -38,10 +38,8 @@ public class UploadBatchServiceImpl implements UploadBatchService {
         uploadBatchDto.setCreatedAt(now);
         uploadBatchDto.setDeletedAt(now.plus(180, ChronoUnit.DAYS));
         uploadBatchDto.setDeleted(false);
-        var uploadBatch = modelMapper.map(uploadBatchDto,UploadBatch.class);
-        //TODO: Модел маппер автоматом не перегоняет DeletedAt в DeletedAt, не знаю поч
-        uploadBatch.setDeletedAt(uploadBatchDto.getDeletedAt());
-        return modelMapper.map(uploadBatchRepository.save(uploadBatch),UploadBatchDto.class);
+        return modelMapper.map(uploadBatchRepository
+                        .save(modelMapper.map(uploadBatchDto,UploadBatch.class)),UploadBatchDto.class);
     }
 
     @Override
