@@ -46,6 +46,7 @@ public class UploadBatchMappingTest {
                 "Комментарий",
                 Set.of("ключевое", "видео"),
                 branch,
+                false,
                 Instant.parse("2025-01-01T10:00:00Z"),
                 true,
                 List.of()
@@ -86,6 +87,7 @@ public class UploadBatchMappingTest {
                 "Комментарий",
                 Set.of("ключевое", "видео"),
                 branchDto,
+                false,
                 Instant.parse("2025-01-01T10:00:00Z"),
                 true,
                 List.of(),
@@ -125,6 +127,7 @@ public class UploadBatchMappingTest {
                 "Комментарий",
                 Set.of("тест"),
                 branch,
+                false,
                 null,
                 false,
                 new ArrayList<>()
@@ -148,6 +151,7 @@ public class UploadBatchMappingTest {
                     "Комментарий",
                     Set.of("тест"),
                     branch,
+                    false,
                     null,
                     false,
                     new ArrayList<>()

@@ -7,6 +7,7 @@ import com.pipemasters.server.entity.enums.MediaFileStatus;
 import com.pipemasters.server.kafka.KafkaProducerService;
 import com.pipemasters.server.kafka.MinioEventConsumer;
 import com.pipemasters.server.repository.MediaFileRepository;
+import com.pipemasters.server.service.MediaFileService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -21,12 +22,13 @@ class MinioEventConsumerTest {
     private MediaFileRepository mediaFileRepository;
     private KafkaProducerService producerService;
     private MinioEventConsumer consumer;
+    private MediaFileService mediaFileService;
 
     @BeforeEach
     void setUp() {
         mediaFileRepository = mock(MediaFileRepository.class);
         producerService = mock(KafkaProducerService.class);
-        consumer = new MinioEventConsumer(mediaFileRepository, producerService);
+        consumer = new MinioEventConsumer(mediaFileRepository, producerService, mediaFileService);
     }
 
     @Test
