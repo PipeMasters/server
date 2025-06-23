@@ -14,9 +14,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.modelmapper.ModelMapper;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Optional;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -31,7 +29,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class UserServiceImplTest {
-
     private UserServiceImpl userService;
     private UserRepository userRepository;
     private BranchRepository branchRepository;
@@ -211,4 +208,39 @@ class UserServiceImplTest {
         verify(userRepository, times(1)).findByIdWithBranch(userId);
         verify(modelMapper, never()).map(any(), any());
     }
+
+    @Test
+    void getUsersSuccessfully() {
+        Branch branch = new Branch("BranchName", null);
+        branch.setId(1L);
+
+        User user1 = new User("Alice", "Smith", "A.", Set.of(Role.USER), branch);
+        user1.setId(1L);
+
+        User user2 = new User("Bob", "Johnson", "B.", Set.of(Role.ADMIN), branch);
+        user2.setId(2L);
+
+        List<User> mockUsers = List.of(user1, user2);
+
+        UserDto userDto1 = new UserDto("Alice", "Smith", "A.", Set.of(Role.USER), null);
+        userDto1.setId(1L);
+        UserDto userDto2 = new UserDto("Bob", "Johnson", "B.", Set.of(Role.ADMIN), null);
+        userDto2.setId(2L);
+
+        when(userRepository.findAll()).thenReturn(mockUsers);
+        when(modelMapper.map(user1, UserDto.class)).thenReturn(userDto1);
+        when(modelMapper.map(user2, UserDto.class)).thenReturn(userDto2);
+
+        List<UserDto> result = userService.getUsers();
+
+        assertNotNull(result);
+        assertEquals(2, result.size());
+        assertEquals("Alice", result.get(0).getName());
+        assertEquals("Bob", result.get(1).getName());
+
+        verify(userRepository, times(1)).findAll();
+        verify(modelMapper, times(1)).map(user1, UserDto.class);
+        verify(modelMapper, times(1)).map(user2, UserDto.class);
+    }
+
 }

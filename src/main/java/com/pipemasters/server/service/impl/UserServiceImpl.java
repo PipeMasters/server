@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Service
@@ -78,5 +79,11 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findByIdWithBranch(userId)
                 .orElseThrow(() -> new UserNotFoundException("User not found with ID: " + userId));
         return modelMapper.map(user, UserDto.class);
+    }
+
+    @Override
+    public List<UserDto> getUsers() {
+        List<User> users = userRepository.findAll();
+        return users.stream().map(u -> modelMapper.map(u,UserDto.class)).toList();
     }
 }
