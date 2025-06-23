@@ -1,30 +1,34 @@
 package com.pipemasters.server.service;
 
 import com.pipemasters.server.dto.UploadBatchDto;
+import com.pipemasters.server.dto.UploadBatchFilter;
 import com.pipemasters.server.entity.UploadBatch;
 import com.pipemasters.server.repository.UploadBatchRepository;
 import com.pipemasters.server.service.impl.UploadBatchServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
-import org.mockito.Mock;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
-
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.mockito.InjectMocks;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.*;
 
 @ExtendWith(MockitoExtension.class)
 class UploadBatchServiceImplTest {
@@ -37,7 +41,6 @@ class UploadBatchServiceImplTest {
 
     @InjectMocks
     private UploadBatchServiceImpl uploadBatchService;
-
     private UploadBatchDto testDto;
     private UploadBatch testEntity;
 
@@ -163,5 +166,27 @@ void save_ShouldSetDefaultValuesAndSave() {
         // Act & Assert
         assertThrows(RuntimeException.class,
                 () -> uploadBatchService.updateUploadBatchDto(1L, new UploadBatchDto()));
+    }
+  
+    @Test
+    void getFilteredBatches_shouldReturnMappedPage() {
+        UploadBatchFilter filter = new UploadBatchFilter();
+        Pageable pageable = PageRequest.of(0, 10);
+
+        UploadBatch entity = new UploadBatch();
+        UploadBatchDto dto = new UploadBatchDto();
+
+        Page<UploadBatch> entityPage = new PageImpl<>(List.of(entity));
+        when(uploadBatchRepository.findAll(any(Specification.class), eq(pageable)))
+                .thenReturn(entityPage);
+        when(modelMapper.map(entity, UploadBatchDto.class)).thenReturn(dto);
+
+        Page<UploadBatchDto> result = uploadBatchService.getFilteredBatches(filter, pageable);
+
+        assertEquals(1, result.getTotalElements());
+        assertEquals(dto, result.getContent().getFirst());
+
+        verify(uploadBatchRepository).findAll(any(Specification.class), eq(pageable));
+        verify(modelMapper).map(entity, UploadBatchDto.class);
     }
 }

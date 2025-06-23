@@ -19,6 +19,7 @@ public class ModelMapperConfig {
                 .addMapping(e -> e.getSubstitute().getId(), DelegationDto::setSubstituteId);
 
         configureBranchMapping(modelMapper);
+//        configureBranchMapping(modelMapper);
 //        configureMediaFileMapping(modelMapper);
 //        configureUploadBatchMapping(modelMapper);
 //        configureVideoAbsenceDtoMapping(modelMapper);

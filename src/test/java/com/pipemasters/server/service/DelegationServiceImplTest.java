@@ -3,6 +3,7 @@ package com.pipemasters.server.service;
 import com.pipemasters.server.dto.DelegationDto;
 import com.pipemasters.server.entity.Delegation;
 import com.pipemasters.server.entity.User;
+import com.pipemasters.server.exceptions.user.UserNotFoundException;
 import com.pipemasters.server.repository.DelegationRepository;
 import com.pipemasters.server.repository.UserRepository;
 import com.pipemasters.server.service.impl.DelegationServiceImpl;
@@ -71,7 +72,7 @@ class DelegationServiceImplTest {
 
         when(userRepository.findById(1L)).thenReturn(Optional.empty());
 
-        assertThrows(IllegalArgumentException.class, () -> delegationService.delegate(delegationDTO));
+        assertThrows(UserNotFoundException.class, () -> delegationService.delegate(delegationDTO));
     }
 
     @Test
@@ -85,7 +86,7 @@ class DelegationServiceImplTest {
         when(userRepository.findById(1L)).thenReturn(Optional.of(new User()));
         when(userRepository.findById(2L)).thenReturn(Optional.empty());
 
-        assertThrows(IllegalArgumentException.class, () -> delegationService.delegate(delegationDTO));
+        assertThrows(UserNotFoundException.class, () -> delegationService.delegate(delegationDTO));
     }
 
     @Test
