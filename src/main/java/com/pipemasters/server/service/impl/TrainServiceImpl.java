@@ -2,6 +2,7 @@ package com.pipemasters.server.service.impl;
 
 import com.pipemasters.server.dto.TrainDto;
 import com.pipemasters.server.entity.Train;
+import com.pipemasters.server.exceptions.train.TrainNotFoundException;
 import com.pipemasters.server.repository.TrainRepository;
 import com.pipemasters.server.service.TrainService;
 import org.modelmapper.ModelMapper;
@@ -28,7 +29,7 @@ public class TrainServiceImpl implements TrainService {
 
     @Override
     public TrainDto getById(Long id) {
-        Train train = trainRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Train not found"));
+        Train train = trainRepository.findById(id).orElseThrow(() -> new TrainNotFoundException("Train not found with ID: " + id));
         return modelMapper.map(train, TrainDto.class);
     }
 
@@ -41,7 +42,7 @@ public class TrainServiceImpl implements TrainService {
 
     @Override
     public TrainDto update(Long id, TrainDto trainDto) {
-        Train train = trainRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Train not found"));
+        Train train = trainRepository.findById(id).orElseThrow(() -> new TrainNotFoundException("Train not found with ID: " + id));
         train.setTrainNumber(trainDto.getTrainNumber());
         train.setRouteMessage(trainDto.getRouteMessage());
         train.setConsistCount(trainDto.getConsistCount());

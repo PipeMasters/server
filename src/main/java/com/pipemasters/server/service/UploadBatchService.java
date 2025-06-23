@@ -1,12 +1,10 @@
 package com.pipemasters.server.service;
 
-import com.pipemasters.server.dto.*;
-import com.pipemasters.server.entity.Train;
-import com.pipemasters.server.entity.enums.AbsenceCause;
-import com.pipemasters.server.entity.enums.FileType;
-
-import java.time.LocalDateTime;
 import java.util.List;
+import com.pipemasters.server.dto.UploadBatchDto;
+import com.pipemasters.server.dto.UploadBatchFilter;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface UploadBatchService {
 
@@ -16,4 +14,5 @@ public interface UploadBatchService {
     UploadBatchDto getById(Long id);
     List<UploadBatchDto> getAll();
     UploadBatchDto updateUploadBatchDto(Long uploadBatchId, UploadBatchDto dto);
+    Page<UploadBatchDto> getFilteredBatches(UploadBatchFilter filter, Pageable pageable);
 }

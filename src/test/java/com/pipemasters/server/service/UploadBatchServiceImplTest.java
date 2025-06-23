@@ -1,14 +1,24 @@
 package com.pipemasters.server.service;
 
 import com.pipemasters.server.dto.UploadBatchDto;
+import com.pipemasters.server.dto.UploadBatchFilter;
 import com.pipemasters.server.entity.UploadBatch;
 import com.pipemasters.server.repository.UploadBatchRepository;
 import com.pipemasters.server.service.impl.UploadBatchServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 
 import org.mockito.Mock;
 import static org.junit.jupiter.api.Assertions.*;
@@ -18,6 +28,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import org.junit.jupiter.api.BeforeEach;
 import org.mockito.InjectMocks;
 import static org.mockito.ArgumentMatchers.any;
@@ -54,47 +67,44 @@ class UploadBatchServiceImplTest {
         testEntity.setCreatedAt(Instant.now());
     }
 
+    @Test
+    void save_ShouldSetDefaultValuesAndSave() {
+        // Arrange
+        when(modelMapper.map(any(UploadBatchDto.class), eq(UploadBatch.class)))
+                .thenAnswer(invocation -> {
+                    UploadBatchDto dto = invocation.getArgument(0);
+                    UploadBatch entity = new UploadBatch();
+                    entity.setDirectory(UUID.fromString(dto.getDirectory()));
+                    entity.setCreatedAt(dto.getCreatedAt());
+                    entity.setDeletedAt(dto.getDeletedAt());
+                    entity.setDeleted(dto.isDeleted());
+                    return entity;
+                });
 
-@Test
-void save_ShouldSetDefaultValuesAndSave() {
-    // Arrange
-    when(modelMapper.map(any(UploadBatchDto.class), eq(UploadBatch.class)))
-            .thenAnswer(invocation -> {
-                UploadBatchDto dto = invocation.getArgument(0);
-                UploadBatch entity = new UploadBatch();
-                entity.setDirectory(UUID.fromString(dto.getDirectory()));
-                entity.setCreatedAt(dto.getCreatedAt());
-                entity.setDeletedAt(dto.getDeletedAt());
-                entity.setDeleted(dto.isDeleted());
-                return entity;
-            });
+        when(modelMapper.map(any(UploadBatch.class), eq(UploadBatchDto.class)))
+                .thenReturn(testDto);
 
-    when(modelMapper.map(any(UploadBatch.class), eq(UploadBatchDto.class)))
-            .thenReturn(testDto);
+        ArgumentCaptor<UploadBatch> captor = ArgumentCaptor.forClass(UploadBatch.class);
+        when(uploadBatchRepository.save(captor.capture()))
+                .thenAnswer(invocation -> invocation.getArgument(0));
 
-    ArgumentCaptor<UploadBatch> captor = ArgumentCaptor.forClass(UploadBatch.class);
-    when(uploadBatchRepository.save(captor.capture()))
-            .thenAnswer(invocation -> invocation.getArgument(0));
+        // Act
+        UploadBatchDto result = uploadBatchService.save(testDto);
 
-    // Act
-    UploadBatchDto result = uploadBatchService.save(testDto);
+        // Assert
+        assertNotNull(result);
 
-    // Assert
-    assertNotNull(result);
+        UploadBatch savedEntity = captor.getValue();
+        assertNotNull(savedEntity.getDirectory());
+        assertNotNull(savedEntity.getCreatedAt());
+        assertNotNull(savedEntity.getDeletedAt());
+        assertFalse(savedEntity.isDeleted());
 
-    UploadBatch savedEntity = captor.getValue();
-    assertNotNull(savedEntity.getDirectory());
-    assertNotNull(savedEntity.getCreatedAt());
-    assertNotNull(savedEntity.getDeletedAt());
-    assertFalse(savedEntity.isDeleted());
-
-    assertEquals(
-            savedEntity.getCreatedAt().plus(180, ChronoUnit.DAYS),
-            savedEntity.getDeletedAt()
-    );
-}
-
-
+        assertEquals(
+                savedEntity.getCreatedAt().plus(180, ChronoUnit.DAYS),
+                savedEntity.getDeletedAt()
+        );
+    }
     @Test
     void getById_ShouldReturnDtoWhenExists() {
         // Arrange
@@ -164,4 +174,27 @@ void save_ShouldSetDefaultValuesAndSave() {
         assertThrows(RuntimeException.class,
                 () -> uploadBatchService.updateUploadBatchDto(1L, new UploadBatchDto()));
     }
+
+    @Test
+    void getFilteredBatches_shouldReturnMappedPage() {
+        UploadBatchFilter filter = new UploadBatchFilter();
+        Pageable pageable = PageRequest.of(0, 10);
+
+        UploadBatch entity = new UploadBatch();
+        UploadBatchDto dto = new UploadBatchDto();
+
+        Page<UploadBatch> entityPage = new PageImpl<>(List.of(entity));
+        when(uploadBatchRepository.findAll(any(Specification.class), eq(pageable)))
+                .thenReturn(entityPage);
+        when(modelMapper.map(entity, UploadBatchDto.class)).thenReturn(dto);
+
+        Page<UploadBatchDto> result = uploadBatchService.getFilteredBatches(filter, pageable);
+
+        assertEquals(1, result.getTotalElements());
+        assertEquals(dto, result.getContent().getFirst());
+
+        verify(uploadBatchRepository).findAll(any(Specification.class), eq(pageable));
+        verify(modelMapper).map(entity, UploadBatchDto.class);
+    }
+
 }

@@ -6,6 +6,8 @@ import com.pipemasters.server.dto.UserUpdateDto;
 import com.pipemasters.server.entity.Branch;
 import com.pipemasters.server.entity.User;
 import com.pipemasters.server.entity.enums.Role;
+import com.pipemasters.server.exceptions.branch.BranchNotFoundException;
+import com.pipemasters.server.exceptions.user.UserNotFoundException;
 import com.pipemasters.server.repository.BranchRepository;
 import com.pipemasters.server.repository.UserRepository;
 import com.pipemasters.server.service.UserService;
@@ -32,7 +34,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public UserDto createUser(UserCreateDto dto) {
         Branch branch = branchRepository.findById(dto.getBranchId())
-                .orElseThrow(() -> new RuntimeException("Branch not found with ID: " + dto.getBranchId()));
+                .orElseThrow(() -> new BranchNotFoundException("Branch not found with ID: " + dto.getBranchId()));
 
         User user = new User();
         user.setName(dto.getName());
@@ -53,7 +55,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public UserDto updateUser(Long userId, UserUpdateDto dto) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
+                .orElseThrow(() -> new UserNotFoundException("User not found with ID: " + userId));
 
         modelMapper.map(dto, user);
 
@@ -64,7 +66,7 @@ public class UserServiceImpl implements UserService {
 
         if (dto.getBranchId() != null) {
             Branch newBranch = branchRepository.findById(dto.getBranchId())
-                    .orElseThrow(() -> new RuntimeException("Branch not found with ID: " + dto.getBranchId()));
+                    .orElseThrow(() -> new BranchNotFoundException("Branch not found with ID: " + dto.getBranchId()));
             user.setBranch(newBranch);
         }
 
@@ -74,7 +76,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDto getUserById(Long userId) {
         User user = userRepository.findByIdWithBranch(userId)
-                .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
+                .orElseThrow(() -> new UserNotFoundException("User not found with ID: " + userId));
         return modelMapper.map(user, UserDto.class);
     }
 }

@@ -28,7 +28,7 @@ public class AudioController {
 
     }
 
-    @PostMapping("/minio-event")
+//    @PostMapping("/minio-event")
     public ResponseEntity<Void> handleMinioEvent(
             @RequestBody Map<String, Object> payload,
             @RequestHeader(value = "Authorization", required = false) String auth) {
