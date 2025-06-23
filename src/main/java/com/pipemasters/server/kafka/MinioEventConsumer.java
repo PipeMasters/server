@@ -6,6 +6,7 @@ import com.pipemasters.server.entity.MediaFile;
 import com.pipemasters.server.entity.enums.FileType;
 import com.pipemasters.server.entity.enums.MediaFileStatus;
 import com.pipemasters.server.repository.MediaFileRepository;
+import com.pipemasters.server.service.MediaFileService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -23,10 +24,12 @@ public class MinioEventConsumer {
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final MediaFileRepository mediaFileRepository;
     private final KafkaProducerService producerService;
+    private final MediaFileService mediaFileService;
 
-    public MinioEventConsumer(MediaFileRepository mediaFileRepository, KafkaProducerService producerService) {
+    public MinioEventConsumer(MediaFileRepository mediaFileRepository, KafkaProducerService producerService, MediaFileService mediaFileService) {
         this.mediaFileRepository = mediaFileRepository;
         this.producerService = producerService;
+        this.mediaFileService = mediaFileService;
     }
 
     @KafkaListener(topics = "minio.raw-events")
@@ -38,15 +41,27 @@ public class MinioEventConsumer {
         if (records.isArray()) {
             for (JsonNode record : records) {
                 String eventName = record.path("eventName").asText();
+                String key = record.path("s3").path("object").path("key").asText();
+                String decodedKey = URLDecoder.decode(key, StandardCharsets.UTF_8);
+                String[] parts = decodedKey.split("/", 2);
+
+                if (parts.length != 2) {
+                    log.warn("Invalid key format for Minio event: {}", key);
+                    continue;
+                }
+                String batch = parts[0];
+                String filename = parts[1];
+                UUID uploadBatchDirectory;
+                try {
+                    uploadBatchDirectory = UUID.fromString(batch);
+                } catch (IllegalArgumentException e) {
+                    log.error("Invalid UUID format '{}' from Minio event key: {}. Skipping event.", batch, key, e);
+                    continue;
+                }
+
                 if (eventName.startsWith("s3:ObjectCreated:")) {
-                    String key = record.path("s3").path("object").path("key").asText();
-                    String decodedKey = URLDecoder.decode(key, StandardCharsets.UTF_8);
-                    String[] parts = decodedKey.split("/", 2);
-                    if (parts.length != 2) continue;
-                    String batch = parts[0];
-                    String filename = parts[1];
-                    log.debug("Looking for file with filename: {} and batch: {}", filename, batch);
-                    Optional<MediaFile> opt = mediaFileRepository.findByFilenameAndUploadBatchDirectory(filename, UUID.fromString(batch));
+                    log.debug("Handling Minio object creation event for key: {}", key);
+                    Optional<MediaFile> opt = mediaFileRepository.findByFilenameAndUploadBatchDirectory(filename, uploadBatchDirectory);
                     if (opt.isPresent()) {
                         MediaFile file = opt.get();
                         file.setStatus(MediaFileStatus.UPLOADED);
@@ -57,10 +72,21 @@ public class MinioEventConsumer {
                             producerService.send("processing-queue", file.getId().toString());
                         }
                     } else {
-                        log.warn("MediaFile not found for key {}", key);
+                        log.warn("MediaFile not found for key {}. This might indicate a race condition or an out-of-sync state.", key);
                     }
+                } else if (eventName.startsWith("s3:ObjectRemoved:")) {
+                    log.debug("Handling Minio object removal event for key: {}", key);
+                    try {
+                        mediaFileService.handleMinioFileDeletion(uploadBatchDirectory, filename);
+                    } catch (Exception e) {
+                        log.error("Error processing Minio object removal event for key {}: {}", key, e.getMessage(), e);
+                    }
+                } else {
+                    log.debug("Unhandled Minio event type: {}", eventName);
                 }
             }
-        } else log.debug("No Records field in kafka payload");
+        } else {
+            log.debug("No 'Records' field in Kafka payload for Minio event. Payload: {}", root.toPrettyString());
+        }
     }
 }
