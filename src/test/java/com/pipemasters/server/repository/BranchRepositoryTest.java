@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -57,5 +58,72 @@ class BranchRepositoryTest {
         assertNotNull(saved.getId());
         assertNull(saved.getParent());
         assertEquals("Root", saved.getName());
+    }
+
+    @Test
+    void findByNameReturnsBranchWhenExists() {
+        Branch branch = branchRepository.save(new Branch("Unique Branch Name", null));
+        Optional<Branch> found = branchRepository.findByName("Unique Branch Name");
+        assertTrue(found.isPresent());
+        assertEquals(branch.getId(), found.get().getId());
+        assertEquals("Unique Branch Name", found.get().getName());
+    }
+
+    @Test
+    void findByNameReturnsEmptyOptionalWhenNotExists() {
+        Optional<Branch> found = branchRepository.findByName("NonExistent Branch");
+        assertTrue(found.isEmpty());
+    }
+
+    @Test
+    void findByParentIdReturnsChildrenWhenExist() {
+        Branch parent = branchRepository.save(new Branch("Parent Branch", null));
+        Branch child1 = branchRepository.save(new Branch("Child 1", parent));
+        Branch child2 = branchRepository.save(new Branch("Child 2", parent));
+        Branch unrelated = branchRepository.save(new Branch("Unrelated", null));
+
+        List<Branch> children = branchRepository.findByParentId(parent.getId());
+        assertNotNull(children);
+        assertEquals(2, children.size());
+        assertTrue(children.stream().anyMatch(b -> b.getName().equals("Child 1")));
+        assertTrue(children.stream().anyMatch(b -> b.getName().equals("Child 2")));
+        assertFalse(children.stream().anyMatch(b -> b.getName().equals("Unrelated")));
+    }
+
+    @Test
+    void findByParentIdReturnsEmptyListWhenNoChildren() {
+        Branch parent = branchRepository.save(new Branch("Parent No Children", null));
+        List<Branch> children = branchRepository.findByParentId(parent.getId());
+        assertNotNull(children);
+        assertTrue(children.isEmpty());
+    }
+
+    @Test
+    void findByParentIdReturnsEmptyListForNonExistentParent() {
+        List<Branch> children = branchRepository.findByParentId(999L);
+        assertNotNull(children);
+        assertTrue(children.isEmpty());
+    }
+
+    @Test
+    void findByParentIsNullReturnsRootBranches() {
+        Branch root1 = branchRepository.save(new Branch("Root One", null));
+        Branch root2 = branchRepository.save(new Branch("Root Two", null));
+        Branch child = branchRepository.save(new Branch("Child", root1));
+
+        List<Branch> rootBranches = branchRepository.findByParentIsNull();
+
+        assertNotNull(rootBranches);
+        assertEquals(2, rootBranches.size());
+        assertTrue(rootBranches.stream().anyMatch(b -> b.getName().equals("Root One")));
+        assertTrue(rootBranches.stream().anyMatch(b -> b.getName().equals("Root Two")));
+        assertFalse(rootBranches.stream().anyMatch(b -> b.getName().equals("Child")));
+    }
+
+    @Test
+    void findByParentIsNullReturnsEmptyListWhenNoRootBranchesExist() {
+        List<Branch> rootBranches = branchRepository.findByParentIsNull();
+        assertNotNull(rootBranches);
+        assertTrue(rootBranches.isEmpty());
     }
 }
