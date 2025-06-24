@@ -40,6 +40,7 @@ public class MediaFileServiceImpl implements MediaFileService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<MediaFileResponseDto> getMediaFilesByUploadBatchId(Long uploadBatchId) {
         return mediaFileRepository.findByUploadBatchId(uploadBatchId).stream().map(m ->
                 modelMapper.map(m, MediaFileResponseDto.class)).toList();

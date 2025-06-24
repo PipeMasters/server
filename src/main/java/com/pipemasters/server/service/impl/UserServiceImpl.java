@@ -74,6 +74,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public UserDto getUserById(Long userId) {
         User user = userRepository.findByIdWithBranch(userId)
                 .orElseThrow(() -> new UserNotFoundException("User not found with ID: " + userId));

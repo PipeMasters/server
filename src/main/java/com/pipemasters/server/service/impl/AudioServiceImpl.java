@@ -49,7 +49,7 @@ public class AudioServiceImpl implements AudioService {
 
     @Override
     @Async("ffmpegExecutor")
-    @Transactional
+    @Transactional(readOnly = true)
     public CompletableFuture<String> extractAudio(Long mediaFileId) {
 
         return CompletableFuture.supplyAsync(() -> {
@@ -123,7 +123,7 @@ public class AudioServiceImpl implements AudioService {
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public void processUploadedVideo(String uuid, String filename) {
         MediaFile mediaFile = mediaFileRepository.findByFilenameAndUploadBatchDirectory(filename, UUID.fromString(uuid))
                 .orElseThrow(() -> new MediaFileNotFoundException("Media file not found: " + filename + " in batch " + uuid));

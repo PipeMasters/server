@@ -10,6 +10,7 @@ import com.pipemasters.server.repository.UserRepository;
 import com.pipemasters.server.service.DelegationService;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class DelegationServiceImpl implements DelegationService {
@@ -24,6 +25,7 @@ public class DelegationServiceImpl implements DelegationService {
     }
 
     @Override
+    @Transactional
     public DelegationDto delegate(DelegationDto delegationDTO) {
         if (delegationDTO.getFromDate() == null || delegationDTO.getToDate() == null) {
             throw new DelegationDateValidationException("Start date or/and end date cannot be null");

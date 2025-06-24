@@ -24,6 +24,7 @@ public class BranchServiceImpl implements BranchService {
     }
 
     @Override
+    @Transactional
     public BranchDto createBranch(BranchDto branchDto) {
         Branch parent = null;
         if (branchDto.getParent() != null && branchDto.getParent().getId() != null) {
@@ -37,6 +38,7 @@ public class BranchServiceImpl implements BranchService {
     }
 
     @Override
+    @Transactional
     public BranchDto updateBranchName(Long id, String newName) {
         Branch branch = branchRepository.findById(id)
                 .orElseThrow(() -> new BranchNotFoundException("Branch not found with ID: " + id));
@@ -47,6 +49,7 @@ public class BranchServiceImpl implements BranchService {
     }
 
     @Override
+    @Transactional
     public BranchDto reassignParent(Long id, Long newParentId) {
         Branch branch = branchRepository.findById(id)
                 .orElseThrow(() -> new BranchNotFoundException("Branch not found with ID: " + id));
@@ -107,6 +110,7 @@ public class BranchServiceImpl implements BranchService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<BranchDto> getParentBranches() {
         List<Branch> rootBranches = branchRepository.findByParentIsNull();
         return rootBranches.stream()
