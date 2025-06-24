@@ -8,6 +8,9 @@ import com.pipemasters.server.repository.BranchRepository;
 import com.pipemasters.server.service.BranchService;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 public class BranchServiceImpl implements BranchService {
@@ -63,10 +66,49 @@ public class BranchServiceImpl implements BranchService {
         return toDto(branch);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public BranchDto getBranchById(Long id) {
+        Branch branch = branchRepository.findById(id)
+                .orElseThrow(() -> new BranchNotFoundException("Branch not found with ID: " + id));
+        return toDto(branch);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public BranchDto getBranchByName(String name) {
+        Branch branch = branchRepository.findByName(name)
+                .orElseThrow(() -> new BranchNotFoundException("Branch not found with name: " + name));
+        return toDto(branch);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<BranchDto> getAllBranches() {
+        List<Branch> branches = branchRepository.findAll();
+        return branches.stream()
+                .map(this::toDto).toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<BranchDto> getChildBranches(Long parentId) {
+        List<Branch> childBranches;
+        if (!branchRepository.existsById(parentId)) {
+            throw new BranchNotFoundException("Parent branch not found with ID: " + parentId);
+        }
+
+        childBranches = branchRepository.findByParentId(parentId);
+
+        return childBranches.stream()
+                .map(this::toDto)
+                .toList();
+    }
+
     private BranchDto toDto(Branch entity) {
         BranchDto dto = modelMapper.map(entity, BranchDto.class);
 
-        if (entity.getParent() != null) {  // отдельный маппинг для избежания рекурсии
+        if (entity.getParent() != null) {
             BranchDto parentDto = new BranchDto();
             parentDto.setId(entity.getParent().getId());
             parentDto.setName(entity.getParent().getName());
