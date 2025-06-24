@@ -8,8 +8,8 @@ public interface BranchService {
     BranchDto createBranch(BranchDto branchDto);
     BranchDto updateBranchName(Long id, String newName);
     BranchDto reassignParent(Long id, Long newParentId);
-    BranchDto getBranchById(Long id);
-    BranchDto getBranchByName(String name);
-    List<BranchDto> getAllBranches();
-    List<BranchDto> getChildBranches(Long parentId);
+    BranchDto getBranchById(Long id, boolean includeParent);
+    BranchDto getBranchByName(String name, boolean includeParent);
+    List<BranchDto> getAllBranches(boolean includeParent);
+    List<BranchDto> getChildBranches(Long parentId, boolean includeParent);
 }

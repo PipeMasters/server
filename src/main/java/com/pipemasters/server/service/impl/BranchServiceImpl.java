@@ -68,31 +68,32 @@ public class BranchServiceImpl implements BranchService {
 
     @Override
     @Transactional(readOnly = true)
-    public BranchDto getBranchById(Long id) {
+    public BranchDto getBranchById(Long id, boolean includeParent) {
         Branch branch = branchRepository.findById(id)
                 .orElseThrow(() -> new BranchNotFoundException("Branch not found with ID: " + id));
-        return toDto(branch);
+        return toDto(branch, includeParent);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public BranchDto getBranchByName(String name) {
+    public BranchDto getBranchByName(String name, boolean includeParent) {
         Branch branch = branchRepository.findByName(name)
                 .orElseThrow(() -> new BranchNotFoundException("Branch not found with name: " + name));
-        return toDto(branch);
+        return toDto(branch, includeParent);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<BranchDto> getAllBranches() {
+    public List<BranchDto> getAllBranches(boolean includeParent) {
         List<Branch> branches = branchRepository.findAll();
         return branches.stream()
-                .map(this::toDto).toList();
+                .map(entity -> toDto(entity, includeParent))
+                .toList();
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<BranchDto> getChildBranches(Long parentId) {
+    public List<BranchDto> getChildBranches(Long parentId, boolean includeParent) {
         List<Branch> childBranches;
         if (!branchRepository.existsById(parentId)) {
             throw new BranchNotFoundException("Parent branch not found with ID: " + parentId);
@@ -101,20 +102,26 @@ public class BranchServiceImpl implements BranchService {
         childBranches = branchRepository.findByParentId(parentId);
 
         return childBranches.stream()
-                .map(this::toDto)
+                .map(entity -> toDto(entity, includeParent))
                 .toList();
     }
 
-    private BranchDto toDto(Branch entity) {
+    private BranchDto toDto(Branch entity, boolean includeParent) {
         BranchDto dto = modelMapper.map(entity, BranchDto.class);
 
-        if (entity.getParent() != null) {
+        if (includeParent && entity.getParent() != null) {
             BranchDto parentDto = new BranchDto();
             parentDto.setId(entity.getParent().getId());
             parentDto.setName(entity.getParent().getName());
             dto.setParent(parentDto);
+        } else {
+            dto.setParent(null);
         }
 
         return dto;
+    }
+
+    private BranchDto toDto(Branch entity) {
+        return toDto(entity, false);
     }
 }

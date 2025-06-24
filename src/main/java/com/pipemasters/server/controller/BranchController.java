@@ -37,26 +37,33 @@ public class BranchController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<BranchDto> getBranchById(@PathVariable Long id) {
-        BranchDto branch = branchService.getBranchById(id);
+    public ResponseEntity<BranchDto> getBranchById(
+            @PathVariable Long id,
+            @RequestParam(value = "includeParent", defaultValue = "false") boolean includeParent) {
+        BranchDto branch = branchService.getBranchById(id, includeParent);
         return ResponseEntity.ok(branch);
     }
 
     @GetMapping("/by-name")
-    public ResponseEntity<BranchDto> getBranchByName(@RequestParam String name) {
-        BranchDto branch = branchService.getBranchByName(name);
+    public ResponseEntity<BranchDto> getBranchByName(
+            @RequestParam String name,
+            @RequestParam(value = "includeParent", defaultValue = "false") boolean includeParent) {
+        BranchDto branch = branchService.getBranchByName(name, includeParent);
         return ResponseEntity.ok(branch);
     }
 
     @GetMapping("/all")
-    public ResponseEntity<List<BranchDto>> getAllBranches() {
-        List<BranchDto> branches = branchService.getAllBranches();
+    public ResponseEntity<List<BranchDto>> getAllBranches(
+            @RequestParam(value = "includeParent", defaultValue = "false") boolean includeParent) {
+        List<BranchDto> branches = branchService.getAllBranches(includeParent);
         return ResponseEntity.ok(branches);
     }
 
     @GetMapping("/children/{parentId}")
-    public ResponseEntity<List<BranchDto>> getChildBranches(@PathVariable Long parentId) {
-        List<BranchDto> childBranches = branchService.getChildBranches(parentId);
+    public ResponseEntity<List<BranchDto>> getChildBranches(
+            @PathVariable Long parentId,
+            @RequestParam(value = "includeParent", defaultValue = "false") boolean includeParent) {
+        List<BranchDto> childBranches = branchService.getChildBranches(parentId, includeParent);
         return ResponseEntity.ok(childBranches);
     }
 }
