@@ -8,6 +8,9 @@ import com.pipemasters.server.repository.BranchRepository;
 import com.pipemasters.server.service.BranchService;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 public class BranchServiceImpl implements BranchService {
@@ -63,16 +66,70 @@ public class BranchServiceImpl implements BranchService {
         return toDto(branch);
     }
 
-    private BranchDto toDto(Branch entity) {
+    @Override
+    @Transactional(readOnly = true)
+    public BranchDto getBranchById(Long id, boolean includeParent) {
+        Branch branch = branchRepository.findById(id)
+                .orElseThrow(() -> new BranchNotFoundException("Branch not found with ID: " + id));
+        return toDto(branch, includeParent);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public BranchDto getBranchByName(String name, boolean includeParent) {
+        Branch branch = branchRepository.findByName(name)
+                .orElseThrow(() -> new BranchNotFoundException("Branch not found with name: " + name));
+        return toDto(branch, includeParent);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<BranchDto> getAllBranches(boolean includeParent) {
+        List<Branch> branches = branchRepository.findAll();
+        return branches.stream()
+                .map(entity -> toDto(entity, includeParent))
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<BranchDto> getChildBranches(Long parentId, boolean includeParent) {
+        List<Branch> childBranches;
+        if (!branchRepository.existsById(parentId)) {
+            throw new BranchNotFoundException("Parent branch not found with ID: " + parentId);
+        }
+
+        childBranches = branchRepository.findByParentId(parentId);
+
+        return childBranches.stream()
+                .map(entity -> toDto(entity, includeParent))
+                .toList();
+    }
+
+    @Override
+    public List<BranchDto> getParentBranches() {
+        List<Branch> rootBranches = branchRepository.findByParentIsNull();
+        return rootBranches.stream()
+                .map(this::toDto)
+                .toList();
+    }
+
+    private BranchDto toDto(Branch entity, boolean includeParent) {
         BranchDto dto = modelMapper.map(entity, BranchDto.class);
 
-        if (entity.getParent() != null) {  // отдельный маппинг для избежания рекурсии
+        if (includeParent && entity.getParent() != null) {
             BranchDto parentDto = new BranchDto();
             parentDto.setId(entity.getParent().getId());
             parentDto.setName(entity.getParent().getName());
             dto.setParent(parentDto);
+        } else {
+            dto.setParent(null);
         }
 
         return dto;
+    }
+
+    private BranchDto toDto(Branch entity) {
+        return toDto(entity, false);
     }
 }
