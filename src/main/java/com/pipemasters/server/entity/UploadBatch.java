@@ -47,9 +47,9 @@ public class UploadBatch extends BaseEntity {
 
     /* сроки хранения */
     @Column(nullable = false)
-    private boolean archived;
+    private boolean archived = false;
     private Instant deletedAt;
-    private boolean deleted;
+    private boolean deleted = false;
 
     /* файлы, каскад + orphanRemoval */
     @OneToMany(mappedBy = "uploadBatch", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -75,6 +75,15 @@ public class UploadBatch extends BaseEntity {
         this.deletedAt = deletedAt;
         this.deleted = deleted;
         this.files = files;
+    }
+
+    public UploadBatch(User uploadedBy, LocalDate trainDeparted, Train train, String comment, Branch branch, VideoAbsence absence) {
+        this.uploadedBy = uploadedBy;
+        this.trainDeparted = trainDeparted;
+        this.train = train;
+        this.comment = comment;
+        this.branch = branch;
+        this.absence = absence;
     }
 
     public UploadBatch() {

@@ -2,11 +2,8 @@ package com.pipemasters.server.kafka;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.pipemasters.server.entity.MediaFile;
-import com.pipemasters.server.entity.enums.FileType;
-import com.pipemasters.server.entity.enums.MediaFileStatus;
-import com.pipemasters.server.repository.MediaFileRepository;
-import com.pipemasters.server.service.MediaFileService;
+import com.pipemasters.server.kafka.event.MinioEvent;
+import com.pipemasters.server.kafka.handler.MinioEventHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -15,78 +12,54 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
-import java.util.Optional;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Service
 public class MinioEventConsumer {
     private final Logger log = LoggerFactory.getLogger(MinioEventConsumer.class);
     private final ObjectMapper objectMapper = new ObjectMapper();
-    private final MediaFileRepository mediaFileRepository;
-    private final KafkaProducerService producerService;
-    private final MediaFileService mediaFileService;
+    private final List<MinioEventHandler> handlers;
 
-    public MinioEventConsumer(MediaFileRepository mediaFileRepository, KafkaProducerService producerService, MediaFileService mediaFileService) {
-        this.mediaFileRepository = mediaFileRepository;
-        this.producerService = producerService;
-        this.mediaFileService = mediaFileService;
+    public MinioEventConsumer(List<MinioEventHandler> handlers) {
+        this.handlers = handlers;
     }
 
     @KafkaListener(topics = "minio.raw-events")
     @Transactional
     public void handle(String message) throws Exception {
-        JsonNode root = objectMapper.readTree(message);
-        JsonNode records = root.path("Records");
-        log.debug("Received Minio event: {}", root.toPrettyString());
-        if (records.isArray()) {
-            for (JsonNode record : records) {
+        log.debug("Kafka payload received: {}", message);
+        for (MinioEvent event : parse(message)) {
+            log.debug("Dispatching event {} for key {}", event.eventName(), event.decodedKey());
+            handlers.stream()
+                    .filter(h -> h.supports(event.eventName()))
+                    .forEach(h -> h.handle(event));
+        }
+    }
+
+    private List<MinioEvent> parse(String message) throws Exception {
+        JsonNode recordsNode = objectMapper.readTree(message).path("Records");
+        List<MinioEvent> events = new ArrayList<>();
+        if (recordsNode.isArray()) {
+            for (JsonNode record : recordsNode) {
                 String eventName = record.path("eventName").asText();
-                String key = record.path("s3").path("object").path("key").asText();
-                String decodedKey = URLDecoder.decode(key, StandardCharsets.UTF_8);
+                String rawKey = record.path("s3").path("object").path("key").asText();
+                String decodedKey = URLDecoder.decode(rawKey, StandardCharsets.UTF_8);
                 String[] parts = decodedKey.split("/", 2);
-
                 if (parts.length != 2) {
-                    log.warn("Invalid key format for Minio event: {}", key);
+                    log.warn("Skipped record with unexpected key: {}", rawKey);
                     continue;
                 }
-                String batch = parts[0];
-                String filename = parts[1];
-                UUID uploadBatchDirectory;
                 try {
-                    uploadBatchDirectory = UUID.fromString(batch);
-                } catch (IllegalArgumentException e) {
-                    log.error("Invalid UUID format '{}' from Minio event key: {}. Skipping event.", batch, key, e);
-                    continue;
-                }
-
-                if (eventName.startsWith("s3:ObjectCreated:")) {
-                    log.debug("Handling Minio object creation event for key: {}", key);
-                    Optional<MediaFile> opt = mediaFileRepository.findByFilenameAndUploadBatchDirectory(filename, uploadBatchDirectory);
-                    if (opt.isPresent()) {
-                        MediaFile file = opt.get();
-                        file.setStatus(MediaFileStatus.UPLOADED);
-                        mediaFileRepository.save(file);
-                        log.debug("Media file with ID {} status updated to {}", file.getId(), file.getStatus());
-                        if (file.getFileType() == FileType.VIDEO) {
-                            log.debug("Video file uploaded: {}", file.getFilename());
-                            producerService.send("processing-queue", file.getId().toString());
-                        }
-                    } else {
-                        log.warn("MediaFile not found for key {}. This might indicate a race condition or an out-of-sync state.", key);
-                    }
-                } else if (eventName.startsWith("s3:ObjectRemoved:")) {
-                    log.debug("Handling Minio object removal event for key: {}", key);
-                    try {
-                        mediaFileService.handleMinioFileDeletion(uploadBatchDirectory, filename);
-                    } catch (Exception e) {
-                        log.error("Error processing Minio object removal event for key {}: {}", key, e.getMessage(), e);
-                    }
-                } else {
-                    log.debug("Unhandled Minio event type: {}", eventName);
+                    events.add(new MinioEvent(eventName, UUID.fromString(parts[0]), parts[1], rawKey));
+                } catch (IllegalArgumentException ex) {
+                    log.error("Skipped record with invalid UUID in key {}: {}", rawKey, ex.getMessage());
                 }
             }
         } else {
-            log.debug("No 'Records' field in Kafka payload for Minio event. Payload: {}", root.toPrettyString());
+            log.debug("No Records array present in message");
         }
+        return events;
     }
 }
