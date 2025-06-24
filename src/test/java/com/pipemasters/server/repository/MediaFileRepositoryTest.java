@@ -237,4 +237,45 @@ public class MediaFileRepositoryTest {
         Optional<MediaFile> found = mediaFileRepository.findByFilenameAndUploadBatchDirectory("shared.mp4", batch2.getDirectory());
         assertTrue(found.isEmpty());
     }
+
+    @Test
+    void findByUploadBatchIdReturnsCorrectMediaFiles() {
+        UploadBatch batch1 = createUploadBatch();
+        UploadBatch batch2 = createUploadBatch();
+
+        MediaFile file1Batch1 = mediaFileRepository.save(new MediaFile("file1_b1.mp4", FileType.VIDEO, batch1));
+        MediaFile file2Batch1 = mediaFileRepository.save(new MediaFile("file2_b1.mp3", FileType.AUDIO, batch1));
+        MediaFile file1Batch2 = mediaFileRepository.save(new MediaFile("file1_b2.jpg", FileType.IMAGE, batch2));
+
+        List<MediaFile> foundFilesForBatch1 = mediaFileRepository.findByUploadBatchId(batch1.getId());
+        assertNotNull(foundFilesForBatch1);
+        assertEquals(2, foundFilesForBatch1.size());
+        assertTrue(foundFilesForBatch1.contains(file1Batch1));
+        assertTrue(foundFilesForBatch1.contains(file2Batch1));
+        assertFalse(foundFilesForBatch1.contains(file1Batch2));
+
+        List<MediaFile> foundFilesForBatch2 = mediaFileRepository.findByUploadBatchId(batch2.getId());
+        assertNotNull(foundFilesForBatch2);
+        assertEquals(1, foundFilesForBatch2.size());
+        assertTrue(foundFilesForBatch2.contains(file1Batch2));
+        assertFalse(foundFilesForBatch2.contains(file1Batch1));
+    }
+
+    @Test
+    void findByUploadBatchIdReturnsEmptyListForBatchWithNoFiles() {
+        UploadBatch batchWithNoFiles = createUploadBatch();
+
+        List<MediaFile> foundFiles = mediaFileRepository.findByUploadBatchId(batchWithNoFiles.getId());
+        assertNotNull(foundFiles);
+        assertTrue(foundFiles.isEmpty());
+    }
+
+    @Test
+    void findByUploadBatchIdReturnsEmptyListForNonExistentBatchId() {
+        Long nonExistentBatchId = 999999L;
+
+        List<MediaFile> foundFiles = mediaFileRepository.findByUploadBatchId(nonExistentBatchId);
+        assertNotNull(foundFiles);
+        assertTrue(foundFiles.isEmpty());
+    }
 }
