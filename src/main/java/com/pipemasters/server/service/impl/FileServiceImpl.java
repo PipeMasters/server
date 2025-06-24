@@ -89,7 +89,7 @@ public class FileServiceImpl implements FileService {
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public String generatePresignedDownloadUrl(Long mediaFileId) {
         MediaFile mediaFile = mediaFileRepository.findById(mediaFileId)
                 .orElseThrow(() -> new MediaFileNotFoundException("MediaFile not found with ID: " + mediaFileId));

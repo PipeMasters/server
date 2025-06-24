@@ -7,6 +7,7 @@ import com.pipemasters.server.repository.TrainRepository;
 import com.pipemasters.server.service.TrainService;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -22,18 +23,21 @@ public class TrainServiceImpl implements TrainService {
     }
 
     @Override
+    @Transactional
     public TrainDto save(TrainDto trainDto) {
         Train train = modelMapper.map(trainDto, Train.class);
         return modelMapper.map(trainRepository.save(train), TrainDto.class);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public TrainDto getById(Long id) {
         Train train = trainRepository.findById(id).orElseThrow(() -> new TrainNotFoundException("Train not found with ID: " + id));
         return modelMapper.map(train, TrainDto.class);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<TrainDto> getAll() {
         return trainRepository.findAll().stream()
                 .map(train -> modelMapper.map(train, TrainDto.class))
@@ -41,6 +45,7 @@ public class TrainServiceImpl implements TrainService {
     }
 
     @Override
+    @Transactional
     public TrainDto update(Long id, TrainDto trainDto) {
         Train train = trainRepository.findById(id).orElseThrow(() -> new TrainNotFoundException("Train not found with ID: " + id));
         train.setTrainNumber(trainDto.getTrainNumber());
@@ -51,6 +56,7 @@ public class TrainServiceImpl implements TrainService {
     }
 
     @Override
+    @Transactional
     public void delete(Long id) {
         trainRepository.deleteById(id);
     }

@@ -10,6 +10,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class UploadBatchServiceImpl implements UploadBatchService {
@@ -23,6 +24,7 @@ public class UploadBatchServiceImpl implements UploadBatchService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Page<UploadBatchDto> getFilteredBatches(UploadBatchFilter filter, Pageable pageable) {
         Page<UploadBatch> page = uploadBatchRepository.findAll(UploadBatchSpecifications.withFilter(filter), pageable);
         return page.map(batch -> modelMapper.map(batch, UploadBatchDto.class));
