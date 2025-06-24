@@ -262,4 +262,29 @@ class BranchControllerTest {
                 branchController.getChildBranches(999L, false)
         );
     }
+
+    @Test
+    void getParentsBranches_ReturnsOkStatusAndListOfRootBranches() {
+        List<BranchDto> rootBranches = Arrays.asList(mockBranchDto1);
+        when(branchService.getParentBranches()).thenReturn(rootBranches);
+
+        ResponseEntity<List<BranchDto>> response = branchController.getParentsBranches();
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(1, response.getBody().size());
+        assertEquals(mockBranchDto1, response.getBody().get(0));
+        assertNull(response.getBody().get(0).getParent());
+    }
+
+    @Test
+    void getParentsBranches_ReturnsEmptyListWhenNoRootBranchesExist() {
+        when(branchService.getParentBranches()).thenReturn(Collections.emptyList());
+
+        ResponseEntity<List<BranchDto>> response = branchController.getParentsBranches();
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertTrue(response.getBody().isEmpty());
+    }
 }

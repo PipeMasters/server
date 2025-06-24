@@ -104,4 +104,26 @@ class BranchRepositoryTest {
         assertNotNull(children);
         assertTrue(children.isEmpty());
     }
+
+    @Test
+    void findByParentIsNullReturnsRootBranches() {
+        Branch root1 = branchRepository.save(new Branch("Root One", null));
+        Branch root2 = branchRepository.save(new Branch("Root Two", null));
+        Branch child = branchRepository.save(new Branch("Child", root1));
+
+        List<Branch> rootBranches = branchRepository.findByParentIsNull();
+
+        assertNotNull(rootBranches);
+        assertEquals(2, rootBranches.size());
+        assertTrue(rootBranches.stream().anyMatch(b -> b.getName().equals("Root One")));
+        assertTrue(rootBranches.stream().anyMatch(b -> b.getName().equals("Root Two")));
+        assertFalse(rootBranches.stream().anyMatch(b -> b.getName().equals("Child")));
+    }
+
+    @Test
+    void findByParentIsNullReturnsEmptyListWhenNoRootBranchesExist() {
+        List<Branch> rootBranches = branchRepository.findByParentIsNull();
+        assertNotNull(rootBranches);
+        assertTrue(rootBranches.isEmpty());
+    }
 }

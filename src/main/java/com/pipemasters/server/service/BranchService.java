@@ -12,4 +12,5 @@ public interface BranchService {
     BranchDto getBranchByName(String name, boolean includeParent);
     List<BranchDto> getAllBranches(boolean includeParent);
     List<BranchDto> getChildBranches(Long parentId, boolean includeParent);
+    List<BranchDto> getParentBranches();
 }

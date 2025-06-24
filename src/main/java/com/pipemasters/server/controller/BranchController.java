@@ -66,4 +66,9 @@ public class BranchController {
         List<BranchDto> childBranches = branchService.getChildBranches(parentId, includeParent);
         return ResponseEntity.ok(childBranches);
     }
+
+    @GetMapping("/parents")
+    public ResponseEntity<List<BranchDto>> getParentsBranches() {
+        return ResponseEntity.ok(branchService.getParentBranches());
+    }
 }

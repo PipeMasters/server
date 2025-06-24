@@ -315,4 +315,34 @@ class BranchServiceImplTest {
                 branchService.getChildBranches(999L, anyBoolean())
         );
     }
+
+    @Test
+    void getRootBranches_shouldReturnListOfParentBranches() {
+        List<Branch> rootEntities = Arrays.asList(mockBranch1);
+        when(branchRepository.findByParentIsNull()).thenReturn(rootEntities);
+
+        BranchDto simpleRootDto = new BranchDto();
+        simpleRootDto.setId(mockBranch1.getId());
+        simpleRootDto.setName(mockBranch1.getName());
+        simpleRootDto.setParent(null);
+
+        when(modelMapper.map(mockBranch1, BranchDto.class)).thenReturn(simpleRootDto);
+
+        List<BranchDto> result = branchService.getParentBranches();
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertEquals(simpleRootDto, result.get(0));
+        assertNull(result.get(0).getParent());
+    }
+
+    @Test
+    void getRootBranches_shouldReturnEmptyListWhenNoParentBranchesExist() {
+        when(branchRepository.findByParentIsNull()).thenReturn(Collections.emptyList());
+
+        List<BranchDto> result = branchService.getParentBranches();
+
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+    }
 }

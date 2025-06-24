@@ -106,6 +106,14 @@ public class BranchServiceImpl implements BranchService {
                 .toList();
     }
 
+    @Override
+    public List<BranchDto> getParentBranches() {
+        List<Branch> rootBranches = branchRepository.findByParentIsNull();
+        return rootBranches.stream()
+                .map(this::toDto)
+                .toList();
+    }
+
     private BranchDto toDto(Branch entity, boolean includeParent) {
         BranchDto dto = modelMapper.map(entity, BranchDto.class);
 

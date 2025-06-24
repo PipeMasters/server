@@ -11,4 +11,5 @@ public interface BranchRepository extends GeneralRepository<Branch, Long> {
     Optional<Branch> findByName(String name);
     @Query("select b from Branch b where b.parent.id = :parentId")
     List<Branch> findByParentId(Long parentId);
+    List<Branch> findByParentIsNull();
 }
