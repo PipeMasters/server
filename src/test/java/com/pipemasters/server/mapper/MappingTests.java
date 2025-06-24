@@ -40,12 +40,13 @@ public class MappingTests {
         String comment = "Test comment";
         Set<String> keywords = Set.of("video", "absence");
         Branch branch = new Branch("Main", null);
+        boolean archived = false;
         Instant deletedAt = null;
         boolean deleted = false;
         List<MediaFile> files = new ArrayList<>();
 
         return new UploadBatch(directory, uploadedBy, createdAt, trainDeparted, train,
-                comment, keywords, branch, deletedAt, deleted, files);
+                comment, keywords, branch, archived, deletedAt, deleted, files);
     }
 
     @Test

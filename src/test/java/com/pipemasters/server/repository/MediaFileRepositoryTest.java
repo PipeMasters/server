@@ -59,6 +59,7 @@ public class MediaFileRepositoryTest {
                 "Комментарий",
                 Set.of("ключевое", "слово"),
                 branch,
+                false,
                 null,
                 false,
                 new ArrayList<>()

@@ -53,6 +53,7 @@ public class VideoAbsenceRepositoryTest {
                 "Test comment",
                 Set.of("keyword1", "keyword2"),
                 branch,
+                false,
                 null,
                 false,
                 new ArrayList<>()

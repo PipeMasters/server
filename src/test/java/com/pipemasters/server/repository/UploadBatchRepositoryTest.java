@@ -35,7 +35,7 @@ class UploadBatchRepositoryTest {
         Train train = trainRepository.save(new Train(100L, "A-B", 1, "Chief"));
 
         UploadBatch uploadBatch = new UploadBatch(UUID.randomUUID(), user, Instant.now(), LocalDate.now(),
-                train, "test", Set.of("key"), branch, null, false, new ArrayList<>());
+                train, "test", Set.of("key"), branch, false, null, false, new ArrayList<>());
         uploadBatchRepository.save(uploadBatch);
 
         UploadBatch found = uploadBatchRepository.findById(uploadBatch.getId()).orElseThrow();

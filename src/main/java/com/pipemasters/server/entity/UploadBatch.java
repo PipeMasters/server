@@ -46,8 +46,10 @@ public class UploadBatch extends BaseEntity {
     private Branch branch;
 
     /* сроки хранения */
+    @Column(nullable = false)
+    private boolean archived = false;
     private Instant deletedAt;
-    private boolean deleted;
+    private boolean deleted = false;
 
     /* файлы, каскад + orphanRemoval */
     @OneToMany(mappedBy = "uploadBatch", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -60,7 +62,7 @@ public class UploadBatch extends BaseEntity {
     private VideoAbsence absence;
 
 
-    public UploadBatch(UUID directory, User uploadedBy, Instant createdAt, LocalDate trainDeparted, Train train, String comment, Set<String> keywords, Branch branch, Instant deletedAt, boolean deleted, List<MediaFile> files) {
+    public UploadBatch(UUID directory, User uploadedBy, Instant createdAt, LocalDate trainDeparted, Train train, String comment, Set<String> keywords, Branch branch, boolean archived, Instant deletedAt, boolean deleted, List<MediaFile> files) {
         this.directory = directory;
         this.uploadedBy = uploadedBy;
         this.createdAt = createdAt;
@@ -69,9 +71,19 @@ public class UploadBatch extends BaseEntity {
         this.comment = comment;
         this.keywords = keywords;
         this.branch = branch;
+        this.archived = archived;
         this.deletedAt = deletedAt;
         this.deleted = deleted;
         this.files = files;
+    }
+
+    public UploadBatch(User uploadedBy, LocalDate trainDeparted, Train train, String comment, Branch branch, VideoAbsence absence) {
+        this.uploadedBy = uploadedBy;
+        this.trainDeparted = trainDeparted;
+        this.train = train;
+        this.comment = comment;
+        this.branch = branch;
+        this.absence = absence;
     }
 
     public UploadBatch() {
@@ -139,6 +151,14 @@ public class UploadBatch extends BaseEntity {
 
     public void setBranch(Branch branch) {
         this.branch = branch;
+    }
+
+    public boolean isArchived() {
+        return archived;
+    }
+
+    public void setArchived(boolean archived) {
+        this.archived = archived;
     }
 
     public Instant getDeletedAt() {

@@ -24,6 +24,7 @@ public class UploadBatchDto extends BaseDto{
     private Set<String> keywords = new HashSet<>();
     @NotNull(message = "Branch cannot be empty")
     private BranchDto branch;
+    private boolean archived;
     private Instant deletedAt;
     private boolean deleted;
     private List<MediaFileDto> files = new ArrayList<>();
@@ -33,7 +34,7 @@ public class UploadBatchDto extends BaseDto{
     }
 
     public UploadBatchDto( String directory, UserDto uploadedBy, Instant createdAt, LocalDate trainDeparted,
-                     TrainDto train, String comment, Set<String> keywords, BranchDto branch,
+                     TrainDto train, String comment, Set<String> keywords, BranchDto branch, boolean archived,
                      Instant deletedAt, boolean deleted, List<MediaFileDto> files, VideoAbsenceDto absence) {
         this.directory = directory;
         this.uploadedBy = uploadedBy;
@@ -43,6 +44,7 @@ public class UploadBatchDto extends BaseDto{
         this.comment = comment;
         this.keywords = keywords;
         this.branch = branch;
+        this.archived = archived;
         this.deletedAt = deletedAt;
         this.deleted = deleted;
         this.files = files;
@@ -111,6 +113,14 @@ public class UploadBatchDto extends BaseDto{
 
     public void setBranch(BranchDto branch) {
         this.branch = branch;
+    }
+
+    public boolean isArchived() {
+        return archived;
+    }
+
+    public void setArchived(boolean archived) {
+        this.archived = archived;
     }
 
     public Instant getDeletedAt() {
