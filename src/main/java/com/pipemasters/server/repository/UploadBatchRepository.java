@@ -1,9 +1,6 @@
 package com.pipemasters.server.repository;
 
-import com.pipemasters.server.dto.UploadBatchFilter;
 import com.pipemasters.server.entity.UploadBatch;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 import java.time.Instant;

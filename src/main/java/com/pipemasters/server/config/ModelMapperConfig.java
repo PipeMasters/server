@@ -2,6 +2,7 @@ package com.pipemasters.server.config;
 
 import com.pipemasters.server.dto.*;
 import com.pipemasters.server.entity.*;
+import org.modelmapper.Conditions;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeMap;
 import org.springframework.context.annotation.Bean;
@@ -12,17 +13,12 @@ public class ModelMapperConfig {
     @Bean
     public ModelMapper modelMapper() {
         ModelMapper modelMapper = new ModelMapper();
-        modelMapper.getConfiguration().setSkipNullEnabled(true); // пропуск null полей
 
         modelMapper.typeMap(Delegation.class, DelegationDto.class)
                 .addMapping(e -> e.getDelegator().getId(), DelegationDto::setDelegatorId)
                 .addMapping(e -> e.getSubstitute().getId(), DelegationDto::setSubstituteId);
 
-        modelMapper.typeMap(Branch.class, BranchDto.class).addMappings(m ->
-                m.skip(BranchDto::setParent)
-        );
-
-//        configureBranchMapping(modelMapper);
+        configureBranchMapping(modelMapper);
 //        configureMediaFileMapping(modelMapper);
 //        configureUploadBatchMapping(modelMapper);
 //        configureVideoAbsenceDtoMapping(modelMapper);
@@ -55,8 +51,11 @@ public class ModelMapperConfig {
     private void configureUploadBatchMapping(ModelMapper modelMapper) {
         modelMapper.typeMap(UploadBatch.class, UploadBatchDto.class)
                 .addMappings(mapper -> {
-                    mapper.skip(UploadBatchDto::setAbsence);
-                    mapper.skip(UploadBatchDto::setFiles);
+                    mapper.map(UploadBatch::getDeletedAt, UploadBatchDto::setDeletedAt);
+                });
+        modelMapper.typeMap(UploadBatchDto.class, UploadBatch.class)
+                .addMappings(mapper -> {
+                    mapper.map(UploadBatchDto::getDeletedAt, UploadBatch::setDeletedAt);
                 });
     }
 

@@ -1,56 +1,75 @@
 package com.pipemasters.server.mapper;
 
-import com.pipemasters.server.TestEnvInitializer;
+import com.pipemasters.server.config.ModelMapperConfig;
 import com.pipemasters.server.dto.BranchDto;
 import com.pipemasters.server.entity.Branch;
 import org.junit.jupiter.api.Test;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ContextConfiguration;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest
-@ContextConfiguration(initializers = TestEnvInitializer.class)
+import org.junit.jupiter.api.BeforeEach;
+
 public class BranchMapperTest {
 
-    @Autowired
     private ModelMapper modelMapper;
 
-//    @Test
-    void shouldMapBranchToBranchDtoCorrectly() {
-        Branch parent = new Branch("Head Office", null);
-        Branch child = new Branch("Regional Office", parent);
-
-        BranchDto dto = modelMapper.map(child, BranchDto.class);
-
-        assertEquals("Regional Office", dto.getName());
-        assertNull(dto.getParent(), "Поле parent должно быть null из-за .skip()");
+    @BeforeEach
+    public void setup() {
+        modelMapper = new ModelMapperConfig().modelMapper();
     }
 
     @Test
-    void shouldMapBranchDtoToBranchCorrectly() {
-        BranchDto parentDto = new BranchDto("Head Office", null);
-        BranchDto childDto = new BranchDto("Regional Office", parentDto);
+    public void testBranchToDto_basicMapping() {
+        Branch branch = new Branch("Central", null);
+        branch.setId(1L);
 
-        Branch entity = modelMapper.map(childDto, Branch.class);
+        BranchDto dto = modelMapper.map(branch, BranchDto.class);
 
-        assertEquals("Regional Office", entity.getName());
-        assertNotNull(entity.getParent(), "Поле parent должно быть замаплено в обратную сторону");
-        assertEquals("Head Office", entity.getParent().getName());
+        assertEquals(branch.getName(), dto.getName());
+        assertEquals(branch.getId(), dto.getId());
+        assertNull(dto.getParent(), "Parent should be skipped in mapping");
     }
 
-//    @Test
-    void shouldNotCauseRecursionWhenMappingEntityWithDeepHierarchy() {
+    @Test
+    public void testBranchToDto_withParent() {
+        Branch parent = new Branch("Root", null);
+        parent.setId(2L);
+
+        Branch branch = new Branch("Child", parent);
+        branch.setId(3L);
+
+        BranchDto dto = modelMapper.map(branch, BranchDto.class);
+
+        assertEquals(branch.getName(), dto.getName());
+        assertEquals(branch.getId(), dto.getId());
+        assertNull(dto.getParent(), "Parent should be skipped due to mapping configuration");
+    }
+
+    @Test
+    public void testBranchDtoToEntity() {
+        BranchDto dto = new BranchDto("Finance", null);
+        dto.setId(10L);
+
+        Branch entity = modelMapper.map(dto, Branch.class);
+
+        assertEquals(dto.getName(), entity.getName());
+        assertEquals(dto.getId(), entity.getId());
+        assertNull(entity.getParent(), "Parent should be null by default");
+    }
+
+    @Test
+    public void testBranchRecursiveMapping() {
         Branch root = new Branch("Root", null);
-        Branch level1 = new Branch("Level1", root);
-        Branch level2 = new Branch("Level2", level1);
-        Branch level3 = new Branch("Level3", level2);
+        root.setId(1L);
 
-        BranchDto dto = modelMapper.map(level3, BranchDto.class);
+        Branch child = new Branch("Child", root);
+        child.setId(2L);
 
-        assertEquals("Level3", dto.getName());
-        assertNull(dto.getParent(), "Глубокая иерархия должна быть прервана на первом уровне");
+        root.setParent(child);
+
+        BranchDto dto = modelMapper.map(child, BranchDto.class);
+
+        assertNull(dto.getParent(), "Cyclic parent mapping should be skipped");
     }
 }
