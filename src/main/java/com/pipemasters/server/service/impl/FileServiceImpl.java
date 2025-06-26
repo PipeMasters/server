@@ -28,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Duration;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -55,24 +56,39 @@ public class FileServiceImpl implements FileService {
                 .orElseThrow(() -> new UploadBatchNotFoundException("UploadBatch not found with ID: " + fileUploadRequestDTO.getUploadBatchId()));
 
         String s3Key = fileUploadRequestDTO.getFilename();
+        String fullS3Path = uploadBatch.getDirectory() + "/" + s3Key;
         logger.debug("Generated S3 key for uploadUrl: {}", uploadBatch.getDirectory() + "/" + s3Key);
-        if (mediaFileRepository.existsByFilenameAndUploadBatchDirectory(fileUploadRequestDTO.getFilename(), uploadBatch.getDirectory())) {
-            throw new FileAlreadyExistsException("File with the same name '" + fileUploadRequestDTO.getFilename() + "' already exists in this upload batch with ID: " + uploadBatch.getDirectory());
+
+        Optional<MediaFile> existingMediaFileOptional = mediaFileRepository.findByFilenameAndUploadBatchDirectory(
+                fileUploadRequestDTO.getFilename(), uploadBatch.getDirectory());
+
+        MediaFile mediaFile;
+
+        if (existingMediaFileOptional.isPresent()) {
+            mediaFile = existingMediaFileOptional.get();
+
+            if (mediaFile.getStatus() != MediaFileStatus.PENDING) {
+                throw new FileAlreadyExistsException("File with the name " + fileUploadRequestDTO.getFilename() + " already exists.");
+            }
+            logger.info("Found existing MediaFile with PENDING status. Re-generating upload URL for file: {}", fullS3Path);
+        } else {
+            mediaFile = new MediaFile();
+            mediaFile.setFilename(s3Key);
+            mediaFile.setFileType(fileUploadRequestDTO.getFileType());
+            mediaFile.setUploadBatch(uploadBatch);
+            mediaFile.setStatus(MediaFileStatus.PENDING);
         }
-        MediaFile mediaFile = new MediaFile();
-        mediaFile.setFilename(s3Key);
-        mediaFile.setFileType(fileUploadRequestDTO.getFileType());
-        mediaFile.setUploadBatch(uploadBatch);
-        mediaFile.setStatus(MediaFileStatus.PENDING);
+
         if (fileUploadRequestDTO.getSourceId() != null) {
             mediaFile.setSource(mediaFileRepository.findById(fileUploadRequestDTO.getSourceId()).orElseThrow(() -> new MediaFileNotFoundException("Source MediaFile not found with ID: " + fileUploadRequestDTO.getSourceId())));
         }
+
         mediaFileRepository.save(mediaFile);
 
         try {
             PutObjectRequest putObjectRequest = PutObjectRequest.builder()
                     .bucket(minioBucketName)
-                    .key(uploadBatch.getDirectory() + "/" + s3Key)
+                    .key(fullS3Path)
                     .build();
 
             PutObjectPresignRequest presignRequest = PutObjectPresignRequest.builder()
