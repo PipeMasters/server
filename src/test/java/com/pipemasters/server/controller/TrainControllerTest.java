@@ -9,9 +9,14 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
+import static org.hibernate.validator.internal.util.Contracts.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -83,5 +88,31 @@ class TrainControllerTest {
 
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
         verify(trainService).delete(id);
+    }
+
+    @Test
+    void getUniqueChiefs_ReturnsOkStatusAndListOfUniqueChiefs() {
+        List<String> uniqueChiefs = Arrays.asList("Иванов", "Петров", "Сидоров");
+        when(trainService.getUniqueChiefs()).thenReturn(uniqueChiefs);
+
+        ResponseEntity<List<String>> response = trainController.getUniqueChiefs();
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(3, response.getBody().size());
+        assertEquals(uniqueChiefs, response.getBody());
+    }
+
+    @Test
+    void getUniqueChiefs_ReturnsEmptyListWhenNoChiefsExist() {
+        when(trainService.getUniqueChiefs()).thenReturn(Collections.emptyList());
+
+        ResponseEntity<List<String>> response = trainController.getUniqueChiefs();
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertTrue(response.getBody().isEmpty());
     }
 }

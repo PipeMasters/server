@@ -14,6 +14,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -104,5 +105,29 @@ class TrainServiceImplTest {
     void delete_ShouldCallRepository() {
         trainService.delete(1L);
         verify(trainRepository).deleteById(1L);
+    }
+
+    @Test
+    void getUniqueChiefs_ShouldReturnListOfUniqueChiefs() {
+        List<String> distinctChiefsFromRepo = Arrays.asList("Иванов", "Петров", "Сидоров");
+        when(trainRepository.findDistinctChiefs()).thenReturn(distinctChiefsFromRepo);
+
+        List<String> result = trainService.getUniqueChiefs();
+
+        assertThat(result).isNotNull();
+        assertThat(result).hasSize(3);
+        assertThat(result).containsExactlyInAnyOrder("Иванов", "Петров", "Сидоров");
+        verify(trainRepository).findDistinctChiefs();
+    }
+
+    @Test
+    void getUniqueChiefs_ShouldReturnEmptyListWhenNoChiefsExist() {
+        when(trainRepository.findDistinctChiefs()).thenReturn(Collections.emptyList());
+
+        List<String> result = trainService.getUniqueChiefs();
+
+        assertThat(result).isNotNull();
+        assertThat(result).isEmpty();
+        verify(trainRepository).findDistinctChiefs();
     }
 }

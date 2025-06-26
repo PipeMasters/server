@@ -8,6 +8,7 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import java.util.List;
 import java.util.Optional;
 
+import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 @DataJpaTest
@@ -18,6 +19,10 @@ public class TrainRepositoryTest {
 
     private Train createTrain() {
         return trainRepository.save(new Train(1001L, "Moscow — Saint Petersburg", 10, "Ivanov I.I."));
+    }
+
+    private Train createTrain(long l, String s, int i, String s1) {
+        return trainRepository.save(new Train(l, s, i, s1));
     }
 
     @Test
@@ -77,5 +82,27 @@ public class TrainRepositoryTest {
     void saveTrainWithNullChiefThrowsException() {
         Train train = new Train(4001L, "Omsk — Tomsk", 2, null);
         assertThrows(Exception.class, () -> trainRepository.save(train));
+    }
+
+    @Test
+    void findDistinctChiefsReturnsUniqueChiefsWhenTheyExist() {
+        createTrain(5001L, "Route 1", 1, "Иванов И.И.");
+        createTrain(5002L, "Route 2", 2, "Петров П.П.");
+        createTrain(5003L, "Route 3", 3, "Иванов И.И.");
+        createTrain(5004L, "Route 4", 4, "Сидоров С.С.");
+
+        List<String> uniqueChiefs = trainRepository.findDistinctChiefs();
+
+        assertNotNull(uniqueChiefs);
+        assertEquals(3, uniqueChiefs.size());
+        assertThat(uniqueChiefs).containsExactlyInAnyOrder("Иванов И.И.", "Петров П.П.", "Сидоров С.С.");
+    }
+
+    @Test
+    void findDistinctChiefsReturnsEmptyListWhenNoTrainsExist() {
+        List<String> uniqueChiefs = trainRepository.findDistinctChiefs();
+
+        assertNotNull(uniqueChiefs);
+        assertTrue(uniqueChiefs.isEmpty());
     }
 }
