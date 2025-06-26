@@ -1,7 +1,7 @@
 package com.pipemasters.server.controller;
 
-import com.pipemasters.server.dto.UploadBatchDto;
 import com.pipemasters.server.dto.UploadBatchFilter;
+import com.pipemasters.server.dto.UploadBatchResponseDto;
 import com.pipemasters.server.service.UploadBatchService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -28,7 +28,7 @@ public class UploadBatchController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<UploadBatchDto>> getFiltered(
+    public ResponseEntity<Page<UploadBatchResponseDto>> getFiltered(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate specificDate,
