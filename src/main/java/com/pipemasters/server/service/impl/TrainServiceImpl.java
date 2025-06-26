@@ -60,4 +60,10 @@ public class TrainServiceImpl implements TrainService {
     public void delete(Long id) {
         trainRepository.deleteById(id);
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<String> getUniqueChiefs() {
+        return trainRepository.findDistinctChiefs();
+    }
 }

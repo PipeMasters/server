@@ -41,4 +41,9 @@ public class TrainController {
         trainService.delete(id);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
+
+    @GetMapping("/chiefs/unique")
+    public ResponseEntity<List<String>> getUniqueChiefs() {
+        return ResponseEntity.ok(trainService.getUniqueChiefs());
+    }
 }

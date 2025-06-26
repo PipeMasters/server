@@ -9,4 +9,5 @@ public interface TrainService {
     List<TrainDto> getAll();
     TrainDto update(Long id, TrainDto trainDto);
     void delete(Long id);
+    List<String> getUniqueChiefs();
 }
