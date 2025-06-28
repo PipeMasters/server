@@ -1,5 +1,6 @@
 package com.pipemasters.server.controller;
 
+import com.pipemasters.server.dto.UploadBatchDto;
 import com.pipemasters.server.dto.UploadBatchFilter;
 import com.pipemasters.server.dto.UploadBatchResponseDto;
 import com.pipemasters.server.service.UploadBatchService;
@@ -10,12 +11,10 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Set;
 
 @RestController
@@ -47,5 +46,26 @@ public class UploadBatchController {
         filter.setKeywords(keywords);
 
         return new ResponseEntity<>(uploadBatchService.getFilteredBatches(filter, pageable), HttpStatus.OK);
+    }
+
+    @PostMapping
+    public ResponseEntity<UploadBatchDto> create(@RequestBody UploadBatchDto uploadBatchDto) {
+        UploadBatchDto saved = uploadBatchService.save(uploadBatchDto);
+        return new ResponseEntity<>(uploadBatchService.save(uploadBatchDto), HttpStatus.CREATED);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<UploadBatchDto> getById(@PathVariable Long id) {
+        return new ResponseEntity<>(uploadBatchService.getById(id), HttpStatus.OK);
+    }
+
+    @GetMapping("/all")
+    public ResponseEntity<List<UploadBatchDto>> getAll() {
+        return new ResponseEntity<>(uploadBatchService.getAll(), HttpStatus.OK);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<UploadBatchDto> update(@PathVariable Long id, @RequestBody UploadBatchDto dto) {
+        return new ResponseEntity<>(uploadBatchService.updateUploadBatchDto(id, dto), HttpStatus.OK);
     }
 }
