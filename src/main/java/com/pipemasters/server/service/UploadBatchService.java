@@ -12,5 +12,5 @@ public interface UploadBatchService {
     Page<UploadBatchResponseDto> getFilteredBatches(UploadBatchFilter filter, Pageable pageable);
     UploadBatchDto getById(Long id);
     List<UploadBatchDto> getAll();
-    UploadBatchDto updateUploadBatchDto(Long uploadBatchId, UploadBatchDto dto);
+    UploadBatchDto update(Long uploadBatchId, UploadBatchDto dto);
 }
