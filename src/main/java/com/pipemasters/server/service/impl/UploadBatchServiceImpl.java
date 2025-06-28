@@ -10,6 +10,8 @@ import com.pipemasters.server.repository.UploadBatchRepository;
 import com.pipemasters.server.repository.specifications.UploadBatchSpecifications;
 import com.pipemasters.server.service.UploadBatchService;
 import org.modelmapper.ModelMapper;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -32,6 +34,7 @@ public class UploadBatchServiceImpl implements UploadBatchService {
     }
 
     @Override
+    @CacheEvict(value = {"filteredBatches", "batches"}, allEntries = true)
     @Transactional
     public UploadBatchDto save(UploadBatchDto uploadBatchDto) {
         var now = Instant.now();
@@ -44,6 +47,7 @@ public class UploadBatchServiceImpl implements UploadBatchService {
     }
 
     @Override
+    @Cacheable(cacheNames = "filteredBatches", keyGenerator = "uploadBatchFilterKeyGenerator")
     @Transactional(readOnly = true)
     public Page<UploadBatchResponseDto> getFilteredBatches(UploadBatchFilter filter, Pageable pageable) {
         Page<UploadBatch> page = uploadBatchRepository.findAll(UploadBatchSpecifications.withFilter(filter), pageable);
@@ -69,6 +73,7 @@ public class UploadBatchServiceImpl implements UploadBatchService {
     }
 
     @Override
+    @Cacheable("batches")
     @Transactional(readOnly = true)
     public List<UploadBatchDto> getAll() {
         return uploadBatchRepository.findAll().stream()
@@ -76,8 +81,9 @@ public class UploadBatchServiceImpl implements UploadBatchService {
     }
 
     @Override
+    @CacheEvict(value = {"filteredBatches", "batches"}, allEntries = true)
     @Transactional
-    public UploadBatchDto updateUploadBatchDto(Long uploadBatchId, UploadBatchDto dto) {
+    public UploadBatchDto update(Long uploadBatchId, UploadBatchDto dto) {
         var uploadBatchOrigin = uploadBatchRepository.findById(uploadBatchId)
                 .orElseThrow(() -> new RuntimeException("UploadBatch not found with ID: " + uploadBatchId));
         var uploadBatch = modelMapper.map(dto, UploadBatch.class);

@@ -12,6 +12,8 @@ import com.pipemasters.server.repository.BranchRepository;
 import com.pipemasters.server.repository.UserRepository;
 import com.pipemasters.server.service.UserService;
 import org.modelmapper.ModelMapper;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,6 +34,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @CacheEvict(cacheNames = "users", allEntries = true)
     @Transactional
     public UserDto createUser(UserCreateDto dto) {
         Branch branch = branchRepository.findById(dto.getBranchId())
@@ -53,6 +56,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @CacheEvict(cacheNames = "users", allEntries = true)
     @Transactional
     public UserDto updateUser(Long userId, UserUpdateDto dto) {
         User user = userRepository.findById(userId)
@@ -83,6 +87,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Cacheable("users")
     public List<UserDto> getUsers() {
         List<User> users = userRepository.findAll();
         return users.stream().map(u -> modelMapper.map(u,UserDto.class)).toList();
