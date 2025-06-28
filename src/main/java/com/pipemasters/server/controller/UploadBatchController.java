@@ -32,7 +32,7 @@ public class UploadBatchController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate specificDate,
             @RequestParam(required = false) String trainNumber,
-            @RequestParam(required = false) String chiefName,
+            @RequestParam(required = false) String chief,
             @RequestParam(required = false) String uploadedByName,
             @RequestParam(required = false) Set<String> keywords,
             @PageableDefault(size = 15, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
@@ -41,7 +41,7 @@ public class UploadBatchController {
         filter.setDateTo(dateTo);
         filter.setSpecificDate(specificDate);
         filter.setTrainNumber(trainNumber);
-        filter.setChiefName(chiefName);
+        filter.setChiefName(chief);
         filter.setUploadedByName(uploadedByName);
         filter.setKeywords(keywords);
 
@@ -66,6 +66,6 @@ public class UploadBatchController {
 
     @PutMapping("/{id}")
     public ResponseEntity<UploadBatchDto> update(@PathVariable Long id, @RequestBody UploadBatchDto dto) {
-        return new ResponseEntity<>(uploadBatchService.updateUploadBatchDto(id, dto), HttpStatus.OK);
+        return new ResponseEntity<>(uploadBatchService.update(id, dto), HttpStatus.OK);
     }
 }

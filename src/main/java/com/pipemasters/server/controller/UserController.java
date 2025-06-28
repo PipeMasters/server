@@ -39,7 +39,7 @@ public class UserController {
         return ResponseEntity.ok(user);
     }
 
-    @GetMapping("/")
+    @GetMapping
     public ResponseEntity<List<UserDto>> getUsers() {
         List<UserDto> users = userService.getUsers();
         return ResponseEntity.ok(users);
