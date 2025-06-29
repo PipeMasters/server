@@ -66,7 +66,7 @@ class UserServiceImplTest {
 
         BranchDto expectedBranchDto = new BranchDto();
         expectedBranchDto.setId(1L);
-        expectedUserDto.setBranch(expectedBranchDto);
+        expectedUserDto.setBranchId(expectedBranchDto.getId());
 
         expectedUserDto.setRoles(Collections.singleton(Role.USER));
 
@@ -79,7 +79,7 @@ class UserServiceImplTest {
         assertNotNull(result);
         assertEquals(expectedUserDto.getId(), result.getId());
         assertEquals(expectedUserDto.getName(), result.getName());
-        assertEquals(expectedUserDto.getBranch().getId(), result.getBranch().getId());
+        assertEquals(expectedUserDto.getBranchId(), result.getBranchId());
         verify(branchRepository, times(1)).findById(1L);
         verify(userRepository, times(1)).save(any(User.class));
         verify(modelMapper, times(1)).map(any(User.class), eq(UserDto.class));
@@ -130,7 +130,7 @@ class UserServiceImplTest {
 
         BranchDto expectedBranchDto = new BranchDto();
         expectedBranchDto.setId(2L);
-        expectedUserDto.setBranch(expectedBranchDto);
+        expectedUserDto.setBranchId(expectedBranchDto.getId());
 
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
@@ -144,7 +144,7 @@ class UserServiceImplTest {
 
         assertNotNull(result);
         assertEquals(expectedUserDto.getName(), result.getName());
-        assertEquals(expectedUserDto.getBranch().getId(), result.getBranch().getId());
+        assertEquals(expectedUserDto.getBranchId(), result.getBranchId());
         verify(userRepository, times(1)).findById(userId);
         verify(branchRepository, times(1)).findById(2L);
         verify(userRepository, times(1)).save(existingUser);
@@ -182,7 +182,7 @@ class UserServiceImplTest {
         BranchDto expectedBranchDto = new BranchDto();
         expectedBranchDto.setId(1L);
         expectedBranchDto.setName("Main Branch");
-        expectedUserDto.setBranch(expectedBranchDto);
+        expectedUserDto.setBranchId(expectedBranchDto.getId());
 
 
         when(userRepository.findByIdWithBranch(userId)).thenReturn(Optional.of(foundUser));
@@ -193,7 +193,7 @@ class UserServiceImplTest {
         assertNotNull(result);
         assertEquals(expectedUserDto.getId(), result.getId());
         assertEquals(expectedUserDto.getName(), result.getName());
-        assertEquals(expectedUserDto.getBranch().getId(), result.getBranch().getId());
+        assertEquals(expectedUserDto.getBranchId(), result.getBranchId());
         verify(userRepository, times(1)).findByIdWithBranch(userId);
         verify(modelMapper, times(1)).map(foundUser, UserDto.class);
     }

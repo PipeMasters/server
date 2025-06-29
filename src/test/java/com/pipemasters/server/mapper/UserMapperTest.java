@@ -6,6 +6,7 @@ import com.pipemasters.server.dto.UserDto;
 import com.pipemasters.server.entity.Branch;
 import com.pipemasters.server.entity.User;
 import com.pipemasters.server.entity.enums.Role;
+import com.pipemasters.server.repository.BranchRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.modelmapper.ModelMapper;
 
@@ -19,6 +20,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 public class UserMapperTest {
+
+    private BranchRepository branchRepository;
 
     private ModelMapper modelMapper;
 
@@ -41,9 +44,15 @@ public class UserMapperTest {
         assertThat(dto.getSurname()).isEqualTo("Иванов");
         assertThat(dto.getPatronymic()).isEqualTo("Иванович");
         assertThat(dto.getRoles()).containsExactlyInAnyOrder(Role.USER, Role.ADMIN);
-        assertThat(dto.getBranch()).isNotNull();
-        assertThat(dto.getBranch().getName()).isEqualTo("1L");
-        assertNull(dto.getBranch().getParent());
+        assertThat(dto.getBranchId()).isNotNull();
+        assertThat(branchRepository.findById(dto.getBranchId()))
+                .isPresent()
+                .hasValueSatisfying(br ->
+                        assertThat(br.getName()).isEqualTo("1L"));
+        assertThat(branchRepository.findById(dto.getBranchId()))
+                .isPresent()
+                .hasValueSatisfying(br ->
+                        assertThat(br.getParent()).isNotNull());
     }
 
 
@@ -51,9 +60,9 @@ public class UserMapperTest {
     void testUserDtoToUserMapping() {
         // Given
         BranchDto branchDtoA = new BranchDto("Branch A", null);
-        BranchDto branchDtoB = new BranchDto("Branch B", branchDtoA);
-        branchDtoA.setParent(branchDtoB);
-        UserDto dto = new UserDto("Мария", "Петрова", "Алексеевна", Set.of(Role.USER), branchDtoA);
+        BranchDto branchDtoB = new BranchDto("Branch B", branchDtoA.getId());
+        branchDtoA.setParentId(branchDtoB.getId());
+        UserDto dto = new UserDto("Мария", "Петрова", "Алексеевна", Set.of(Role.USER), branchDtoA.getId());
 
         // When
         User user = modelMapper.map(dto, User.class);
