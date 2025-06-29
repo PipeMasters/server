@@ -30,9 +30,9 @@ public class BranchServiceImpl implements BranchService {
     @Transactional
     public BranchDto createBranch(BranchDto branchDto) {
         Branch parent = null;
-        if (branchDto.getParent() != null && branchDto.getParent().getId() != null) {
-            parent = branchRepository.findById(branchDto.getParent().getId())
-                    .orElseThrow(() -> new BranchNotFoundException("Parent branch not found with ID: " + branchDto.getParent().getId()));
+        if (branchDto.getParentId() != null && branchRepository.findById(branchDto.getParentId()).map(Branch::getId).isPresent()) {
+            parent = branchRepository.findById(branchDto.getParentId())
+                    .orElseThrow(() -> new BranchNotFoundException("Parent branch not found with ID: " + branchDto.getParentId()));
         }
 
         Branch branch = new Branch(branchDto.getName(), parent);
@@ -133,9 +133,9 @@ public class BranchServiceImpl implements BranchService {
             BranchDto parentDto = new BranchDto();
             parentDto.setId(entity.getParent().getId());
             parentDto.setName(entity.getParent().getName());
-            dto.setParent(parentDto);
+            dto.setParentId(parentDto.getId());
         } else {
-            dto.setParent(null);
+            dto.setParentId(null);
         }
 
         return dto;

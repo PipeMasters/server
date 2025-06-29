@@ -28,7 +28,7 @@ public class BranchMapperTest {
 
         assertEquals(branch.getName(), dto.getName());
         assertEquals(branch.getId(), dto.getId());
-        assertNull(dto.getParent(), "Parent should be skipped in mapping");
+        assertNull(dto.getParentId(), "Parent should be skipped in mapping");
     }
 
     @Test
@@ -43,7 +43,7 @@ public class BranchMapperTest {
 
         assertEquals(branch.getName(), dto.getName());
         assertEquals(branch.getId(), dto.getId());
-        assertNull(dto.getParent(), "Parent should be skipped due to mapping configuration");
+        assertNull(dto.getParentId(), "Parent should be skipped due to mapping configuration");
     }
 
     @Test
@@ -70,6 +70,6 @@ public class BranchMapperTest {
 
         BranchDto dto = modelMapper.map(child, BranchDto.class);
 
-        assertNull(dto.getParent(), "Cyclic parent mapping should be skipped");
+        assertNull(dto.getParentId(), "Cyclic parent mapping should be skipped");
     }
 }

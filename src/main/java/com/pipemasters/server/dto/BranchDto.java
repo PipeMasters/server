@@ -8,14 +8,14 @@ import jakarta.validation.constraints.NotNull;
 public class BranchDto extends BaseDto{
     @NotNull(message = "Name cannot be empty")
     private String name;
-    private BranchDto parent;
+    private Long parentId;
 
     public BranchDto() {
     }
 
-    public BranchDto(String name, BranchDto parent) {
+    public BranchDto(String name, Long parentId) {
         this.name = name;
-        this.parent = parent;
+        this.parentId = parentId;
     }
 
     public String getName() {
@@ -26,11 +26,11 @@ public class BranchDto extends BaseDto{
         this.name = name;
     }
 
-    public BranchDto getParent() {
-        return parent;
+    public Long getParentId() {
+        return parentId;
     }
 
-    public void setParent(BranchDto parent) {
-        this.parent = parent;
+    public void setParentId(Long parentId) {
+        this.parentId = parentId;
     }
 }
