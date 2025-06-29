@@ -158,7 +158,7 @@ class UploadBatchServiceImplTest {
         when(modelMapper.map(testEntity, UploadBatchDto.class)).thenReturn(updatedDto);
 
         // Act
-        UploadBatchDto result = uploadBatchService.updateUploadBatchDto(1L, updatedDto);
+        UploadBatchDto result = uploadBatchService.update(1L, updatedDto);
 
         // Assert
         assertNotNull(result);
@@ -173,7 +173,7 @@ class UploadBatchServiceImplTest {
 
         // Act & Assert
         assertThrows(RuntimeException.class,
-                () -> uploadBatchService.updateUploadBatchDto(1L, new UploadBatchDto()));
+                () -> uploadBatchService.update(1L, new UploadBatchDto()));
     }
 
     @Test

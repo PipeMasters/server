@@ -13,42 +13,42 @@ public class UploadBatchDto extends BaseDto{
     @NotNull(message = "Directory cannot be empty")
     private String directory;
     @NotNull(message = "UploadedBy cannot be empty")
-    private UserDto uploadedBy;
+    private Long uploadedByUserId;
     @NotNull(message = "CreatedAt cannot be empty")
     private Instant createdAt;
     @NotNull(message = "TrainDeparted cannot be empty")
     private LocalDate trainDeparted;
     @NotNull(message = "Train cannot be empty")
-    private TrainDto train;
+    private Long trainId;
     private String comment;
     private Set<String> keywords = new HashSet<>();
     @NotNull(message = "Branch cannot be empty")
-    private BranchDto branch;
+    private Long branchId;
     private boolean archived;
     private Instant deletedAt;
     private boolean deleted;
     private List<MediaFileDto> files = new ArrayList<>();
-    private VideoAbsenceDto absence;
+    private Long absenceId;
 
     public UploadBatchDto() {
     }
 
-    public UploadBatchDto( String directory, UserDto uploadedBy, Instant createdAt, LocalDate trainDeparted,
-                     TrainDto train, String comment, Set<String> keywords, BranchDto branch, boolean archived,
-                     Instant deletedAt, boolean deleted, List<MediaFileDto> files, VideoAbsenceDto absence) {
+    public UploadBatchDto( String directory, Long uploadedByUserId, Instant createdAt, LocalDate trainDeparted,
+                           Long trainId, String comment, Set<String> keywords, Long branchId, boolean archived,
+                     Instant deletedAt, boolean deleted, List<MediaFileDto> files, Long absenceId) {
         this.directory = directory;
-        this.uploadedBy = uploadedBy;
+        this.uploadedByUserId = uploadedByUserId;
         this.createdAt = createdAt;
         this.trainDeparted = trainDeparted;
-        this.train = train;
+        this.trainId = trainId;
         this.comment = comment;
         this.keywords = keywords;
-        this.branch = branch;
+        this.branchId = branchId;
         this.archived = archived;
         this.deletedAt = deletedAt;
         this.deleted = deleted;
         this.files = files;
-        this.absence = absence;
+        this.absenceId = absenceId;
     }
 
     public String getDirectory() {
@@ -59,12 +59,12 @@ public class UploadBatchDto extends BaseDto{
         this.directory = directory;
     }
 
-    public UserDto getUploadedBy() {
-        return uploadedBy;
+    public Long getUploadedById() {
+        return uploadedByUserId;
     }
 
-    public void setUploadedBy(UserDto uploadedBy) {
-        this.uploadedBy = uploadedBy;
+    public void setUploadedByUserId(Long uploadedByUserId) {
+        this.uploadedByUserId = uploadedByUserId;
     }
 
     public Instant getCreatedAt() {
@@ -83,12 +83,12 @@ public class UploadBatchDto extends BaseDto{
         this.trainDeparted = trainDeparted;
     }
 
-    public TrainDto getTrain() {
-        return train;
+    public Long getTrainId() {
+        return trainId;
     }
 
-    public void setTrain(TrainDto train) {
-        this.train = train;
+    public void setTrainId(Long trainId) {
+        this.trainId = trainId;
     }
 
     public String getComment() {
@@ -107,12 +107,12 @@ public class UploadBatchDto extends BaseDto{
         this.keywords = keywords;
     }
 
-    public BranchDto getBranch() {
-        return branch;
+    public Long getBranchId() {
+        return branchId;
     }
 
-    public void setBranch(BranchDto branch) {
-        this.branch = branch;
+    public void setBranchId(Long branchId) {
+        this.branchId = branchId;
     }
 
     public boolean isArchived() {
@@ -147,11 +147,11 @@ public class UploadBatchDto extends BaseDto{
         this.files = files;
     }
 
-    public VideoAbsenceDto getAbsence() {
-        return absence;
+    public Long getAbsenceId() {
+        return absenceId;
     }
 
-    public void setAbsence(VideoAbsenceDto absence) {
-        this.absence = absence;
+    public void setAbsenceId(Long absenceId) {
+        this.absenceId = absenceId;
     }
 }

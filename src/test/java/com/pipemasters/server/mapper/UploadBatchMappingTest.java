@@ -9,7 +9,9 @@ import com.pipemasters.server.entity.*;
 import com.pipemasters.server.entity.UploadBatch;
 import com.pipemasters.server.entity.enums.FileType;
 import com.pipemasters.server.entity.enums.Role;
+import com.pipemasters.server.repository.BranchRepository;
 import com.pipemasters.server.repository.MediaFileRepository;
+import com.pipemasters.server.repository.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +32,10 @@ public class UploadBatchMappingTest {
     private ModelMapper modelMapper;
     @Autowired
     private MediaFileRepository mediaFileRepository;
+    @Autowired
+    private BranchRepository branchRepository;
+    @Autowired
+    private UserRepository userRepository;
     @Test
     void shouldMapUploadBatchToDtoCorrectly() {
         Branch parentBranch = new Branch("Parent Branch", null);
@@ -55,11 +61,21 @@ public class UploadBatchMappingTest {
         UploadBatchDto dto = modelMapper.map(UploadBatch, UploadBatchDto.class);
 
         assertEquals(UploadBatch.getDirectory().toString(), dto.getDirectory());
-        assertEquals(UploadBatch.getUploadedBy().getName(), dto.getUploadedBy().getName());
+        assertEquals(
+                UploadBatch.getUploadedBy().getName(),
+                userRepository.findById(dto.getUploadedById())
+                        .orElseThrow()
+                        .getName()
+        );
         assertEquals(UploadBatch.getTrainDeparted(), dto.getTrainDeparted());
-        assertEquals(UploadBatch.getBranch().getName(), dto.getBranch().getName());
+        assertEquals(
+                UploadBatch.getBranch().getName(),
+                branchRepository.findById(dto.getBranchId())
+                        .orElseThrow()
+                        .getName()
+        );
         assertEquals(UploadBatch.getKeywords(), dto.getKeywords());
-        assertNull(dto.getAbsence()); // проверка отключенной рекурсии
+        assertNull(dto.getAbsenceId()); // проверка отключенной рекурсии
         assertTrue(dto.getFiles().isEmpty());
     }
 
@@ -70,9 +86,9 @@ public class UploadBatchMappingTest {
 
         BranchDto branchDto = new BranchDto();
         branchDto.setName("Child Branch");
-        branchDto.setParent(parentBranchDto); // это будет проигнорировано в маппинге
+        branchDto.setParentId(parentBranchDto.getId()); // это будет проигнорировано в маппинге
 
-        UserDto userDto = new UserDto("Иван", "Иванов", "Иванович", Set.of(Role.USER), branchDto);
+        UserDto userDto = new UserDto("Иван", "Иванов", "Иванович", Set.of(Role.USER), branchDto.getId());
 
         TrainDto trainDto = new TrainDto();
         trainDto.setTrainNumber(123L);
@@ -80,13 +96,13 @@ public class UploadBatchMappingTest {
 
         UploadBatchDto dto = new UploadBatchDto(
                 UUID.randomUUID().toString(),
-                userDto,
+                userDto.getId(),
                 Instant.parse("2024-01-01T10:00:00Z"),
                 LocalDate.of(2024, 1, 2),
-                trainDto,
+                trainDto.getId(),
                 "Комментарий",
                 Set.of("ключевое", "видео"),
-                branchDto,
+                branchDto.getId(),
                 false,
                 Instant.parse("2025-01-01T10:00:00Z"),
                 true,
@@ -97,9 +113,19 @@ public class UploadBatchMappingTest {
         UploadBatch UploadBatch = modelMapper.map(dto, UploadBatch.class);
 
         assertEquals(UUID.fromString(dto.getDirectory()), UploadBatch.getDirectory());
-        assertEquals(dto.getUploadedBy().getName(), UploadBatch.getUploadedBy().getName());
+        assertEquals(
+                UploadBatch.getUploadedBy().getName(),
+                userRepository.findById(dto.getUploadedById())
+                        .orElseThrow()
+                        .getName()
+        );
         assertEquals(dto.getTrainDeparted(), UploadBatch.getTrainDeparted());
-        assertEquals(dto.getBranch().getName(), UploadBatch.getBranch().getName());
+        assertEquals(
+                UploadBatch.getBranch().getName(),
+                branchRepository.findById(dto.getBranchId())
+                        .orElseThrow()
+                        .getName()
+        );
         assertTrue(UploadBatch.getFiles().isEmpty());
     }
 
@@ -110,7 +136,7 @@ public class UploadBatchMappingTest {
 
         BranchDto dto = modelMapper.map(child, BranchDto.class);
 
-        assertNull(dto.getParent(), "Рекурсивное поле должно быть null");
+        assertNull(dto.getParentId(), "Рекурсивное поле должно быть null");
     }
 
     @Test
@@ -134,7 +160,7 @@ public class UploadBatchMappingTest {
         );
 
         UploadBatchDto dto = modelMapper.map(UploadBatch, UploadBatchDto.class);
-        assertNull(dto.getAbsence(), "Поле absence должно быть null, чтобы избежать рекурсии");
+        assertNull(dto.getAbsenceId(), "Поле absence должно быть null, чтобы избежать рекурсии");
     }
 
         @Test
