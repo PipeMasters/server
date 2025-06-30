@@ -1,19 +1,23 @@
-package com.pipemasters.server.dto;
+package com.pipemasters.server.dto.response;
 
-public class TrainDto extends BaseDto {
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.pipemasters.server.dto.BaseDto;
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class TrainResponseDto extends BaseDto {
     private Long trainNumber;
     private String routeMessage;
     private Integer consistCount;
     private String chief;
 
-    public TrainDto(Long trainNumber, String routeMessage, Integer consistCount, String chief) {
+    public TrainResponseDto(Long trainNumber, String routeMessage, Integer consistCount, String chief) {
         this.trainNumber = trainNumber;
         this.routeMessage = routeMessage;
         this.consistCount = consistCount;
         this.chief = chief;
     }
 
-    public TrainDto() {
+    public TrainResponseDto() {
     }
 
     public Long getTrainNumber() {

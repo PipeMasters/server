@@ -1,6 +1,6 @@
 package com.pipemasters.server.controller;
 
-import com.pipemasters.server.dto.MediaFileResponseDto;
+import com.pipemasters.server.dto.response.MediaFileResponseDto;
 import com.pipemasters.server.service.MediaFileService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

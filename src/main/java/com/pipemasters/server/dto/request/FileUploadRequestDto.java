@@ -1,11 +1,9 @@
-package com.pipemasters.server.dto;
+package com.pipemasters.server.dto.request;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.pipemasters.server.entity.enums.FileType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
 public class FileUploadRequestDto {
     @NotNull(message = "Upload batch ID cannot be empty")
     private Long uploadBatchId;

@@ -1,7 +1,7 @@
 package com.pipemasters.server.mapper;
 
 import com.pipemasters.server.config.ModelMapperConfig;
-import com.pipemasters.server.dto.BranchDto;
+import com.pipemasters.server.dto.request.BranchRequestDto;
 import com.pipemasters.server.entity.Branch;
 import org.junit.jupiter.api.Test;
 import org.modelmapper.ModelMapper;
@@ -24,7 +24,7 @@ public class BranchMapperTest {
         Branch branch = new Branch("Central", null);
         branch.setId(1L);
 
-        BranchDto dto = modelMapper.map(branch, BranchDto.class);
+        BranchRequestDto dto = modelMapper.map(branch, BranchRequestDto.class);
 
         assertEquals(branch.getName(), dto.getName());
         assertEquals(branch.getId(), dto.getId());
@@ -39,7 +39,7 @@ public class BranchMapperTest {
         Branch branch = new Branch("Child", parent);
         branch.setId(3L);
 
-        BranchDto dto = modelMapper.map(branch, BranchDto.class);
+        BranchRequestDto dto = modelMapper.map(branch, BranchRequestDto.class);
 
         assertEquals(branch.getName(), dto.getName());
         assertEquals(branch.getId(), dto.getId());
@@ -48,7 +48,7 @@ public class BranchMapperTest {
 
     @Test
     public void testBranchDtoToEntity() {
-        BranchDto dto = new BranchDto("Finance", null);
+        BranchRequestDto dto = new BranchRequestDto("Finance", null);
         dto.setId(10L);
 
         Branch entity = modelMapper.map(dto, Branch.class);
@@ -68,7 +68,7 @@ public class BranchMapperTest {
 
         root.setParent(child);
 
-        BranchDto dto = modelMapper.map(child, BranchDto.class);
+        BranchRequestDto dto = modelMapper.map(child, BranchRequestDto.class);
 
         assertNull(dto.getParentId(), "Cyclic parent mapping should be skipped");
     }

@@ -1,7 +1,7 @@
 package com.pipemasters.server.service.impl;
 
 import com.pipemasters.server.entity.MediaFile;
-import com.pipemasters.server.dto.MediaFileResponseDto;
+import com.pipemasters.server.dto.response.MediaFileResponseDto;
 import com.pipemasters.server.repository.MediaFileRepository;
 import com.pipemasters.server.service.MediaFileService;
 import org.slf4j.Logger;

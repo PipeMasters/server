@@ -2,7 +2,7 @@ package com.pipemasters.server.controller;
 
 import com.pipemasters.server.dto.PageDto;
 import com.pipemasters.server.dto.UploadBatchFilter;
-import com.pipemasters.server.dto.UploadBatchResponseDto;
+import com.pipemasters.server.dto.response.UploadBatchResponseDto;
 import com.pipemasters.server.service.UploadBatchService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

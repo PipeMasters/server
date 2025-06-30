@@ -1,12 +1,10 @@
 package com.pipemasters.server.mapper;
 
 import com.pipemasters.server.config.ModelMapperConfig;
-import com.pipemasters.server.dto.BranchDto;
-import com.pipemasters.server.dto.UserDto;
+import com.pipemasters.server.dto.response.UserResponseDto;
 import com.pipemasters.server.entity.Branch;
 import com.pipemasters.server.entity.User;
 import com.pipemasters.server.entity.enums.Role;
-import com.pipemasters.server.repository.BranchRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.modelmapper.ModelMapper;
 
@@ -38,7 +36,7 @@ public class UserMapperTest {
 
         User user = new User("Иван", "Иванов", "Иванович", Set.of(Role.USER, Role.ADMIN), branch);
 
-        UserDto dto = modelMapper.map(user, UserDto.class);
+        UserResponseDto dto = modelMapper.map(user, UserResponseDto.class);
 
         assertThat(dto.getName()).isEqualTo("Иван");
         assertThat(dto.getSurname()).isEqualTo("Иванов");
@@ -54,7 +52,7 @@ public class UserMapperTest {
         // Given
         Long branchId = 55L;
 
-        UserDto dto = new UserDto("Мария", "Петрова", "Алексеевна", Set.of(Role.USER), branchId);
+        UserResponseDto dto = new UserResponseDto("Мария", "Петрова", "Алексеевна", Set.of(Role.USER), branchId);
 
         // When
         User user = modelMapper.map(dto, User.class);

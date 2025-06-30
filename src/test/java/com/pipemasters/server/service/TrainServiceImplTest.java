@@ -1,6 +1,7 @@
 package com.pipemasters.server.service;
 
-import com.pipemasters.server.dto.TrainDto;
+import com.pipemasters.server.dto.request.TrainRequestDto;
+import com.pipemasters.server.dto.response.TrainResponseDto;
 import com.pipemasters.server.entity.Train;
 import com.pipemasters.server.exceptions.train.TrainNotFoundException;
 import com.pipemasters.server.repository.TrainRepository;
@@ -39,12 +40,12 @@ class TrainServiceImplTest {
 
     @Test
     void save_ShouldSaveAndReturnDto() {
-        TrainDto dto = new TrainDto(123L, "Москва-Сочи", 5, "Иванов");
+        TrainRequestDto dto = new TrainRequestDto(123L, "Москва-Сочи", 5, "Иванов");
         Train train = modelMapper.map(dto, Train.class);
 
         when(trainRepository.save(any(Train.class))).thenReturn(train);
 
-        TrainDto result = trainService.save(dto);
+        TrainResponseDto result = trainService.save(dto);
 
         assertThat(result.getTrainNumber()).isEqualTo(dto.getTrainNumber());
         verify(trainRepository).save(any(Train.class));
@@ -57,7 +58,7 @@ class TrainServiceImplTest {
 
         when(trainRepository.findById(1L)).thenReturn(Optional.of(train));
 
-        TrainDto result = trainService.getById(1L);
+        TrainResponseDto result = trainService.getById(1L);
 
         assertThat(result.getTrainNumber()).isEqualTo(123L);
         verify(trainRepository).findById(1L);
@@ -80,7 +81,7 @@ class TrainServiceImplTest {
         );
         when(trainRepository.findAll()).thenReturn(trains);
 
-        List<TrainDto> result = trainService.getAll();
+        List<TrainResponseDto> result = trainService.getAll();
 
         assertThat(result).hasSize(2);
         assertThat(result.get(0).getTrainNumber()).isEqualTo(123L);
@@ -91,12 +92,12 @@ class TrainServiceImplTest {
         Train existing = new Train(111L, "Старый", 2, "Старый");
         existing.setId(1L);
 
-        TrainDto updatedDto = new TrainDto(123L, "Москва-Сочи", 5, "Иванов");
+        TrainRequestDto updatedDto = new TrainRequestDto(123L, "Москва-Сочи", 5, "Иванов");
 
         when(trainRepository.findById(1L)).thenReturn(Optional.of(existing));
         when(trainRepository.save(any(Train.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        TrainDto result = trainService.update(1L, updatedDto);
+        TrainResponseDto result = trainService.update(1L, updatedDto);
 
         assertThat(result.getRouteMessage()).isEqualTo("Москва-Сочи");
     }

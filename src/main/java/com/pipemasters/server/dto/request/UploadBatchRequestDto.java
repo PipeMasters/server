@@ -1,15 +1,13 @@
-package com.pipemasters.server.dto;
+package com.pipemasters.server.dto.request;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.pipemasters.server.entity.*;
+import com.pipemasters.server.dto.BaseDto;
 import jakarta.validation.constraints.NotNull;
 
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.*;
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
-public class UploadBatchDto extends BaseDto{
+public class UploadBatchRequestDto extends BaseDto {
     @NotNull(message = "Directory cannot be empty")
     private String directory;
     @NotNull(message = "UploadedBy cannot be empty")
@@ -27,15 +25,15 @@ public class UploadBatchDto extends BaseDto{
     private boolean archived;
     private Instant deletedAt;
     private boolean deleted;
-    private List<MediaFileDto> files = new ArrayList<>();
+    private List<MediaFileRequestDto> files = new ArrayList<>();
     private Long absenceId;
 
-    public UploadBatchDto() {
+    public UploadBatchRequestDto() {
     }
 
-    public UploadBatchDto( String directory, Long uploadedByUserId, Instant createdAt, LocalDate trainDeparted,
-                           Long trainId, String comment, Set<String> keywords, Long branchId, boolean archived,
-                     Instant deletedAt, boolean deleted, List<MediaFileDto> files, Long absenceId) {
+    public UploadBatchRequestDto(String directory, Long uploadedByUserId, Instant createdAt, LocalDate trainDeparted,
+                                 Long trainId, String comment, Set<String> keywords, Long branchId, boolean archived,
+                                 Instant deletedAt, boolean deleted, List<MediaFileRequestDto> files, Long absenceId) {
         this.directory = directory;
         this.uploadedByUserId = uploadedByUserId;
         this.createdAt = createdAt;
@@ -139,11 +137,11 @@ public class UploadBatchDto extends BaseDto{
         this.deleted = deleted;
     }
 
-    public List<MediaFileDto> getFiles() {
+    public List<MediaFileRequestDto> getFiles() {
         return files;
     }
 
-    public void setFiles(List<MediaFileDto> files) {
+    public void setFiles(List<MediaFileRequestDto> files) {
         this.files = files;
     }
 

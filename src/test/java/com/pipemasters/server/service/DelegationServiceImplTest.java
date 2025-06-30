@@ -1,6 +1,7 @@
 package com.pipemasters.server.service;
 
-import com.pipemasters.server.dto.DelegationDto;
+import com.pipemasters.server.dto.request.DelegationRequestDto;
+import com.pipemasters.server.dto.response.DelegationResponseDto;
 import com.pipemasters.server.entity.Delegation;
 import com.pipemasters.server.entity.User;
 import com.pipemasters.server.exceptions.user.UserNotFoundException;
@@ -41,74 +42,74 @@ class DelegationServiceImplTest {
 
     @Test
     void delegateShouldThrowExceptionWhenStartDateIsAfterEndDate() {
-        DelegationDto delegationDTO = new DelegationDto();
-        delegationDTO.setFromDate(LocalDate.of(2023, 10, 10));
-        delegationDTO.setToDate(LocalDate.of(2023, 10, 5));
+        DelegationRequestDto delegationRequestDTO = new DelegationRequestDto();
+        delegationRequestDTO.setFromDate(LocalDate.of(2023, 10, 10));
+        delegationRequestDTO.setToDate(LocalDate.of(2023, 10, 5));
 
-        assertThrows(IllegalArgumentException.class, () -> delegationService.delegate(delegationDTO));
+        assertThrows(IllegalArgumentException.class, () -> delegationService.delegate(delegationRequestDTO));
     }
 
     @Test
     void delegateShouldThrowExceptionWhenStartDateOrEndDateIsNull() {
-        DelegationDto delegationDTO = new DelegationDto();
-        delegationDTO.setFromDate(null);
-        delegationDTO.setToDate(LocalDate.of(2023, 10, 10));
+        DelegationRequestDto delegationRequestDTO = new DelegationRequestDto();
+        delegationRequestDTO.setFromDate(null);
+        delegationRequestDTO.setToDate(LocalDate.of(2023, 10, 10));
 
-        assertThrows(IllegalArgumentException.class, () -> delegationService.delegate(delegationDTO));
+        assertThrows(IllegalArgumentException.class, () -> delegationService.delegate(delegationRequestDTO));
 
-        delegationDTO.setFromDate(LocalDate.of(2023, 10, 10));
-        delegationDTO.setToDate(null);
+        delegationRequestDTO.setFromDate(LocalDate.of(2023, 10, 10));
+        delegationRequestDTO.setToDate(null);
 
-        assertThrows(IllegalArgumentException.class, () -> delegationService.delegate(delegationDTO));
+        assertThrows(IllegalArgumentException.class, () -> delegationService.delegate(delegationRequestDTO));
     }
 
     @Test
     void delegateShouldThrowExceptionWhenDelegatorNotFound() {
-        DelegationDto delegationDTO = new DelegationDto();
-        delegationDTO.setFromDate(LocalDate.of(2023, 10, 5));
-        delegationDTO.setToDate(LocalDate.of(2023, 10, 10));
-        delegationDTO.setDelegatorId(1L);
-        delegationDTO.setSubstituteId(2L);
+        DelegationRequestDto delegationRequestDTO = new DelegationRequestDto();
+        delegationRequestDTO.setFromDate(LocalDate.of(2023, 10, 5));
+        delegationRequestDTO.setToDate(LocalDate.of(2023, 10, 10));
+        delegationRequestDTO.setDelegatorId(1L);
+        delegationRequestDTO.setSubstituteId(2L);
 
         when(userRepository.findById(1L)).thenReturn(Optional.empty());
 
-        assertThrows(UserNotFoundException.class, () -> delegationService.delegate(delegationDTO));
+        assertThrows(UserNotFoundException.class, () -> delegationService.delegate(delegationRequestDTO));
     }
 
     @Test
     void delegateShouldThrowExceptionWhenSubstituteNotFound() {
-        DelegationDto delegationDTO = new DelegationDto();
-        delegationDTO.setFromDate(LocalDate.of(2023, 10, 5));
-        delegationDTO.setToDate(LocalDate.of(2023, 10, 10));
-        delegationDTO.setDelegatorId(1L);
-        delegationDTO.setSubstituteId(2L);
+        DelegationRequestDto delegationRequestDTO = new DelegationRequestDto();
+        delegationRequestDTO.setFromDate(LocalDate.of(2023, 10, 5));
+        delegationRequestDTO.setToDate(LocalDate.of(2023, 10, 10));
+        delegationRequestDTO.setDelegatorId(1L);
+        delegationRequestDTO.setSubstituteId(2L);
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(new User()));
         when(userRepository.findById(2L)).thenReturn(Optional.empty());
 
-        assertThrows(UserNotFoundException.class, () -> delegationService.delegate(delegationDTO));
+        assertThrows(UserNotFoundException.class, () -> delegationService.delegate(delegationRequestDTO));
     }
 
     @Test
     void delegateShouldSaveDelegationAndReturnDelegationDto() {
-        DelegationDto delegationDTO = new DelegationDto();
-        delegationDTO.setFromDate(LocalDate.of(2023, 10, 5));
-        delegationDTO.setToDate(LocalDate.of(2023, 10, 10));
-        delegationDTO.setDelegatorId(1L);
-        delegationDTO.setSubstituteId(2L);
+        DelegationRequestDto delegationRequestDTO = new DelegationRequestDto();
+        delegationRequestDTO.setFromDate(LocalDate.of(2023, 10, 5));
+        delegationRequestDTO.setToDate(LocalDate.of(2023, 10, 10));
+        delegationRequestDTO.setDelegatorId(1L);
+        delegationRequestDTO.setSubstituteId(2L);
 
         User delegator = new User();
         User substitute = new User();
-        Delegation delegation = new Delegation(delegator, substitute, delegationDTO.getFromDate(), delegationDTO.getToDate());
-        DelegationDto expectedDelegationDto = new DelegationDto();
+        Delegation delegation = new Delegation(delegator, substitute, delegationRequestDTO.getFromDate(), delegationRequestDTO.getToDate());
+        DelegationResponseDto expectedDelegationResponseDto = new DelegationResponseDto();
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(delegator));
         when(userRepository.findById(2L)).thenReturn(Optional.of(substitute));
         when(delegationRepository.save(any(Delegation.class))).thenReturn(delegation);
-        when(modelMapper.map(any(Delegation.class), eq(DelegationDto.class))).thenReturn(expectedDelegationDto);
+        when(modelMapper.map(any(Delegation.class), eq(DelegationResponseDto.class))).thenReturn(expectedDelegationResponseDto);
 
-        DelegationDto result = delegationService.delegate(delegationDTO);
+        DelegationResponseDto result = delegationService.delegate(delegationRequestDTO);
 
-        assertEquals(expectedDelegationDto, result);
+        assertEquals(expectedDelegationResponseDto, result);
     }
 }

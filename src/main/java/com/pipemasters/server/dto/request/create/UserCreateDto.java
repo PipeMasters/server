@@ -1,14 +1,13 @@
-package com.pipemasters.server.dto;
+package com.pipemasters.server.dto.request.create;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.pipemasters.server.entity.enums.Role;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 import java.util.Set;
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
 public class UserCreateDto {
+    // private String adSid;
     @NotBlank(message = "Name cannot be blank")
     private String name;
 

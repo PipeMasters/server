@@ -2,7 +2,7 @@ package com.pipemasters.server.service;
 
 import java.util.UUID;
 
-import com.pipemasters.server.dto.MediaFileResponseDto;
+import com.pipemasters.server.dto.response.MediaFileResponseDto;
 
 import java.util.List;
 
