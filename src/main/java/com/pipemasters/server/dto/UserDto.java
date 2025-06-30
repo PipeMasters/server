@@ -13,17 +13,17 @@ public class UserDto extends BaseDto{
     private String surname;
     private String patronymic;
     private Set<Role> roles;
-    private BranchDto branch;
+    private Long branchId;
 
     public UserDto() {
     }
 
-    public UserDto( String name, String surname, String patronymic, Set<Role> roles, BranchDto branch) {
+    public UserDto( String name, String surname, String patronymic, Set<Role> roles, Long branchId) {
         this.name = name;
         this.surname = surname;
         this.patronymic = patronymic;
         this.roles = roles;
-        this.branch = branch;
+        this.branchId = branchId;
     }
 
     public String getName() {
@@ -58,11 +58,11 @@ public class UserDto extends BaseDto{
         this.roles = roles;
     }
 
-    public BranchDto getBranch() {
-        return branch;
+    public Long getBranchId() {
+        return branchId;
     }
 
-    public void setBranch(BranchDto branch) {
-        this.branch = branch;
+    public void setBranchId(Long branchId) {
+        this.branchId = branchId;
     }
 }

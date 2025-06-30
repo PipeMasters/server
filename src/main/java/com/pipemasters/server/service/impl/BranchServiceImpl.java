@@ -7,6 +7,8 @@ import com.pipemasters.server.exceptions.branch.InvalidBranchHierarchyException;
 import com.pipemasters.server.repository.BranchRepository;
 import com.pipemasters.server.service.BranchService;
 import org.modelmapper.ModelMapper;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,12 +26,13 @@ public class BranchServiceImpl implements BranchService {
     }
 
     @Override
+    @CacheEvict(value = {"branches", "branches_parent","branches_child" }, allEntries = true)
     @Transactional
     public BranchDto createBranch(BranchDto branchDto) {
         Branch parent = null;
-        if (branchDto.getParent() != null && branchDto.getParent().getId() != null) {
-            parent = branchRepository.findById(branchDto.getParent().getId())
-                    .orElseThrow(() -> new BranchNotFoundException("Parent branch not found with ID: " + branchDto.getParent().getId()));
+        if (branchDto.getParentId() != null && branchRepository.findById(branchDto.getParentId()).map(Branch::getId).isPresent()) {
+            parent = branchRepository.findById(branchDto.getParentId())
+                    .orElseThrow(() -> new BranchNotFoundException("Parent branch not found with ID: " + branchDto.getParentId()));
         }
 
         Branch branch = new Branch(branchDto.getName(), parent);
@@ -38,6 +41,7 @@ public class BranchServiceImpl implements BranchService {
     }
 
     @Override
+    @CacheEvict(value = {"branches", "branches_parent","branches_child" }, allEntries = true)
     @Transactional
     public BranchDto updateBranchName(Long id, String newName) {
         Branch branch = branchRepository.findById(id)
@@ -49,6 +53,7 @@ public class BranchServiceImpl implements BranchService {
     }
 
     @Override
+    @CacheEvict(value = {"branches", "branches_parent","branches_child" }, allEntries = true)
     @Transactional
     public BranchDto reassignParent(Long id, Long newParentId) {
         Branch branch = branchRepository.findById(id)
@@ -86,6 +91,7 @@ public class BranchServiceImpl implements BranchService {
     }
 
     @Override
+    @Cacheable("branches")
     @Transactional(readOnly = true)
     public List<BranchDto> getAllBranches(boolean includeParent) {
         List<Branch> branches = branchRepository.findAll();
@@ -95,6 +101,7 @@ public class BranchServiceImpl implements BranchService {
     }
 
     @Override
+    @Cacheable("branches_child")
     @Transactional(readOnly = true)
     public List<BranchDto> getChildBranches(Long parentId, boolean includeParent) {
         List<Branch> childBranches;
@@ -110,6 +117,7 @@ public class BranchServiceImpl implements BranchService {
     }
 
     @Override
+    @Cacheable("branches_parent")
     @Transactional(readOnly = true)
     public List<BranchDto> getParentBranches() {
         List<Branch> rootBranches = branchRepository.findByParentIsNull();
@@ -125,9 +133,9 @@ public class BranchServiceImpl implements BranchService {
             BranchDto parentDto = new BranchDto();
             parentDto.setId(entity.getParent().getId());
             parentDto.setName(entity.getParent().getName());
-            dto.setParent(parentDto);
+            dto.setParentId(parentDto.getId());
         } else {
-            dto.setParent(null);
+            dto.setParentId(null);
         }
 
         return dto;

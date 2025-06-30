@@ -51,7 +51,7 @@ public class DelegationMapperTest {
         BranchDto dto = modelMapper.map(child, BranchDto.class);
 
         assertEquals("Child Branch", dto.getName());
-        assertNull(dto.getParent(), "Parent must be skipped in DTO to avoid recursion");
+        assertNull(dto.getParentId(), "Parent must be skipped in DTO to avoid recursion");
     }
 
 

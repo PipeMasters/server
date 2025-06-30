@@ -15,19 +15,19 @@ public class MediaFileDto extends BaseDto{
     @NotNull(message = "UploadedAt cannot be empty")
     private Instant uploadedAt;
 //    @NotNull(message = "Source cannot be empty")
-    private MediaFileDto source;
+    private Long sourceId;
     @NotNull(message = "ToDate cannot be empty")
-    private UploadBatchDto uploadBatch;
+    private Long uploadBatchId;
 
     public MediaFileDto() {
     }
 
-    public MediaFileDto( String filename, FileType fileType, Instant uploadedAt, MediaFileDto source, UploadBatchDto uploadBatch) {
+    public MediaFileDto( String filename, FileType fileType, Instant uploadedAt, Long sourceId, Long uploadBatchId) {
         this.filename = filename;
         this.fileType = fileType;
         this.uploadedAt = uploadedAt;
-        this.source = source;
-        this.uploadBatch = uploadBatch;
+        this.sourceId = sourceId;
+        this.uploadBatchId = uploadBatchId;
     }
 
     public String getFilename() {
@@ -54,19 +54,19 @@ public class MediaFileDto extends BaseDto{
         this.uploadedAt = uploadedAt;
     }
 
-    public MediaFileDto getSource() {
-        return source;
+    public Long getSourceId() {
+        return sourceId;
     }
 
-    public void setSource(MediaFileDto source) {
-        this.source = source;
+    public void setSourceId(Long sourceId) {
+        this.sourceId = sourceId;
     }
 
-    public UploadBatchDto getUploadBatch() {
-        return uploadBatch;
+    public Long getUploadBatchId() {
+        return uploadBatchId;
     }
 
-    public void setUploadBatch(UploadBatchDto uploadBatch) {
-        this.uploadBatch = uploadBatch;
+    public void setUploadBatchId(Long uploadBatchId) {
+        this.uploadBatchId = uploadBatchId;
     }
 }

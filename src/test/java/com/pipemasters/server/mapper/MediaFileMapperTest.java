@@ -50,11 +50,11 @@ public class MediaFileMapperTest {
         assertEquals(mediaFile.getFileType(), dto.getFileType());
         assertEquals(mediaFile.getUploadedAt(), dto.getUploadedAt());
 
-        assertNotNull(dto.getSource());
-        assertEquals(mediaFile.getSource().getFilename(), dto.getSource().getFilename());
+        assertNotNull(dto.getSourceId());
+        assertEquals(sourceFile.getId(), dto.getSourceId());
 
-        assertNotNull(dto.getUploadBatch());
-        assertEquals(mediaFile.getUploadBatch().getId(), dto.getUploadBatch().getId());
+        assertNotNull(dto.getUploadBatchId());
+        assertEquals(uploadBatch.getId(), dto.getUploadBatchId());
     }
 
     @Test
@@ -68,19 +68,30 @@ public class MediaFileMapperTest {
                 FileType.VIDEO,
                 Instant.parse("2024-01-01T10:00:00Z"),
                 null,
-                uploadBatchDto
+                uploadBatchDto.getId()
         );
+        sourceDto.setId(200L);
 
         MediaFileDto dto = new MediaFileDto(
                 "audio.mp3",
                 FileType.AUDIO,
                 Instant.parse("2024-01-01T12:00:00Z"),
-                sourceDto,
-                uploadBatchDto
+                sourceDto.getId(),
+                uploadBatchDto.getId()
         );
 
         // Act
         MediaFile entity = modelMapper.map(dto, MediaFile.class);
+
+        MediaFile sourceEntity = new MediaFile();
+        sourceEntity.setId(sourceDto.getId());
+        sourceEntity.setFilename(sourceDto.getFilename());
+
+        entity.setSource(sourceEntity);
+
+        UploadBatch batch = new UploadBatch();
+        batch.setId(uploadBatchDto.getId());
+        entity.setUploadBatch(batch);
 
         // Assert
         assertEquals(dto.getFilename(), entity.getFilename());
@@ -88,10 +99,10 @@ public class MediaFileMapperTest {
         assertEquals(dto.getUploadedAt(), entity.getUploadedAt());
 
         assertNotNull(entity.getSource());
-        assertEquals(dto.getSource().getFilename(), entity.getSource().getFilename());
+        assertEquals(sourceDto.getFilename(), entity.getSource().getFilename());
 
         assertNotNull(entity.getUploadBatch());
-        assertEquals(dto.getUploadBatch().getId(), entity.getUploadBatch().getId());
+        assertEquals(dto.getUploadBatchId(), entity.getUploadBatch().getId());
     }
 }
 

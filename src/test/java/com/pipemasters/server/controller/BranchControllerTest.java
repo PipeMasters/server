@@ -43,7 +43,7 @@ class BranchControllerTest {
         mockBranchDto2 = new BranchDto();
         mockBranchDto2.setId(2L);
         mockBranchDto2.setName("Test Branch 2");
-        mockBranchDto2.setParent(mockBranchDto1);
+        mockBranchDto2.setParentId(mockBranchDto1.getId());
     }
 
     @Test
@@ -102,7 +102,7 @@ class BranchControllerTest {
         BranchDto childWithParentDto = new BranchDto();
         childWithParentDto.setId(mockBranchDto2.getId());
         childWithParentDto.setName(mockBranchDto2.getName());
-        childWithParentDto.setParent(mockBranchDto1);
+        childWithParentDto.setParentId(mockBranchDto1.getId());
 
         when(branchService.getBranchById(mockBranchDto2.getId(), true)).thenReturn(childWithParentDto);
 
@@ -110,8 +110,8 @@ class BranchControllerTest {
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(childWithParentDto, response.getBody());
-        assertNotNull(response.getBody().getParent());
-        assertEquals(mockBranchDto1.getId(), response.getBody().getParent().getId());
+        assertNotNull(response.getBody().getParentId());
+        assertEquals(mockBranchDto1.getId(), response.getBody().getParentId());
     }
 
     @Test
@@ -138,7 +138,7 @@ class BranchControllerTest {
         BranchDto childWithParentDto = new BranchDto();
         childWithParentDto.setId(mockBranchDto2.getId());
         childWithParentDto.setName(mockBranchDto2.getName());
-        childWithParentDto.setParent(mockBranchDto1);
+        childWithParentDto.setParentId(mockBranchDto1.getId());
 
         when(branchService.getBranchByName(mockBranchDto2.getName(), true)).thenReturn(childWithParentDto);
 
@@ -146,7 +146,7 @@ class BranchControllerTest {
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(childWithParentDto, response.getBody());
-        assertNotNull(response.getBody().getParent());
+        assertNotNull(response.getBody().getParentId());
     }
 
     @Test
@@ -168,7 +168,7 @@ class BranchControllerTest {
         BranchDto simpleBranchDto2 = new BranchDto();
         simpleBranchDto2.setId(mockBranchDto2.getId());
         simpleBranchDto2.setName(mockBranchDto2.getName());
-        simpleBranchDto2.setParent(null);
+        simpleBranchDto2.setParentId(null);
 
         when(branchService.getAllBranches(false)).thenReturn(Arrays.asList(simpleBranchDto1, simpleBranchDto2));
 
@@ -179,8 +179,8 @@ class BranchControllerTest {
         assertEquals(2, response.getBody().size());
         assertEquals(simpleBranchDto1, response.getBody().get(0));
         assertEquals(simpleBranchDto2, response.getBody().get(1));
-        assertNull(response.getBody().get(0).getParent());
-        assertNull(response.getBody().get(1).getParent());
+        assertNull(response.getBody().get(0).getParentId());
+        assertNull(response.getBody().get(1).getParentId());
     }
 
     @Test
@@ -194,8 +194,8 @@ class BranchControllerTest {
         assertNotNull(response.getBody());
         assertEquals(2, response.getBody().size());
         assertEquals(expectedBranches, response.getBody());
-        assertNull(response.getBody().get(0).getParent());
-        assertNotNull(response.getBody().get(1).getParent());
+        assertNull(response.getBody().get(0).getParentId());
+        assertNotNull(response.getBody().get(1).getParentId());
     }
 
     @Test
@@ -215,7 +215,7 @@ class BranchControllerTest {
         BranchDto childWithoutParentInResponse = new BranchDto();
         childWithoutParentInResponse.setId(mockBranchDto2.getId());
         childWithoutParentInResponse.setName(mockBranchDto2.getName());
-        childWithoutParentInResponse.setParent(null);
+        childWithoutParentInResponse.setParentId(null);
 
         when(branchService.getChildBranches(mockBranchDto1.getId(), false)).thenReturn(Arrays.asList(childWithoutParentInResponse));
 
@@ -225,7 +225,7 @@ class BranchControllerTest {
         assertNotNull(response.getBody());
         assertEquals(1, response.getBody().size());
         assertEquals(childWithoutParentInResponse, response.getBody().get(0));
-        assertNull(response.getBody().get(0).getParent());
+        assertNull(response.getBody().get(0).getParentId());
     }
 
     @Test
@@ -239,8 +239,8 @@ class BranchControllerTest {
         assertNotNull(response.getBody());
         assertEquals(1, response.getBody().size());
         assertEquals(children, response.getBody());
-        assertNotNull(response.getBody().get(0).getParent());
-        assertEquals(mockBranchDto1.getId(), response.getBody().get(0).getParent().getId());
+        assertNotNull(response.getBody().get(0).getParentId());
+        assertEquals(mockBranchDto1.getId(), response.getBody().get(0).getParentId());
     }
 
     @Test
@@ -274,7 +274,7 @@ class BranchControllerTest {
         assertNotNull(response.getBody());
         assertEquals(1, response.getBody().size());
         assertEquals(mockBranchDto1, response.getBody().get(0));
-        assertNull(response.getBody().get(0).getParent());
+        assertNull(response.getBody().get(0).getParentId());
     }
 
     @Test

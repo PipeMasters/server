@@ -1,9 +1,6 @@
 package com.pipemasters.server.service;
 
-import com.pipemasters.server.dto.MediaFileResponseDto;
-import com.pipemasters.server.dto.UploadBatchDto;
-import com.pipemasters.server.dto.UploadBatchFilter;
-import com.pipemasters.server.dto.UploadBatchResponseDto;
+import com.pipemasters.server.dto.*;
 import com.pipemasters.server.entity.MediaFile;
 import com.pipemasters.server.entity.UploadBatch;
 import com.pipemasters.server.entity.enums.FileType;
@@ -158,7 +155,7 @@ class UploadBatchServiceImplTest {
         when(modelMapper.map(testEntity, UploadBatchDto.class)).thenReturn(updatedDto);
 
         // Act
-        UploadBatchDto result = uploadBatchService.updateUploadBatchDto(1L, updatedDto);
+        UploadBatchDto result = uploadBatchService.update(1L, updatedDto);
 
         // Assert
         assertNotNull(result);
@@ -173,7 +170,7 @@ class UploadBatchServiceImplTest {
 
         // Act & Assert
         assertThrows(RuntimeException.class,
-                () -> uploadBatchService.updateUploadBatchDto(1L, new UploadBatchDto()));
+                () -> uploadBatchService.update(1L, new UploadBatchDto()));
     }
 
     @Test
@@ -233,7 +230,7 @@ class UploadBatchServiceImplTest {
         videoDto3.setFileType(FileType.VIDEO);
         when(modelMapper.map(videoFile3, MediaFileResponseDto.class)).thenReturn(videoDto3);
 
-        Page<UploadBatchResponseDto> resultPage = uploadBatchService.getFilteredBatches(filter, pageable);
+        PageDto<UploadBatchResponseDto> resultPage = uploadBatchService.getFilteredBatches(filter, pageable);
 
         assertNotNull(resultPage);
         assertEquals(3, resultPage.getTotalElements());
@@ -271,10 +268,10 @@ class UploadBatchServiceImplTest {
 
         when(uploadBatchRepository.findAll(any(Specification.class), eq(pageable))).thenReturn(emptyPage);
 
-        Page<UploadBatchResponseDto> resultPage = uploadBatchService.getFilteredBatches(filter, pageable);
+        PageDto<UploadBatchResponseDto> resultPage = uploadBatchService.getFilteredBatches(filter, pageable);
 
         assertNotNull(resultPage);
-        assertTrue(resultPage.isEmpty());
+        assertEquals(0, resultPage.getTotalElements());
         assertEquals(0, resultPage.getTotalElements());
         verify(uploadBatchRepository).findAll(any(Specification.class), eq(pageable));
         verify(modelMapper, never()).map(any(UploadBatch.class), eq(UploadBatchResponseDto.class));

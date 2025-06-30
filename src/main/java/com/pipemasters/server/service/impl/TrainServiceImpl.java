@@ -6,6 +6,8 @@ import com.pipemasters.server.exceptions.train.TrainNotFoundException;
 import com.pipemasters.server.repository.TrainRepository;
 import com.pipemasters.server.service.TrainService;
 import org.modelmapper.ModelMapper;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,6 +25,7 @@ public class TrainServiceImpl implements TrainService {
     }
 
     @Override
+    @CacheEvict(cacheNames = "trains", allEntries = true)
     @Transactional
     public TrainDto save(TrainDto trainDto) {
         Train train = modelMapper.map(trainDto, Train.class);
@@ -37,6 +40,7 @@ public class TrainServiceImpl implements TrainService {
     }
 
     @Override
+    @Cacheable("trains")
     @Transactional(readOnly = true)
     public List<TrainDto> getAll() {
         return trainRepository.findAll().stream()
@@ -45,6 +49,7 @@ public class TrainServiceImpl implements TrainService {
     }
 
     @Override
+    @CacheEvict(cacheNames = "trains", allEntries = true)
     @Transactional
     public TrainDto update(Long id, TrainDto trainDto) {
         Train train = trainRepository.findById(id).orElseThrow(() -> new TrainNotFoundException("Train not found with ID: " + id));
@@ -56,6 +61,7 @@ public class TrainServiceImpl implements TrainService {
     }
 
     @Override
+    @CacheEvict(cacheNames = "trains", allEntries = true)
     @Transactional
     public void delete(Long id) {
         trainRepository.deleteById(id);

@@ -56,7 +56,7 @@ class BranchServiceImplTest {
         mockBranchDto2 = new BranchDto();
         mockBranchDto2.setId(2L);
         mockBranchDto2.setName("Child Branch");
-        mockBranchDto2.setParent(mockBranchDto1);
+        mockBranchDto2.setParentId(mockBranchDto1.getId());
     }
 
     @Test
@@ -65,7 +65,7 @@ class BranchServiceImplTest {
         inputDto.setName("Child");
         BranchDto parentDto = new BranchDto();
         parentDto.setId(1L);
-        inputDto.setParent(parentDto);
+        inputDto.setParentId(parentDto.getId());
 
         Branch parent = new Branch("Parent", null);
         parent.setId(1L);
@@ -134,13 +134,13 @@ class BranchServiceImplTest {
     void getBranchById_shouldReturnBranchDtoWhenFound_NoParent() {
         when(branchRepository.findById(mockBranch1.getId())).thenReturn(Optional.of(mockBranch1));
         when(modelMapper.map(mockBranch1, BranchDto.class)).thenReturn(mockBranchDto1);
-        mockBranchDto1.setParent(null);
+        mockBranchDto1.setParentId(null);
 
         BranchDto result = branchService.getBranchById(mockBranch1.getId(), false);
 
         assertNotNull(result);
         assertEquals(mockBranchDto1, result);
-        assertNull(result.getParent());
+        assertNull(result.getParentId());
     }
 
     @Test
@@ -152,8 +152,8 @@ class BranchServiceImplTest {
 
         assertNotNull(result);
         assertEquals(mockBranchDto2, result);
-        assertNotNull(result.getParent());
-        assertEquals(mockBranchDto1.getId(), result.getParent().getId());
+        assertNotNull(result.getParentId());
+        assertEquals(mockBranchDto1.getId(), result.getParentId());
     }
 
     @Test
@@ -169,13 +169,13 @@ class BranchServiceImplTest {
     void getBranchByName_shouldReturnBranchDtoWhenFound_NoParent() {
         when(branchRepository.findByName(mockBranch1.getName())).thenReturn(Optional.of(mockBranch1));
         when(modelMapper.map(mockBranch1, BranchDto.class)).thenReturn(mockBranchDto1);
-        mockBranchDto1.setParent(null);
+        mockBranchDto1.setParentId(null);
 
         BranchDto result = branchService.getBranchByName(mockBranch1.getName(), false);
 
         assertNotNull(result);
         assertEquals(mockBranchDto1, result);
-        assertNull(result.getParent());
+        assertNull(result.getParentId());
     }
 
     @Test
@@ -187,8 +187,8 @@ class BranchServiceImplTest {
 
         assertNotNull(result);
         assertEquals(mockBranchDto2, result);
-        assertNotNull(result.getParent());
-        assertEquals(mockBranchDto1.getId(), result.getParent().getId());
+        assertNotNull(result.getParentId());
+        assertEquals(mockBranchDto1.getId(), result.getParentId());
     }
 
     @Test
@@ -208,12 +208,12 @@ class BranchServiceImplTest {
         BranchDto simpleBranchDto1 = new BranchDto();
         simpleBranchDto1.setId(mockBranch1.getId());
         simpleBranchDto1.setName(mockBranch1.getName());
-        simpleBranchDto1.setParent(null);
+        simpleBranchDto1.setParentId(null);
 
         BranchDto simpleBranchDto2 = new BranchDto();
         simpleBranchDto2.setId(mockBranch2.getId());
         simpleBranchDto2.setName(mockBranch2.getName());
-        simpleBranchDto2.setParent(null);
+        simpleBranchDto2.setParentId(null);
 
         when(modelMapper.map(mockBranch1, BranchDto.class)).thenReturn(simpleBranchDto1);
         when(modelMapper.map(mockBranch2, BranchDto.class)).thenReturn(simpleBranchDto2);
@@ -224,8 +224,8 @@ class BranchServiceImplTest {
         assertEquals(2, result.size());
         assertEquals(simpleBranchDto1, result.get(0));
         assertEquals(simpleBranchDto2, result.get(1));
-        assertNull(result.get(0).getParent());
-        assertNull(result.get(1).getParent());
+        assertNull(result.get(0).getParentId());
+        assertNull(result.get(1).getParentId());
     }
 
     @Test
@@ -242,9 +242,9 @@ class BranchServiceImplTest {
         assertEquals(2, result.size());
         assertEquals(mockBranchDto1, result.get(0));
         assertEquals(mockBranchDto2, result.get(1));
-        assertNull(result.get(0).getParent());
-        assertNotNull(result.get(1).getParent());
-        assertEquals(mockBranchDto1.getId(), result.get(1).getParent().getId());
+        assertNull(result.get(0).getParentId());
+        assertNotNull(result.get(1).getParentId());
+        assertEquals(mockBranchDto1.getId(), result.get(1).getParentId());
     }
 
     @Test
@@ -266,7 +266,7 @@ class BranchServiceImplTest {
         BranchDto childWithoutParentInResponse = new BranchDto();
         childWithoutParentInResponse.setId(mockBranch2.getId());
         childWithoutParentInResponse.setName(mockBranch2.getName());
-        childWithoutParentInResponse.setParent(null);
+        childWithoutParentInResponse.setParentId(null);
 
         when(modelMapper.map(mockBranch2, BranchDto.class)).thenReturn(childWithoutParentInResponse);
 
@@ -275,7 +275,7 @@ class BranchServiceImplTest {
         assertNotNull(result);
         assertEquals(1, result.size());
         assertEquals(childWithoutParentInResponse, result.get(0));
-        assertNull(result.get(0).getParent());
+        assertNull(result.get(0).getParentId());
     }
 
     @Test
@@ -291,8 +291,8 @@ class BranchServiceImplTest {
         assertNotNull(result);
         assertEquals(1, result.size());
         assertEquals(mockBranchDto2, result.get(0));
-        assertNotNull(result.get(0).getParent());
-        assertEquals(mockBranchDto1.getId(), result.get(0).getParent().getId());
+        assertNotNull(result.get(0).getParentId());
+        assertEquals(mockBranchDto1.getId(), result.get(0).getParentId());
     }
 
 
@@ -324,7 +324,7 @@ class BranchServiceImplTest {
         BranchDto simpleRootDto = new BranchDto();
         simpleRootDto.setId(mockBranch1.getId());
         simpleRootDto.setName(mockBranch1.getName());
-        simpleRootDto.setParent(null);
+        simpleRootDto.setParentId(null);
 
         when(modelMapper.map(mockBranch1, BranchDto.class)).thenReturn(simpleRootDto);
 
@@ -333,7 +333,7 @@ class BranchServiceImplTest {
         assertNotNull(result);
         assertEquals(1, result.size());
         assertEquals(simpleRootDto, result.get(0));
-        assertNull(result.get(0).getParent());
+        assertNull(result.get(0).getParentId());
     }
 
     @Test

@@ -1,5 +1,6 @@
 package com.pipemasters.server.controller;
 
+import com.pipemasters.server.dto.PageDto;
 import com.pipemasters.server.dto.UploadBatchFilter;
 import com.pipemasters.server.dto.UploadBatchResponseDto;
 import com.pipemasters.server.service.UploadBatchService;
@@ -66,10 +67,11 @@ class UploadBatchControllerTest {
 
         List<UploadBatchResponseDto> dtos = List.of(dto1, dto2);
         Pageable pageable = PageRequest.of(0, 15, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<UploadBatchResponseDto> page = new PageImpl<>(dtos, pageable, dtos.size());
+        PageDto<UploadBatchResponseDto> pageDto = new PageDto<>(dtos, pageable.getPageNumber(), pageable.getPageSize(), dtos.size());
+
 
         when(uploadBatchService.getFilteredBatches(any(UploadBatchFilter.class), any(Pageable.class)))
-                .thenReturn(page);
+                .thenReturn(pageDto);
 
         Set<String> keywords = Set.of("ключевое", "видео", "путь");
 
@@ -85,7 +87,8 @@ class UploadBatchControllerTest {
         );
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(page, response.getBody());
+        Page<UploadBatchResponseDto> expectedPage = pageDto.toPage(pageable);
+        assertEquals(expectedPage, response.getBody());
         verify(uploadBatchService).getFilteredBatches(any(UploadBatchFilter.class), any(Pageable.class));
     }
 
@@ -101,10 +104,10 @@ class UploadBatchControllerTest {
 
         List<UploadBatchResponseDto> dtos = List.of(recursiveDto);
         Pageable pageable = PageRequest.of(0, 15, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<UploadBatchResponseDto> page = new PageImpl<>(dtos, pageable, dtos.size());
+        PageDto<UploadBatchResponseDto> pageDto = new PageDto<>(dtos, pageable.getPageNumber(), pageable.getPageSize(), dtos.size());
 
         when(uploadBatchService.getFilteredBatches(any(UploadBatchFilter.class), any(Pageable.class)))
-                .thenReturn(page);
+                .thenReturn(pageDto);
 
         mockMvc.perform(get("/api/v1/batch")
                         .param("dateFrom", "2024-01-01")

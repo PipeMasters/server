@@ -1,6 +1,6 @@
 package com.pipemasters.server.dto;
 
-public class TrainDto {
+public class TrainDto extends BaseDto {
     private Long trainNumber;
     private String routeMessage;
     private Integer consistCount;

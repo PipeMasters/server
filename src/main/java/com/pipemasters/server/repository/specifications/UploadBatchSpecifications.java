@@ -25,17 +25,25 @@ public class UploadBatchSpecifications {
 
             if (filter.getTrainNumber() != null) {
                 Join<Object, Object> trainJoin = root.join("train");
-                predicates.add(cb.like(cb.lower(trainJoin.get("number")), "%" + filter.getTrainNumber().toLowerCase() + "%"));
+                predicates.add(cb.equal(trainJoin.get("trainNumber"), filter.getTrainNumber()));
             }
 
             if (filter.getChiefName() != null) {
                 Join<Object, Object> trainJoin = root.join("train");
-                predicates.add(cb.like(cb.lower(trainJoin.get("chiefFullName")), "%" + filter.getChiefName().toLowerCase() + "%"));
+                predicates.add(cb.like(cb.lower(trainJoin.get("chief")), "%" + filter.getChiefName().toLowerCase() + "%"));
             }
 
             if (filter.getUploadedByName() != null) {
                 Join<Object, Object> uploadedByJoin = root.join("uploadedBy");
-                predicates.add(cb.like(cb.lower(uploadedByJoin.get("fullName")), "%" + filter.getUploadedByName().toLowerCase() + "%"));
+                var fullNameExpression = cb.concat(
+                        cb.concat(
+                                cb.concat(uploadedByJoin.get("surname"), " "),
+                                cb.concat(uploadedByJoin.get("name"), " ")
+                        ),
+                        uploadedByJoin.get("patronymic")
+                );
+                predicates.add(cb.like(cb.lower(fullNameExpression), "%" + filter.getUploadedByName().toLowerCase() + "%"
+                ));
             }
 
             if (filter.getKeywords() != null && !filter.getKeywords().isEmpty()) {

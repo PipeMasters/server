@@ -31,7 +31,7 @@ public class ModelMapperConfig {
     private void configureBranchMapping(ModelMapper modelMapper) {
         modelMapper.typeMap(Branch.class, BranchDto.class)
                 .addMappings(mapper -> {
-                    mapper.skip(BranchDto::setParent);
+                    mapper.skip(BranchDto::setParentId);
                 });
     }
 
@@ -43,8 +43,8 @@ public class ModelMapperConfig {
             mapper.map(MediaFile::getFileType, MediaFileDto::setFileType);
             mapper.map(MediaFile::getUploadedAt, MediaFileDto::setUploadedAt);
 
-            mapper.skip(MediaFileDto::setSource);
-            mapper.skip(MediaFileDto::setUploadBatch);
+            mapper.skip(MediaFileDto::setSourceId);
+            mapper.skip(MediaFileDto::setUploadBatchId);
         });
     }
 
