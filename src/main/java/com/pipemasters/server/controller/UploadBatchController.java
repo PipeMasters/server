@@ -1,5 +1,6 @@
 package com.pipemasters.server.controller;
 
+import com.pipemasters.server.dto.PageDto;
 import com.pipemasters.server.dto.UploadBatchDto;
 import com.pipemasters.server.dto.UploadBatchFilter;
 import com.pipemasters.server.dto.UploadBatchResponseDto;
@@ -45,7 +46,8 @@ public class UploadBatchController {
         filter.setUploadedByName(uploadedByName);
         filter.setKeywords(keywords);
 
-        return new ResponseEntity<>(uploadBatchService.getFilteredBatches(filter, pageable), HttpStatus.OK);
+        PageDto<UploadBatchResponseDto> dtoPage = uploadBatchService.getFilteredBatches(filter, pageable);
+        return new ResponseEntity<>(dtoPage.toPage(pageable), HttpStatus.OK);
     }
 
     @PostMapping

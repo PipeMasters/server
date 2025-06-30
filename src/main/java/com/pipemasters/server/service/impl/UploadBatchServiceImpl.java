@@ -1,9 +1,6 @@
 package com.pipemasters.server.service.impl;
 
-import com.pipemasters.server.dto.MediaFileResponseDto;
-import com.pipemasters.server.dto.UploadBatchDto;
-import com.pipemasters.server.dto.UploadBatchFilter;
-import com.pipemasters.server.dto.UploadBatchResponseDto;
+import com.pipemasters.server.dto.*;
 import com.pipemasters.server.entity.UploadBatch;
 import com.pipemasters.server.entity.enums.FileType;
 import com.pipemasters.server.repository.UploadBatchRepository;
@@ -49,9 +46,9 @@ public class UploadBatchServiceImpl implements UploadBatchService {
     @Override
     @Cacheable(cacheNames = "filteredBatches", keyGenerator = "uploadBatchFilterKeyGenerator")
     @Transactional(readOnly = true)
-    public Page<UploadBatchResponseDto> getFilteredBatches(UploadBatchFilter filter, Pageable pageable) {
+    public PageDto<UploadBatchResponseDto> getFilteredBatches(UploadBatchFilter filter, Pageable pageable) {
         Page<UploadBatch> page = uploadBatchRepository.findAll(UploadBatchSpecifications.withFilter(filter), pageable);
-        return page.map(batch -> {
+        List<UploadBatchResponseDto> dtoList = page.stream().map(batch -> {
             UploadBatchResponseDto dto = modelMapper.map(batch, UploadBatchResponseDto.class);
             batch.getFiles().stream()
                     .filter(mediaFile -> FileType.VIDEO.equals(mediaFile.getFileType()))
@@ -62,7 +59,8 @@ public class UploadBatchServiceImpl implements UploadBatchService {
                     });
 
             return dto;
-        });
+        }).toList();
+        return new PageDto<>(dtoList, page.getNumber(), page.getSize(), page.getTotalElements());
     }
 
     @Override
