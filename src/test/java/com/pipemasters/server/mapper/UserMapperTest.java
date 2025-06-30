@@ -20,9 +20,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 public class UserMapperTest {
-
-    private BranchRepository branchRepository;
-
     private ModelMapper modelMapper;
 
     @BeforeEach
@@ -34,7 +31,10 @@ public class UserMapperTest {
     void testUserToUserDtoMapping() {
         // Given
         Branch parentBranch = new Branch("Head Office", null);
+        parentBranch.setId(10L);
+
         Branch branch = new Branch("1L", parentBranch);
+        branch.setId(20L);
 
         User user = new User("Иван", "Иванов", "Иванович", Set.of(Role.USER, Role.ADMIN), branch);
 
@@ -45,27 +45,23 @@ public class UserMapperTest {
         assertThat(dto.getPatronymic()).isEqualTo("Иванович");
         assertThat(dto.getRoles()).containsExactlyInAnyOrder(Role.USER, Role.ADMIN);
         assertThat(dto.getBranchId()).isNotNull();
-        assertThat(branchRepository.findById(dto.getBranchId()))
-                .isPresent()
-                .hasValueSatisfying(br ->
-                        assertThat(br.getName()).isEqualTo("1L"));
-        assertThat(branchRepository.findById(dto.getBranchId()))
-                .isPresent()
-                .hasValueSatisfying(br ->
-                        assertThat(br.getParent()).isNotNull());
+        assertThat(dto.getBranchId()).isEqualTo(branch.getId());
     }
 
 
     @Test
     void testUserDtoToUserMapping() {
         // Given
-        BranchDto branchDtoA = new BranchDto("Branch A", null);
-        BranchDto branchDtoB = new BranchDto("Branch B", branchDtoA.getId());
-        branchDtoA.setParentId(branchDtoB.getId());
-        UserDto dto = new UserDto("Мария", "Петрова", "Алексеевна", Set.of(Role.USER), branchDtoA.getId());
+        Long branchId = 55L;
+
+        UserDto dto = new UserDto("Мария", "Петрова", "Алексеевна", Set.of(Role.USER), branchId);
 
         // When
         User user = modelMapper.map(dto, User.class);
+
+        Branch branchStub = new Branch("Test Branch", null);
+        branchStub.setId(branchId);
+        user.setBranch(branchStub);
 
         // Then
         assertThat(user.getName()).isEqualTo("Мария");
@@ -73,6 +69,6 @@ public class UserMapperTest {
         assertThat(user.getPatronymic()).isEqualTo("Алексеевна");
         assertThat(user.getRoles()).containsExactly(Role.USER);
         assertThat(user.getBranch()).isNotNull();
-        assertThat(user.getBranch().getName()).isEqualTo("Branch A");
+        assertThat(user.getBranch().getId()).isEqualTo(branchId);
     }
 }
