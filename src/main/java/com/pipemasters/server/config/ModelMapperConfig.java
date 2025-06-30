@@ -18,7 +18,7 @@ public class ModelMapperConfig {
                 .addMapping(e -> e.getDelegator().getId(), DelegationDto::setDelegatorId)
                 .addMapping(e -> e.getSubstitute().getId(), DelegationDto::setSubstituteId);
 
-//        configureBranchMapping(modelMapper);
+        configureBranchMapping(modelMapper);
 //        configureMediaFileMapping(modelMapper);
 //        configureUploadBatchMapping(modelMapper);
 //        configureVideoAbsenceDtoMapping(modelMapper);
@@ -28,12 +28,12 @@ public class ModelMapperConfig {
         return modelMapper;
     }
 
-//    private void configureBranchMapping(ModelMapper modelMapper) {
-//        modelMapper.typeMap(Branch.class, BranchDto.class)
-//                .addMappings(mapper -> {
-//                    mapper.skip(BranchDto::setParentId);
-//                });
-//    }
+    private void configureBranchMapping(ModelMapper modelMapper) {
+        modelMapper.typeMap(Branch.class, BranchDto.class)
+                .addMappings(mapper -> {
+                    mapper.skip(BranchDto::setParentId);
+                });
+    }
 
     private void configureMediaFileMapping(ModelMapper modelMapper) {
         TypeMap<MediaFile, MediaFileDto> typeMap = modelMapper.createTypeMap(MediaFile.class, MediaFileDto.class);
@@ -43,8 +43,8 @@ public class ModelMapperConfig {
             mapper.map(MediaFile::getFileType, MediaFileDto::setFileType);
             mapper.map(MediaFile::getUploadedAt, MediaFileDto::setUploadedAt);
 
-            mapper.skip(MediaFileDto::setSource);
-            mapper.skip(MediaFileDto::setUploadBatch);
+            mapper.skip(MediaFileDto::setSourceId);
+            mapper.skip(MediaFileDto::setUploadBatchId);
         });
     }
 
