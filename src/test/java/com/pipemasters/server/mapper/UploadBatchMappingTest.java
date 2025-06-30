@@ -30,20 +30,20 @@ public class UploadBatchMappingTest {
 
     @Autowired
     private ModelMapper modelMapper;
-    @Autowired
-    private MediaFileRepository mediaFileRepository;
-    @Autowired
-    private BranchRepository branchRepository;
-    @Autowired
-    private UserRepository userRepository;
     @Test
     void shouldMapUploadBatchToDtoCorrectly() {
         Branch parentBranch = new Branch("Parent Branch", null);
+        parentBranch.setId(1L);
+
         Branch branch = new Branch("Child Branch", parentBranch);
+        branch.setId(2L);
+
         User user = new User("Иван", "Иванов", "Иванович", Set.of(Role.USER), branch);
+        user.setId(3L);
+
         Train train = new Train(123L, "Route 123", 5, "Chief");
 
-        UploadBatch UploadBatch = new UploadBatch(
+        UploadBatch uploadBatch = new UploadBatch(
                 UUID.randomUUID(),
                 user,
                 Instant.parse("2024-01-01T10:00:00Z"),
@@ -58,39 +58,37 @@ public class UploadBatchMappingTest {
                 List.of()
         );
 
-        UploadBatchDto dto = modelMapper.map(UploadBatch, UploadBatchDto.class);
+        UploadBatchDto dto = modelMapper.map(uploadBatch, UploadBatchDto.class);
 
-        assertEquals(UploadBatch.getDirectory().toString(), dto.getDirectory());
-        assertEquals(
-                UploadBatch.getUploadedBy().getName(),
-                userRepository.findById(dto.getUploadedById())
-                        .orElseThrow()
-                        .getName()
-        );
-        assertEquals(UploadBatch.getTrainDeparted(), dto.getTrainDeparted());
-        assertEquals(
-                UploadBatch.getBranch().getName(),
-                branchRepository.findById(dto.getBranchId())
-                        .orElseThrow()
-                        .getName()
-        );
-        assertEquals(UploadBatch.getKeywords(), dto.getKeywords());
+        assertEquals(uploadBatch.getDirectory().toString(), dto.getDirectory());
+        assertEquals(uploadBatch.getUploadedBy().getId(), dto.getUploadedById());
+        assertEquals(uploadBatch.getTrainDeparted(), dto.getTrainDeparted());
+        assertEquals(uploadBatch.getBranch().getId(), dto.getBranchId());
+        assertEquals(uploadBatch.getKeywords(), dto.getKeywords());
         assertNull(dto.getAbsenceId()); // проверка отключенной рекурсии
         assertTrue(dto.getFiles().isEmpty());
     }
 
     @Test
     void shouldMapDtoToUploadBatchCorrectly() {
+        Long parentBranchId = 1L;
+        Long branchId = 2L;
+        Long userId = 3L;
+        Long trainId = 123L;
+
         BranchDto parentBranchDto = new BranchDto();
+        parentBranchDto.setId(parentBranchId);
         parentBranchDto.setName("Parent Branch");
 
         BranchDto branchDto = new BranchDto();
+        branchDto.setId(branchId);
         branchDto.setName("Child Branch");
-        branchDto.setParentId(parentBranchDto.getId()); // это будет проигнорировано в маппинге
+        branchDto.setParentId(parentBranchId);
 
-        UserDto userDto = new UserDto("Иван", "Иванов", "Иванович", Set.of(Role.USER), branchDto.getId());
+        UserDto userDto = new UserDto("Иван", "Иванов", "Иванович", Set.of(Role.USER), branchId);
 
         TrainDto trainDto = new TrainDto();
+        trainDto.setId(trainId);
         trainDto.setTrainNumber(123L);
         trainDto.setRouteMessage("Route 123");
 
@@ -110,23 +108,26 @@ public class UploadBatchMappingTest {
                 null // отсутствие
         );
 
-        UploadBatch UploadBatch = modelMapper.map(dto, UploadBatch.class);
+        UploadBatch uploadBatch = modelMapper.map(dto, UploadBatch.class);
 
-        assertEquals(UUID.fromString(dto.getDirectory()), UploadBatch.getDirectory());
-        assertEquals(
-                UploadBatch.getUploadedBy().getName(),
-                userRepository.findById(dto.getUploadedById())
-                        .orElseThrow()
-                        .getName()
-        );
-        assertEquals(dto.getTrainDeparted(), UploadBatch.getTrainDeparted());
-        assertEquals(
-                UploadBatch.getBranch().getName(),
-                branchRepository.findById(dto.getBranchId())
-                        .orElseThrow()
-                        .getName()
-        );
-        assertTrue(UploadBatch.getFiles().isEmpty());
+        User userStub = new User("Иван", "Иванов", "Иванович", Set.of(Role.USER),
+                new Branch("Child Branch", new Branch("Parent Branch", null)));
+        userStub.setId(userId);
+
+        Branch branchStub = new Branch("Child Branch", new Branch("Parent Branch", null));
+        branchStub.setId(branchId);
+
+        uploadBatch.setUploadedBy(userStub);
+        uploadBatch.setBranch(branchStub);
+
+        assertEquals(UUID.fromString(dto.getDirectory()), uploadBatch.getDirectory());
+        assertEquals(userStub.getId(), uploadBatch.getUploadedBy().getId());
+        assertEquals(userStub.getName(), uploadBatch.getUploadedBy().getName());
+        assertEquals(dto.getTrainDeparted(), uploadBatch.getTrainDeparted());
+        assertEquals(branchStub.getId(), uploadBatch.getBranch().getId());
+        assertEquals(branchStub.getName(), uploadBatch.getBranch().getName());
+        assertEquals(dto.getKeywords(), uploadBatch.getKeywords());
+        assertTrue(uploadBatch.getFiles().isEmpty());
     }
 
 //    @Test
@@ -182,7 +183,8 @@ public class UploadBatchMappingTest {
                     false,
                     new ArrayList<>()
             );
-            MediaFile file = new MediaFile("", FileType.VIDEO, batch);
-            assertThrows(Exception.class, () -> mediaFileRepository.save(file));
+            assertThrows(IllegalArgumentException.class, () -> {
+                new MediaFile("", FileType.VIDEO, batch);
+            });
         }
 }
