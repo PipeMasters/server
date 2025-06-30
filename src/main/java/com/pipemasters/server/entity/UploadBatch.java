@@ -27,6 +27,10 @@ public class UploadBatch extends BaseEntity {
     @Column(nullable = false)
     private LocalDate trainDeparted;
 
+    /* дата прибытия поезда (без времени) */
+    @Column(nullable = false)
+    private LocalDate trainArrived;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "train_id")
     private Train train;
@@ -77,9 +81,10 @@ public class UploadBatch extends BaseEntity {
         this.files = files;
     }
 
-    public UploadBatch(User uploadedBy, LocalDate trainDeparted, Train train, String comment, Branch branch, VideoAbsence absence) {
+    public UploadBatch(User uploadedBy, LocalDate trainDeparted, LocalDate trainArrived, Train train, String comment, Branch branch, VideoAbsence absence) {
         this.uploadedBy = uploadedBy;
         this.trainDeparted = trainDeparted;
+        this.trainArrived = trainArrived;
         this.train = train;
         this.comment = comment;
         this.branch = branch;
@@ -191,5 +196,13 @@ public class UploadBatch extends BaseEntity {
 
     public void setAbsence(VideoAbsence absence) {
         this.absence = absence;
+    }
+
+    public LocalDate getTrainArrived() {
+        return trainArrived;
+    }
+
+    public void setTrainArrived(LocalDate trainArrived) {
+        this.trainArrived = trainArrived;
     }
 }

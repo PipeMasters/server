@@ -1,8 +1,8 @@
 package com.pipemasters.server.config;
 
 import com.pipemasters.server.dto.*;
+import com.pipemasters.server.dto.response.UploadBatchDtoResponse;
 import com.pipemasters.server.entity.*;
-import org.modelmapper.Conditions;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeMap;
 import org.springframework.context.annotation.Bean;
@@ -19,6 +19,8 @@ public class ModelMapperConfig {
                 .addMapping(e -> e.getSubstitute().getId(), DelegationDto::setSubstituteId);
 
         configureBranchMapping(modelMapper);
+        configureUploadBatchDtoResponseMapping(modelMapper);
+
 //        configureMediaFileMapping(modelMapper);
 //        configureUploadBatchMapping(modelMapper);
 //        configureVideoAbsenceDtoMapping(modelMapper);
@@ -64,6 +66,16 @@ public class ModelMapperConfig {
                 .addMappings(mapper -> {
                     mapper.skip(VideoAbsenceDto::setUploadBatch);
                     mapper.skip(VideoAbsenceDto::setCause);
+                });
+    }
+
+    private void configureUploadBatchDtoResponseMapping(ModelMapper modelMapper) {
+        modelMapper.typeMap(UploadBatch.class, UploadBatchDtoResponse.class)
+                .addMappings(mapper -> {
+                    mapper.map(tn -> tn.getTrain().getTrainNumber(), UploadBatchDtoResponse::setTrainNumber);
+                    mapper.map(UploadBatch::getTrainDeparted, UploadBatchDtoResponse::setDateDeparted);
+                    mapper.map(UploadBatch::getTrainArrived, UploadBatchDtoResponse::setDateArrived);
+                    mapper.map(chf -> chf.getTrain().getChief(), UploadBatchDtoResponse::setChiefName);
                 });
     }
 }

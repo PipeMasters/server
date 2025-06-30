@@ -1,6 +1,7 @@
 package com.pipemasters.server.service.impl;
 
 import com.pipemasters.server.dto.*;
+import com.pipemasters.server.dto.response.UploadBatchDtoResponse;
 import com.pipemasters.server.entity.UploadBatch;
 import com.pipemasters.server.entity.enums.FileType;
 import com.pipemasters.server.repository.UploadBatchRepository;
@@ -46,20 +47,26 @@ public class UploadBatchServiceImpl implements UploadBatchService {
     @Override
     @Cacheable(cacheNames = "filteredBatches", keyGenerator = "uploadBatchFilterKeyGenerator")
     @Transactional(readOnly = true)
-    public PageDto<UploadBatchResponseDto> getFilteredBatches(UploadBatchFilter filter, Pageable pageable) {
+    public PageDto<UploadBatchDtoResponse> getFilteredBatches(UploadBatchFilter filter, Pageable pageable) {
         Page<UploadBatch> page = uploadBatchRepository.findAll(UploadBatchSpecifications.withFilter(filter), pageable);
-        List<UploadBatchResponseDto> dtoList = page.stream().map(batch -> {
-            UploadBatchResponseDto dto = modelMapper.map(batch, UploadBatchResponseDto.class);
-            batch.getFiles().stream()
-                    .filter(mediaFile -> FileType.VIDEO.equals(mediaFile.getFileType()))
-                    .findFirst()
-                    .ifPresent(videoMediaFile -> {
-                        MediaFileResponseDto mediaFileDto = modelMapper.map(videoMediaFile, MediaFileResponseDto.class);
-                        dto.setFile(mediaFileDto);
-                    });
 
-            return dto;
-        }).toList();
+        List<UploadBatchDtoResponse> dtoList = page.stream()
+                .map(batch -> modelMapper.map(batch, UploadBatchDtoResponse.class))
+                .toList();
+
+//        List<UploadBatchResponseDto> dtoList = page.stream().map(batch -> {
+//            UploadBatchResponseDto dto = modelMapper.map(batch, UploadBatchResponseDto.class);
+//            batch.getFiles().stream()
+//                    .filter(mediaFile -> FileType.VIDEO.equals(mediaFile.getFileType()))
+//                    .findFirst()
+//                    .ifPresent(videoMediaFile -> {
+//                        MediaFileResponseDto mediaFileDto = modelMapper.map(videoMediaFile, MediaFileResponseDto.class);
+//                        dto.setFile(mediaFileDto);
+//                    });
+//
+//            return dto;
+//        }).toList();
+
         return new PageDto<>(dtoList, page.getNumber(), page.getSize(), page.getTotalElements());
     }
 
@@ -73,9 +80,20 @@ public class UploadBatchServiceImpl implements UploadBatchService {
     @Override
     @Cacheable("batches")
     @Transactional(readOnly = true)
-    public List<UploadBatchDto> getAll() {
+    public List<UploadBatchDtoResponse> getAll() {
+//        List<UploadBatch> uploadBatchList = uploadBatchRepository.findAll();
+//
+//        List<UploadBatchDtoResponse> dtoList = uploadBatchList.stream()
+//                .map(batch -> new UploadBatchDtoResponse(
+//                        batch.getId(),
+//                        batch.getTrainDeparted(),
+//                        batch.getTrainDeparted(),
+//                        batch.getTrain().getTrainNumber(),
+//                        batch.getTrain().getChief()
+//                )).toList();
+
         return uploadBatchRepository.findAll().stream()
-                .map(uploadBatch -> modelMapper.map(uploadBatch,UploadBatchDto.class)).toList();
+                .map(uploadBatch -> modelMapper.map(uploadBatch,UploadBatchDtoResponse.class)).toList();
     }
 
     @Override

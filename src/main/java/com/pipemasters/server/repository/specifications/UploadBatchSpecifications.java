@@ -10,48 +10,67 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class UploadBatchSpecifications {
-    public static Specification<UploadBatch> withFilter(UploadBatchFilter filter) {
+    public static Specification<UploadBatch> withFilter(UploadBatchFilter f) {
         return (root, query, cb) -> {
-            List<Predicate> predicates = new ArrayList<>();
+            List<Predicate> p = new ArrayList<>();
 
-            if (filter.getSpecificDate() != null) {
-                predicates.add(cb.equal(root.get("trainDeparted"), filter.getSpecificDate()));
+            if (f.getSpecificDate() != null) {
+                p.add(cb.equal(root.get("trainDeparted"), f.getSpecificDate()));
             } else {
-                if (filter.getDateFrom() != null)
-                    predicates.add(cb.greaterThanOrEqualTo(root.get("trainDeparted"), filter.getDateFrom()));
-                if (filter.getDateTo() != null)
-                    predicates.add(cb.lessThanOrEqualTo(root.get("trainDeparted"), filter.getDateTo()));
+                if (f.getDepartureDateFrom() != null)
+                    p.add(cb.greaterThanOrEqualTo(root.get("trainDeparted"), f.getDepartureDateFrom()));
+                if (f.getDepartureDateTo() != null)
+                    p.add(cb.lessThanOrEqualTo(root.get("trainDeparted"), f.getDepartureDateTo()));
             }
 
-            if (filter.getTrainNumber() != null) {
-                Join<Object, Object> trainJoin = root.join("train");
-                predicates.add(cb.equal(trainJoin.get("trainNumber"), filter.getTrainNumber()));
+            if (f.getArrivalDateFrom() != null)
+                p.add(cb.greaterThanOrEqualTo(root.get("trainArrived"), f.getArrivalDateFrom()));
+            if (f.getArrivalDateTo() != null)
+                p.add(cb.lessThanOrEqualTo(root.get("trainArrived"), f.getArrivalDateTo()));
+
+            if (f.getCreatedFrom() != null)
+                p.add(cb.greaterThanOrEqualTo(root.get("createdAt"), f.getCreatedFrom()));
+            if (f.getCreatedTo() != null)
+                p.add(cb.lessThanOrEqualTo(root.get("createdAt"), f.getCreatedTo()));
+
+            if (f.getTrainId() != null) {
+                Join<Object, Object> train = root.join("train");
+                p.add(cb.equal(train.get("id"), f.getTrainId()));
             }
 
-            if (filter.getChiefName() != null) {
-                Join<Object, Object> trainJoin = root.join("train");
-                predicates.add(cb.like(cb.lower(trainJoin.get("chief")), "%" + filter.getChiefName().toLowerCase() + "%"));
+            if (f.getChiefName() != null) {
+                Join<Object, Object> train = root.join("train");
+                p.add(cb.like(cb.lower(train.get("chief")), "%" + f.getChiefName().toLowerCase() + "%"));
             }
 
-            if (filter.getUploadedByName() != null) {
-                Join<Object, Object> uploadedByJoin = root.join("uploadedBy");
-                var fullNameExpression = cb.concat(
+            if (f.getUploadedById() != null) {
+                Join<Object, Object> up = root.join("uploadedBy");
+                p.add(cb.equal(up.get("id"), f.getUploadedById()));
+            }
+
+            if (f.getUploadedByName() != null) {
+                Join<Object, Object> up = root.join("uploadedBy");
+                var full = cb.concat(
                         cb.concat(
-                                cb.concat(uploadedByJoin.get("surname"), " "),
-                                cb.concat(uploadedByJoin.get("name"), " ")
+                                cb.concat(up.get("surname"), " "),
+                                cb.concat(up.get("name"), " ")
                         ),
-                        uploadedByJoin.get("patronymic")
+                        up.get("patronymic")
                 );
-                predicates.add(cb.like(cb.lower(fullNameExpression), "%" + filter.getUploadedByName().toLowerCase() + "%"
-                ));
+                p.add(cb.like(cb.lower(full), "%" + f.getUploadedByName().toLowerCase() + "%"));
             }
 
-            if (filter.getKeywords() != null && !filter.getKeywords().isEmpty()) {
-                Join<UploadBatch, String> keywordJoin = root.joinSet("keywords");
-                predicates.add(keywordJoin.in(filter.getKeywords()));
+            if (f.getBranchId() != null) {
+                Join<Object, Object> br = root.join("branch");
+                p.add(cb.equal(br.get("id"), f.getBranchId()));
             }
 
-            return cb.and(predicates.toArray(new Predicate[0]));
+            if (f.getKeywords() != null && !f.getKeywords().isEmpty()) {
+                Join<UploadBatch, String> kw = root.joinSet("keywords");
+                p.add(kw.in(f.getKeywords()));
+            }
+
+            return cb.and(p.toArray(new Predicate[0]));
         };
     }
 }

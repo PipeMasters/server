@@ -4,6 +4,7 @@ import com.pipemasters.server.dto.PageDto;
 import com.pipemasters.server.dto.UploadBatchDto;
 import com.pipemasters.server.dto.UploadBatchFilter;
 import com.pipemasters.server.dto.UploadBatchResponseDto;
+import com.pipemasters.server.dto.response.UploadBatchDtoResponse;
 import com.pipemasters.server.service.UploadBatchService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -14,6 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
@@ -28,25 +30,46 @@ public class UploadBatchController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<UploadBatchResponseDto>> getFiltered(
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo,
+    public ResponseEntity<Page<UploadBatchDtoResponse>> getFiltered(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate departureDateFrom,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate departureDateTo,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate specificDate,
-            @RequestParam(required = false) String trainNumber,
+
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate arrivalDateFrom,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate arrivalDateTo,
+
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Instant createdFrom,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Instant createdTo,
+
+            @RequestParam(required = false) Long trainId,
             @RequestParam(required = false) String chief,
-            @RequestParam(required = false) String uploadedByName,
+            @RequestParam(required = false) Long uploadedById,
+            @RequestParam(required = false) Long branchId,
+
             @RequestParam(required = false) Set<String> keywords,
             @PageableDefault(size = 15, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
         UploadBatchFilter filter = new UploadBatchFilter();
-        filter.setDateFrom(dateFrom);
-        filter.setDateTo(dateTo);
+        filter.setDepartureDateFrom(departureDateFrom);
+        filter.setDepartureDateTo(departureDateTo);
+
         filter.setSpecificDate(specificDate);
-        filter.setTrainNumber(trainNumber);
+
+        filter.setArrivalDateFrom(arrivalDateFrom);
+        filter.setArrivalDateTo(arrivalDateTo);
+
+        filter.setCreatedFrom(createdFrom);
+        filter.setCreatedTo(createdTo);
+
+        filter.setTrainId(trainId);
         filter.setChiefName(chief);
-        filter.setUploadedByName(uploadedByName);
+
+        filter.setUploadedById(uploadedById);
+
+        filter.setBranchId(branchId);
+
         filter.setKeywords(keywords);
 
-        PageDto<UploadBatchResponseDto> dtoPage = uploadBatchService.getFilteredBatches(filter, pageable);
+        PageDto<UploadBatchDtoResponse> dtoPage = uploadBatchService.getFilteredBatches(filter, pageable);
         return new ResponseEntity<>(dtoPage.toPage(pageable), HttpStatus.OK);
     }
 
@@ -62,7 +85,7 @@ public class UploadBatchController {
     }
 
     @GetMapping("/all")
-    public ResponseEntity<List<UploadBatchDto>> getAll() {
+    public ResponseEntity<List<UploadBatchDtoResponse>> getAll() {
         return new ResponseEntity<>(uploadBatchService.getAll(), HttpStatus.OK);
     }
 

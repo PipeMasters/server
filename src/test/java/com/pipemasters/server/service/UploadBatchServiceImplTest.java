@@ -1,6 +1,7 @@
 package com.pipemasters.server.service;
 
 import com.pipemasters.server.dto.*;
+import com.pipemasters.server.dto.response.UploadBatchDtoResponse;
 import com.pipemasters.server.entity.MediaFile;
 import com.pipemasters.server.entity.UploadBatch;
 import com.pipemasters.server.entity.enums.FileType;
@@ -135,7 +136,7 @@ class UploadBatchServiceImplTest {
         when(modelMapper.map(any(UploadBatch.class), eq(UploadBatchDto.class))).thenReturn(testDto);
 
         // Act
-        List<UploadBatchDto> result = uploadBatchService.getAll();
+        List<UploadBatchDtoResponse> result = uploadBatchService.getAll();
 
         // Assert
         assertNotNull(result);
