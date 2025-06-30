@@ -36,18 +36,12 @@ public class MediaFile extends BaseEntity {
     private UploadBatch uploadBatch;
 
     public MediaFile(String filename, FileType fileType, UploadBatch uploadBatch) {
-        if (filename == null || filename.isBlank()) {
-            throw new IllegalArgumentException("Filename cannot be empty");
-        }
         this.filename = filename;
         this.fileType = fileType;
         this.uploadBatch = uploadBatch;
     }
 
     public MediaFile(String filename, FileType fileType, Instant uploadedAt, MediaFile source, UploadBatch uploadBatch) {
-        if (filename == null || filename.isBlank()) {
-            throw new IllegalArgumentException("Filename cannot be empty");
-        }
         this.filename = filename;
         this.fileType = fileType;
         this.uploadedAt = uploadedAt;

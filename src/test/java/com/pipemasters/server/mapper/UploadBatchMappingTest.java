@@ -163,28 +163,4 @@ public class UploadBatchMappingTest {
         UploadBatchDto dto = modelMapper.map(UploadBatch, UploadBatchDto.class);
         assertNull(dto.getAbsenceId(), "Поле absence должно быть null, чтобы избежать рекурсии");
     }
-
-        @Test
-        void saveMediaFileWithEmptyFilenameThrowsException() {
-            Branch branch = new Branch("Branch", null);
-            User user = new User("Иван", "Иванов", "Иванович", Set.of(Role.USER), branch);
-            Train train = new Train(123L, "Route", 4, "Chief");
-            UploadBatch batch = new UploadBatch(
-                    UUID.randomUUID(),
-                    user,
-                    Instant.now(),
-                    LocalDate.now(),
-                    train,
-                    "Комментарий",
-                    Set.of("тест"),
-                    branch,
-                    false,
-                    null,
-                    false,
-                    new ArrayList<>()
-            );
-            assertThrows(IllegalArgumentException.class, () -> {
-                new MediaFile("", FileType.VIDEO, batch);
-            });
-        }
 }
