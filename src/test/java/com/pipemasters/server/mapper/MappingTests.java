@@ -36,7 +36,7 @@ public class MappingTests {
         User uploadedBy = new User(null,null,null,null,null);
         Instant createdAt = Instant.now();
         LocalDate trainDeparted = LocalDate.now();
-        Train train = new Train(null,null,null,null);
+        Train train = new Train(null,null,null,null, null);
         String comment = "Test comment";
         Set<String> keywords = Set.of("video", "absence");
         Branch branch = new Branch("Main", null);

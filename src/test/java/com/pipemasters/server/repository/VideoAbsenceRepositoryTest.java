@@ -60,7 +60,7 @@ public class VideoAbsenceRepositoryTest {
 
     private Train createTrain(Branch branch) {
         User chief = createChief(branch);
-        return trainRepository.save(new Train(123L, "Москва — Сочи", 1, chief));
+        return trainRepository.save(new Train(123L, "Москва — Сочи", 1, chief, branch));
     }
 
     private UploadBatch createUploadBatch() {

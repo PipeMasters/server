@@ -41,7 +41,7 @@ public class UploadBatchMappingTest {
         User chief = new User("Петр", "Петров", "Петрович", Set.of(Role.USER), branch);
         chief.setId(4L);
 
-        Train train = new Train(123L, "Route 123", 5, chief);
+        Train train = new Train(123L, "Route 123", 5, chief, branch);
 
         UploadBatch uploadBatch = new UploadBatch(
                 UUID.randomUUID(),
@@ -93,6 +93,7 @@ public class UploadBatchMappingTest {
         trainDto.setTrainNumber(123L);
         trainDto.setRouteMessage("Route 123");
         trainDto.setChiefId(chiefId);
+        trainDto.setBranchId(branchId);
 
         UploadBatchDto dto = new UploadBatchDto(
                 UUID.randomUUID().toString(),
@@ -122,7 +123,7 @@ public class UploadBatchMappingTest {
         User chiefStub = new User("Петр", "Петров", "Петрович", Set.of(Role.USER), branchStub);
         chiefStub.setId(chiefId);
 
-        Train trainStub = new Train(123L, "Route 123", null, chiefStub);
+        Train trainStub = new Train(123L, "Route 123", null, chiefStub, branchStub);
         trainStub.setId(trainId);
 
         uploadBatch.setUploadedBy(userStub);
@@ -145,7 +146,7 @@ public class UploadBatchMappingTest {
         User user = new User("Иван", "Иванов", "Иванович", Set.of(Role.USER), branch);
         User chief = new User("Петр", "Петров", "Петрович", Set.of(Role.USER), branch);
         chief.setId(4L);
-        Train train = new Train(123L, "Route", 4, chief);
+        Train train = new Train(123L, "Route", 4, chief, branch);
         UploadBatch uploadBatch = new UploadBatch(
                 UUID.randomUUID(),
                 user,

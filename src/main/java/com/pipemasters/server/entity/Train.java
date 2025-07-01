@@ -17,13 +17,18 @@ public class Train extends BaseEntity {
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "chief_id", nullable = false)
-    private User chief;               // Начальник поезда
+    private User chief;                 // Начальник поезда
 
-    public Train(Long trainNumber, String routeMessage, Integer consistCount, User chief) {
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "branch_id")
+    private Branch branch;            // принадлежность к филиалу
+
+    public Train(Long trainNumber, String routeMessage, Integer consistCount, User chief, Branch branch) {
         this.trainNumber = trainNumber;
         this.routeMessage = routeMessage;
         this.consistCount = consistCount;
         this.chief = chief;
+        this.branch = branch;
     }
 
     protected Train() {
@@ -59,5 +64,13 @@ public class Train extends BaseEntity {
 
     public void setChief(User chief) {
         this.chief = chief;
+    }
+
+    public Branch getBranch() {
+        return branch;
+    }
+
+    public void setBranch(Branch branch) {
+        this.branch = branch;
     }
 }

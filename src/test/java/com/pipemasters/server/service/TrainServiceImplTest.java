@@ -1,9 +1,11 @@
 package com.pipemasters.server.service;
 
 import com.pipemasters.server.dto.TrainDto;
+import com.pipemasters.server.entity.Branch;
 import com.pipemasters.server.entity.Train;
 import com.pipemasters.server.entity.User;
 import com.pipemasters.server.exceptions.train.TrainNotFoundException;
+import com.pipemasters.server.repository.BranchRepository;
 import com.pipemasters.server.repository.TrainRepository;
 import com.pipemasters.server.repository.UserRepository;
 import com.pipemasters.server.service.impl.TrainServiceImpl;
@@ -30,27 +32,34 @@ class TrainServiceImplTest {
     @Mock
     private UserRepository userRepository;
     @Mock
+    private BranchRepository branchRepository;
+    @Mock
     private ModelMapper modelMapper;
     @InjectMocks
     private TrainServiceImpl trainService;
 
     private User chief;
-
+    private Branch branch;
     @BeforeEach
     void setUp() {
+        branch = new Branch("Branch", null);
+        branch.setId(2L);
         chief = new User();
         chief.setId(10L);
         chief.setName("Иванов");
+        chief.setBranch(branch);
     }
 
     @Test
     void save_ShouldSaveAndReturnDto() {
-        TrainDto dto = new TrainDto(123L, "Москва-Сочи", 5, chief.getId());
-        Train train = new Train(123L, "Москва-Сочи", 5, chief);
+        TrainDto dto = new TrainDto(123L, "Москва-Сочи", 5, chief.getId(), branch.getId());
+        Train train = new Train(123L, "Москва-Сочи", 5, chief, branch);
+
 
         when(modelMapper.map(dto, Train.class)).thenReturn(train);
         when(trainRepository.save(any(Train.class))).thenReturn(train);
         when(userRepository.findById(chief.getId())).thenReturn(Optional.of(chief));
+        when(branchRepository.findById(branch.getId())).thenReturn(Optional.of(branch));
         when(modelMapper.map(train, TrainDto.class)).thenReturn(dto);
 
         TrainDto result = trainService.save(dto);
@@ -61,10 +70,9 @@ class TrainServiceImplTest {
 
     @Test
     void getById_ShouldReturnDto_WhenFound() {
-        Train train = new Train(123L, "Москва-Сочи", 5, chief);
+        Train train = new Train(123L, "Москва-Сочи", 5, chief, branch);
         train.setId(1L);
-        TrainDto dto = new TrainDto(123L, "Москва-Сочи", 5, chief.getId());
-
+        TrainDto dto = new TrainDto(123L, "Москва-Сочи", 5, chief.getId(), branch.getId());
         when(trainRepository.findById(1L)).thenReturn(Optional.of(train));
         when(modelMapper.map(train, TrainDto.class)).thenReturn(dto);
 
@@ -85,10 +93,10 @@ class TrainServiceImplTest {
 
     @Test
     void getAll_ShouldReturnListOfDtos() {
-        Train train1 = new Train(123L, "Москва-Сочи", 5, chief);
-        Train train2 = new Train(456L, "Питер-Казань", 3, chief);
-        TrainDto dto1 = new TrainDto(123L, "Москва-Сочи", 5, chief.getId());
-        TrainDto dto2 = new TrainDto(456L, "Питер-Казань", 3, chief.getId());
+        Train train1 = new Train(123L, "Москва-Сочи", 5, chief, branch);
+        Train train2 = new Train(456L, "Питер-Казань", 3, chief, branch);
+        TrainDto dto1 = new TrainDto(123L, "Москва-Сочи", 5, chief.getId(), branch.getId());
+        TrainDto dto2 = new TrainDto(456L, "Питер-Казань", 3, chief.getId(), branch.getId());
 
         when(trainRepository.findAll()).thenReturn(Arrays.asList(train1, train2));
         when(modelMapper.map(train1, TrainDto.class)).thenReturn(dto1);
@@ -102,14 +110,14 @@ class TrainServiceImplTest {
 
     @Test
     void update_ShouldUpdateTrain() {
-        Train existing = new Train(111L, "Старый", 2, chief);
+        Train existing = new Train(111L, "Старый", 2, chief, branch);
         existing.setId(1L);
-        TrainDto updatedDto = new TrainDto(123L, "Москва-Сочи", 5, chief.getId());
-        Train updatedTrain = new Train(123L, "Москва-Сочи", 5, chief);
+        TrainDto updatedDto = new TrainDto(123L, "Москва-Сочи", 5, chief.getId(), branch.getId());
+        Train updatedTrain = new Train(123L, "Москва-Сочи", 5, chief, branch);
 
         when(trainRepository.findById(1L)).thenReturn(Optional.of(existing));
         when(userRepository.findById(chief.getId())).thenReturn(Optional.of(chief));
-//        when(modelMapper.map(updatedDto, Train.class)).thenReturn(updatedTrain);
+        when(branchRepository.findById(branch.getId())).thenReturn(Optional.of(branch));
         when(trainRepository.save(any(Train.class))).thenReturn(updatedTrain);
         when(modelMapper.map(updatedTrain, TrainDto.class)).thenReturn(updatedDto);
 

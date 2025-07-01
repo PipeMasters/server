@@ -9,12 +9,14 @@ public class TrainDto extends BaseDto {
     private String routeMessage;
     private Integer consistCount;
     private Long chiefId;
+    private Long branchId;
 
-    public TrainDto(Long trainNumber, String routeMessage, Integer consistCount, Long chiefId) {
+    public TrainDto(Long trainNumber, String routeMessage, Integer consistCount, Long chiefId, Long branchId) {
         this.trainNumber = trainNumber;
         this.routeMessage = routeMessage;
         this.consistCount = consistCount;
         this.chiefId = chiefId;
+        this.branchId = branchId;
     }
 
     public TrainDto() {
@@ -51,6 +53,14 @@ public class TrainDto extends BaseDto {
     public void setChiefId(Long chiefId) {
         this.chiefId = chiefId;
     }
+    public Long getBranchId() {
+        return branchId;
+    }
+
+    public void setBranchId(Long branchId) {
+        this.branchId = branchId;
+    }
+
 
     @Override
     public String toString() {
@@ -59,6 +69,7 @@ public class TrainDto extends BaseDto {
                 ", routeMessage='" + routeMessage + '\'' +
                 ", consistCount=" + consistCount +
                 ", chiefId=" + chiefId +
+                ", branchId=" + branchId +
                 '}';
     }
 }

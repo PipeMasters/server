@@ -39,12 +39,14 @@ public class TrainRepositoryTest {
 
     private Train createTrain() {
         User chief = createChief("Ivanov I.I.");
-        return trainRepository.save(new Train(1001L, "Moscow — Saint Petersburg", 10, chief));
+        Branch branch = chief.getBranch();
+        return trainRepository.save(new Train(1001L, "Moscow — Saint Petersburg", 10, chief, branch));
     }
 
     private Train createTrain(long l, String s, int i, String chiefName) {
         User chief = createChief(chiefName);
-        return trainRepository.save(new Train(l, s, i, chief));
+        Branch branch = chief.getBranch();
+        return trainRepository.save(new Train(l, s, i, chief, branch));
     }
 
     @Test
@@ -88,8 +90,9 @@ public class TrainRepositoryTest {
     @Test
     void saveMultipleTrainsWithSameChiefAllowed() {
         User chief = createChief("Petrov P.P.");
-        Train train1 = trainRepository.save(new Train(2001L, "Kazan — Samara", 5, chief));
-        Train train2 = trainRepository.save(new Train(2002L, "Samara — Kazan", 6, chief));
+        Branch branch = chief.getBranch();
+        Train train1 = trainRepository.save(new Train(2001L, "Kazan — Samara", 5, chief, branch));
+        Train train2 = trainRepository.save(new Train(2002L, "Samara — Kazan", 6, chief, branch));
         assertNotNull(train1.getId());
         assertNotNull(train2.getId());
         assertNotEquals(train1.getId(), train2.getId());
@@ -98,13 +101,13 @@ public class TrainRepositoryTest {
     @Test
     void saveTrainWithNullRouteMessageThrowsException() {
         User chief = createChief("Sidorov S.S.");
-        Train train = new Train(3001L, null, 3, chief);
+        Train train = new Train(3001L, null, 3, chief, chief.getBranch());
         assertThrows(Exception.class, () -> trainRepository.save(train));
     }
 
     @Test
     void saveTrainWithNullChiefThrowsException() {
-        Train train = new Train(4001L, "Omsk — Tomsk", 2, null);
+        Train train = new Train(4001L, "Omsk — Tomsk", 2, null, null);
         assertThrows(Exception.class, () -> trainRepository.save(train));
     }
 

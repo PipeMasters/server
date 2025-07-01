@@ -19,8 +19,9 @@ public class ModelMapperConfig {
                 .addMapping(e -> e.getSubstitute().getId(), DelegationDto::setSubstituteId);
 
         modelMapper.typeMap(Train.class, TrainDto.class)
-                .addMapping(e -> e.getChief().getId(), TrainDto::setChiefId);
-
+                .addMapping(e -> e.getChief().getId(), TrainDto::setChiefId)
+                .addMapping(e -> e.getChief().getId(), TrainDto::setChiefId)
+                .addMapping(e -> e.getBranch().getId(), TrainDto::setBranchId);
 
         configureBranchMapping(modelMapper);
         configureUploadBatchDtoResponseMapping(modelMapper);

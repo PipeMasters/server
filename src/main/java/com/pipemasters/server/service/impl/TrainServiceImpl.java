@@ -3,8 +3,10 @@ package com.pipemasters.server.service.impl;
 import com.pipemasters.server.dto.TrainDto;
 import com.pipemasters.server.entity.Train;
 import com.pipemasters.server.entity.User;
+import com.pipemasters.server.exceptions.branch.BranchNotFoundException;
 import com.pipemasters.server.exceptions.train.TrainNotFoundException;
 import com.pipemasters.server.exceptions.user.UserNotFoundException;
+import com.pipemasters.server.repository.BranchRepository;
 import com.pipemasters.server.repository.TrainRepository;
 import com.pipemasters.server.repository.UserRepository;
 import com.pipemasters.server.service.TrainService;
@@ -21,11 +23,13 @@ public class TrainServiceImpl implements TrainService {
 
     private final TrainRepository trainRepository;
     private final UserRepository userRepository;
+    private final BranchRepository branchRepository;
     private final ModelMapper modelMapper;
 
-    public TrainServiceImpl(TrainRepository trainRepository, UserRepository userRepository, ModelMapper modelMapper) {
+    public TrainServiceImpl(TrainRepository trainRepository, UserRepository userRepository, BranchRepository branchRepository, ModelMapper modelMapper) {
         this.trainRepository = trainRepository;
         this.userRepository = userRepository;
+        this.branchRepository = branchRepository;
         this.modelMapper = modelMapper;
     }
 
@@ -36,6 +40,10 @@ public class TrainServiceImpl implements TrainService {
         Train train = modelMapper.map(trainDto, Train.class);
         User chief = userRepository.findById(trainDto.getChiefId()).orElseThrow(() -> new UserNotFoundException("Chief user not found with ID: " + trainDto.getChiefId()));
         train.setChief(chief);
+        if (trainDto.getBranchId() != null) {
+            train.setBranch(branchRepository.findById(trainDto.getBranchId())
+                    .orElseThrow(() -> new BranchNotFoundException("Branch not found with ID: " + trainDto.getBranchId())));
+        }
         return modelMapper.map(trainRepository.save(train), TrainDto.class);
     }
 
@@ -65,6 +73,10 @@ public class TrainServiceImpl implements TrainService {
         train.setRouteMessage(trainDto.getRouteMessage());
         train.setConsistCount(trainDto.getConsistCount());
         train.setChief(chief);
+        if (trainDto.getBranchId() != null) {
+            train.setBranch(branchRepository.findById(trainDto.getBranchId())
+                    .orElseThrow(() -> new BranchNotFoundException("Branch not found with ID: " + trainDto.getBranchId())));
+        }
         return modelMapper.map(trainRepository.save(train), TrainDto.class);
     }
 

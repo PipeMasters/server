@@ -44,7 +44,7 @@ class UploadBatchRepositoryTest {
 
     private Train createTrain(Branch branch) {
         User chief = createChief(branch);
-        return trainRepository.save(new Train(123L, "Москва — Сочи", 1, chief));
+        return trainRepository.save(new Train(123L, "Москва — Сочи", 1, chief, branch));
     }
 
     private UploadBatch createUploadBatch() {
@@ -85,7 +85,7 @@ class UploadBatchRepositoryTest {
                 EnumSet.of(Role.USER), branch));
         User chief = userRepository.save(new User("Ivan", "Petrov", "Sergeevich",
                 EnumSet.of(Role.USER), branch));
-        Train train = trainRepository.save(new Train(100L, "A-B", 1, chief));
+        Train train = trainRepository.save(new Train(100L, "A-B", 1, chief, branch));
         LocalDate today = LocalDate.now();
 
         UploadBatch uploadBatch = new UploadBatch(UUID.randomUUID(), user, Instant.now(), today,
