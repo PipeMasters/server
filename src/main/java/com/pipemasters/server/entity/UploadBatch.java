@@ -1,5 +1,6 @@
 package com.pipemasters.server.entity;
 
+import com.pipemasters.server.entity.enums.FileType;
 import jakarta.persistence.*;
 
 import java.time.Instant;
@@ -204,5 +205,31 @@ public class UploadBatch extends BaseEntity {
 
     public void setTrainArrived(LocalDate trainArrived) {
         this.trainArrived = trainArrived;
+    }
+
+    public List<MediaFile> getChainedFiles() {
+        return files.stream()
+                .filter(file -> file.getFileType() == FileType.VIDEO)
+                .filter(file -> {
+                    String filename = file.getFilename();
+                    int underscoreIndex = filename.lastIndexOf('_');
+                    int dotIndex = filename.lastIndexOf('.');
+                    if (underscoreIndex == -1 || dotIndex == -1 || underscoreIndex >= dotIndex) return false;
+                    String postfix = filename.substring(underscoreIndex + 1, dotIndex);
+                    try {
+                        Integer.parseInt(postfix);
+                        return true;
+                    } catch (NumberFormatException e) {
+                        return false;
+                    }
+                })
+                .sorted(Comparator.comparing(file -> {
+                    String filename = file.getFilename();
+                    int underscoreIndex = filename.lastIndexOf('_');
+                    int dotIndex = filename.lastIndexOf('.');
+                    String postfix = filename.substring(underscoreIndex + 1, dotIndex);
+                    return Integer.parseInt(postfix);
+                }))
+                .toList();
     }
 }
