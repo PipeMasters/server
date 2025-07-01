@@ -1,6 +1,6 @@
 package com.pipemasters.server.controller;
 
-import com.pipemasters.server.dto.BranchDto; // Assuming this DTO exists and has id/name
+import com.pipemasters.server.dto.BranchDto;
 import com.pipemasters.server.dto.UserDto;
 import com.pipemasters.server.dto.UserCreateDto;
 import com.pipemasters.server.dto.UserUpdateDto;
@@ -13,7 +13,7 @@ import org.springframework.http.ResponseEntity;
 
 import java.util.Collections;
 
-import static org.hibernate.validator.internal.util.Contracts.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 

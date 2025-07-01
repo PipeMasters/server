@@ -16,8 +16,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static org.hibernate.validator.internal.util.Contracts.assertNotNull;
-
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
