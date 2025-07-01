@@ -1,16 +1,20 @@
 package com.pipemasters.server.dto;
 
+import com.pipemasters.server.entity.User;
+
+import java.time.LocalDate;
+
 public class TrainDto extends BaseDto {
     private Long trainNumber;
     private String routeMessage;
     private Integer consistCount;
-    private String chief;
+    private Long chiefId;
 
-    public TrainDto(Long trainNumber, String routeMessage, Integer consistCount, String chief) {
+    public TrainDto(Long trainNumber, String routeMessage, Integer consistCount, Long chiefId) {
         this.trainNumber = trainNumber;
         this.routeMessage = routeMessage;
         this.consistCount = consistCount;
-        this.chief = chief;
+        this.chiefId = chiefId;
     }
 
     public TrainDto() {
@@ -40,21 +44,21 @@ public class TrainDto extends BaseDto {
         this.consistCount = consistCount;
     }
 
-    public String getChief() {
-        return chief;
+    public Long getChiefId() {
+        return chiefId;
     }
 
-    public void setChief(String chief) {
-        this.chief = chief;
+    public void setChiefId(Long chiefId) {
+        this.chiefId = chiefId;
     }
 
     @Override
     public String toString() {
-        return "TrainDTO{" +
+        return "TrainDto{" +
                 "trainNumber=" + trainNumber +
-                ", routeMessage='" + routeMessage +
+                ", routeMessage='" + routeMessage + '\'' +
                 ", consistCount=" + consistCount +
-                ", chief='" + chief +
+                ", chiefId=" + chiefId +
                 '}';
     }
 }

@@ -7,7 +7,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.pipemasters.server.config.serializer.PageDtoRedisSerializer;
 import com.pipemasters.server.dto.PageDto;
 import com.pipemasters.server.dto.UploadBatchFilter;
-import com.pipemasters.server.dto.UploadBatchResponseDto;
+import com.pipemasters.server.dto.UploadBatchDtoResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cache.interceptor.KeyGenerator;
@@ -63,10 +63,10 @@ public class RedisConfig {
                 RedisSerializationContext.SerializationPair.fromSerializer(defaultSerializer);
 
         // Специальный сериализатор для PageDto<UploadBatchResponseDto>
-        PageDtoRedisSerializer<UploadBatchResponseDto> pageDtoSerializer =
-                new PageDtoRedisSerializer<>(redisObjectMapper, UploadBatchResponseDto.class);
+        PageDtoRedisSerializer<UploadBatchDtoResponse> pageDtoSerializer =
+                new PageDtoRedisSerializer<>(redisObjectMapper, UploadBatchDtoResponse.class);
 
-        RedisSerializationContext.SerializationPair<PageDto<UploadBatchResponseDto>> pageDtoSerializationPair =
+        RedisSerializationContext.SerializationPair<PageDto<UploadBatchDtoResponse>> pageDtoSerializationPair =
                 RedisSerializationContext.SerializationPair.fromSerializer(pageDtoSerializer);
 
         // Общий конфиг для остальных кешей

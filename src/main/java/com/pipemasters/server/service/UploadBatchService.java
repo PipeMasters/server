@@ -5,9 +5,7 @@ import java.util.List;
 import com.pipemasters.server.dto.PageDto;
 import com.pipemasters.server.dto.UploadBatchDto;
 import com.pipemasters.server.dto.UploadBatchFilter;
-import com.pipemasters.server.dto.UploadBatchResponseDto;
 import com.pipemasters.server.dto.response.UploadBatchDtoResponse;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 public interface UploadBatchService {

@@ -5,24 +5,20 @@ import com.pipemasters.server.dto.BranchDto;
 import com.pipemasters.server.dto.UploadBatchDto;
 import com.pipemasters.server.dto.TrainDto;
 import com.pipemasters.server.dto.UserDto;
+import com.pipemasters.server.dto.response.UploadBatchDtoResponse;
 import com.pipemasters.server.entity.*;
-import com.pipemasters.server.entity.UploadBatch;
-import com.pipemasters.server.entity.enums.FileType;
 import com.pipemasters.server.entity.enums.Role;
-import com.pipemasters.server.repository.BranchRepository;
-import com.pipemasters.server.repository.MediaFileRepository;
-import com.pipemasters.server.repository.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ContextConfiguration;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.*;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @ContextConfiguration(initializers = TestEnvInitializer.class)
@@ -30,8 +26,9 @@ public class UploadBatchMappingTest {
 
     @Autowired
     private ModelMapper modelMapper;
+
     @Test
-    void shouldMapUploadBatchToDtoCorrectly() {
+    void shouldMapUploadBatchToDtoResponseCorrectly() {
         Branch parentBranch = new Branch("Parent Branch", null);
         parentBranch.setId(1L);
 
@@ -41,7 +38,10 @@ public class UploadBatchMappingTest {
         User user = new User("Иван", "Иванов", "Иванович", Set.of(Role.USER), branch);
         user.setId(3L);
 
-        Train train = new Train(123L, "Route 123", 5, "Chief");
+        User chief = new User("Петр", "Петров", "Петрович", Set.of(Role.USER), branch);
+        chief.setId(4L);
+
+        Train train = new Train(123L, "Route 123", 5, chief);
 
         UploadBatch uploadBatch = new UploadBatch(
                 UUID.randomUUID(),
@@ -57,16 +57,15 @@ public class UploadBatchMappingTest {
                 true,
                 List.of()
         );
+        uploadBatch.setTrainArrived(LocalDate.of(2024, 1, 3));
 
-        UploadBatchDto dto = modelMapper.map(uploadBatch, UploadBatchDto.class);
+        UploadBatchDtoResponse dto = modelMapper.map(uploadBatch, UploadBatchDtoResponse.class);
 
-        assertEquals(uploadBatch.getDirectory().toString(), dto.getDirectory());
-        assertEquals(uploadBatch.getUploadedBy().getId(), dto.getUploadedById());
-        assertEquals(uploadBatch.getTrainDeparted(), dto.getTrainDeparted());
-        assertEquals(uploadBatch.getBranch().getId(), dto.getBranchId());
-        assertEquals(uploadBatch.getKeywords(), dto.getKeywords());
-        assertNull(dto.getAbsenceId()); // проверка отключенной рекурсии
-        assertTrue(dto.getFiles().isEmpty());
+        assertEquals(uploadBatch.getId(), dto.getId());
+        assertEquals(uploadBatch.getTrainDeparted(), dto.getDateDeparted());
+        assertEquals(uploadBatch.getTrainArrived(), dto.getDateArrived());
+        assertEquals(uploadBatch.getTrain().getTrainNumber(), dto.getTrainNumber());
+        assertEquals(uploadBatch.getTrain().getChief().getFullName(), dto.getChiefName());
     }
 
     @Test
@@ -75,6 +74,7 @@ public class UploadBatchMappingTest {
         Long branchId = 2L;
         Long userId = 3L;
         Long trainId = 123L;
+        Long chiefId = 4L;
 
         BranchDto parentBranchDto = new BranchDto();
         parentBranchDto.setId(parentBranchId);
@@ -86,11 +86,13 @@ public class UploadBatchMappingTest {
         branchDto.setParentId(parentBranchId);
 
         UserDto userDto = new UserDto("Иван", "Иванов", "Иванович", Set.of(Role.USER), branchId);
+        userDto.setId(userId);
 
         TrainDto trainDto = new TrainDto();
         trainDto.setId(trainId);
         trainDto.setTrainNumber(123L);
         trainDto.setRouteMessage("Route 123");
+        trainDto.setChiefId(chiefId);
 
         UploadBatchDto dto = new UploadBatchDto(
                 UUID.randomUUID().toString(),
@@ -105,7 +107,7 @@ public class UploadBatchMappingTest {
                 Instant.parse("2025-01-01T10:00:00Z"),
                 true,
                 List.of(),
-                null // отсутствие
+                null
         );
 
         UploadBatch uploadBatch = modelMapper.map(dto, UploadBatch.class);
@@ -117,8 +119,15 @@ public class UploadBatchMappingTest {
         Branch branchStub = new Branch("Child Branch", new Branch("Parent Branch", null));
         branchStub.setId(branchId);
 
+        User chiefStub = new User("Петр", "Петров", "Петрович", Set.of(Role.USER), branchStub);
+        chiefStub.setId(chiefId);
+
+        Train trainStub = new Train(123L, "Route 123", null, chiefStub);
+        trainStub.setId(trainId);
+
         uploadBatch.setUploadedBy(userStub);
         uploadBatch.setBranch(branchStub);
+        uploadBatch.setTrain(trainStub);
 
         assertEquals(UUID.fromString(dto.getDirectory()), uploadBatch.getDirectory());
         assertEquals(userStub.getId(), uploadBatch.getUploadedBy().getId());
@@ -130,22 +139,14 @@ public class UploadBatchMappingTest {
         assertTrue(uploadBatch.getFiles().isEmpty());
     }
 
-//    @Test
-    void shouldAvoidRecursionInBranchDto() {
-        Branch parent = new Branch("Parent", null);
-        Branch child = new Branch("Child", parent);
-
-        BranchDto dto = modelMapper.map(child, BranchDto.class);
-
-        assertNull(dto.getParentId(), "Рекурсивное поле должно быть null");
-    }
-
     @Test
-    void shouldAvoidRecursionInUploadBatchDto() {
+    void shouldAvoidRecursionInUploadBatchDtoResponse() {
         Branch branch = new Branch("Branch", null);
         User user = new User("Иван", "Иванов", "Иванович", Set.of(Role.USER), branch);
-        Train train = new Train(123L, "Route", 4, "Chief");
-        UploadBatch UploadBatch = new UploadBatch(
+        User chief = new User("Петр", "Петров", "Петрович", Set.of(Role.USER), branch);
+        chief.setId(4L);
+        Train train = new Train(123L, "Route", 4, chief);
+        UploadBatch uploadBatch = new UploadBatch(
                 UUID.randomUUID(),
                 user,
                 Instant.now(),
@@ -159,8 +160,9 @@ public class UploadBatchMappingTest {
                 false,
                 new ArrayList<>()
         );
+        uploadBatch.setTrainArrived(LocalDate.now());
 
-        UploadBatchDto dto = modelMapper.map(UploadBatch, UploadBatchDto.class);
-        assertNull(dto.getAbsenceId(), "Поле absence должно быть null, чтобы избежать рекурсии");
+        UploadBatchDtoResponse dto = modelMapper.map(uploadBatch, UploadBatchDtoResponse.class);
+        assertEquals(uploadBatch.getTrain().getChief().getFullName(), dto.getChiefName());
     }
 }

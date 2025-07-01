@@ -1,9 +1,6 @@
 package com.pipemasters.server.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Index;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 @Entity
 @Table(name = "trains",
@@ -17,10 +14,12 @@ public class Train extends BaseEntity {
     private String routeMessage;        // например «Москва — Сочи»
 
     private Integer consistCount;       // кол-во составов
-    @Column(nullable = false)
-    private String chief;               // Ф. И. О. начальника
 
-    public Train(Long trainNumber, String routeMessage, Integer consistCount, String chief) {
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @JoinColumn(name = "chief_id", nullable = false)
+    private User chief;               // Начальник поезда
+
+    public Train(Long trainNumber, String routeMessage, Integer consistCount, User chief) {
         this.trainNumber = trainNumber;
         this.routeMessage = routeMessage;
         this.consistCount = consistCount;
@@ -54,11 +53,11 @@ public class Train extends BaseEntity {
         this.consistCount = consistCount;
     }
 
-    public String getChief() {
+    public User getChief() {
         return chief;
     }
 
-    public void setChief(String chief) {
+    public void setChief(User chief) {
         this.chief = chief;
     }
 }

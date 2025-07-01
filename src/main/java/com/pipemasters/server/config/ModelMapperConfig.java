@@ -18,6 +18,10 @@ public class ModelMapperConfig {
                 .addMapping(e -> e.getDelegator().getId(), DelegationDto::setDelegatorId)
                 .addMapping(e -> e.getSubstitute().getId(), DelegationDto::setSubstituteId);
 
+        modelMapper.typeMap(Train.class, TrainDto.class)
+                .addMapping(e -> e.getChief().getId(), TrainDto::setChiefId);
+
+
         configureBranchMapping(modelMapper);
         configureUploadBatchDtoResponseMapping(modelMapper);
 
@@ -75,7 +79,7 @@ public class ModelMapperConfig {
                     mapper.map(tn -> tn.getTrain().getTrainNumber(), UploadBatchDtoResponse::setTrainNumber);
                     mapper.map(UploadBatch::getTrainDeparted, UploadBatchDtoResponse::setDateDeparted);
                     mapper.map(UploadBatch::getTrainArrived, UploadBatchDtoResponse::setDateArrived);
-                    mapper.map(chf -> chf.getTrain().getChief(), UploadBatchDtoResponse::setChiefName);
+                    mapper.map(chf -> chf.getTrain().getChief().getFullName(), UploadBatchDtoResponse::setChiefName);
                 });
     }
 }

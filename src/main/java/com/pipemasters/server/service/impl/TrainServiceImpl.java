@@ -2,8 +2,11 @@ package com.pipemasters.server.service.impl;
 
 import com.pipemasters.server.dto.TrainDto;
 import com.pipemasters.server.entity.Train;
+import com.pipemasters.server.entity.User;
 import com.pipemasters.server.exceptions.train.TrainNotFoundException;
+import com.pipemasters.server.exceptions.user.UserNotFoundException;
 import com.pipemasters.server.repository.TrainRepository;
+import com.pipemasters.server.repository.UserRepository;
 import com.pipemasters.server.service.TrainService;
 import org.modelmapper.ModelMapper;
 import org.springframework.cache.annotation.CacheEvict;
@@ -17,10 +20,12 @@ import java.util.List;
 public class TrainServiceImpl implements TrainService {
 
     private final TrainRepository trainRepository;
+    private final UserRepository userRepository;
     private final ModelMapper modelMapper;
 
-    public TrainServiceImpl(TrainRepository trainRepository, ModelMapper modelMapper) {
+    public TrainServiceImpl(TrainRepository trainRepository, UserRepository userRepository, ModelMapper modelMapper) {
         this.trainRepository = trainRepository;
+        this.userRepository = userRepository;
         this.modelMapper = modelMapper;
     }
 
@@ -29,6 +34,8 @@ public class TrainServiceImpl implements TrainService {
     @Transactional
     public TrainDto save(TrainDto trainDto) {
         Train train = modelMapper.map(trainDto, Train.class);
+        User chief = userRepository.findById(trainDto.getChiefId()).orElseThrow(() -> new UserNotFoundException("Chief user not found with ID: " + trainDto.getChiefId()));
+        train.setChief(chief);
         return modelMapper.map(trainRepository.save(train), TrainDto.class);
     }
 
@@ -53,10 +60,11 @@ public class TrainServiceImpl implements TrainService {
     @Transactional
     public TrainDto update(Long id, TrainDto trainDto) {
         Train train = trainRepository.findById(id).orElseThrow(() -> new TrainNotFoundException("Train not found with ID: " + id));
+        User chief = userRepository.findById(trainDto.getChiefId()).orElseThrow(() -> new UserNotFoundException("Chief user not found with ID: " + trainDto.getChiefId()));
         train.setTrainNumber(trainDto.getTrainNumber());
         train.setRouteMessage(trainDto.getRouteMessage());
         train.setConsistCount(trainDto.getConsistCount());
-        train.setChief(trainDto.getChief());
+        train.setChief(chief);
         return modelMapper.map(trainRepository.save(train), TrainDto.class);
     }
 
