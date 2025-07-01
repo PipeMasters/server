@@ -1,12 +1,13 @@
-package com.pipemasters.server.dto;
+package com.pipemasters.server.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.pipemasters.server.dto.BaseDto;
 import com.pipemasters.server.entity.enums.FileType;
 
 import java.time.Instant;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class MediaFileResponseDto extends BaseDto{
+public class MediaFileResponseDto extends BaseDto {
     private String filename;
     private FileType fileType;
     private Instant uploadedAt;

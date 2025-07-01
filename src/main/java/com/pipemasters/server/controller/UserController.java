@@ -1,8 +1,8 @@
 package com.pipemasters.server.controller;
 
-import com.pipemasters.server.dto.UserDto;
-import com.pipemasters.server.dto.UserCreateDto;
-import com.pipemasters.server.dto.UserUpdateDto;
+import com.pipemasters.server.dto.response.UserResponseDto;
+import com.pipemasters.server.dto.request.create.UserCreateDto;
+import com.pipemasters.server.dto.request.update.UserUpdateDto;
 import com.pipemasters.server.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -22,26 +22,26 @@ public class UserController {
     }
 
     @PostMapping
-    public ResponseEntity<UserDto> createUser(@Valid @RequestBody UserCreateDto createDTO) {
-        UserDto newUser = userService.createUser(createDTO);
+    public ResponseEntity<UserResponseDto> createUser(@Valid @RequestBody UserCreateDto createDTO) {
+        UserResponseDto newUser = userService.createUser(createDTO);
         return new ResponseEntity<>(newUser, HttpStatus.CREATED);
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<UserDto> updateUser(@PathVariable Long id, @RequestBody UserUpdateDto updateDTO) {
-        UserDto updatedUser = userService.updateUser(id, updateDTO);
+    @PatchMapping("/{id}")
+    public ResponseEntity<UserResponseDto> updateUser(@PathVariable Long id, @RequestBody UserUpdateDto updateDTO) {
+        UserResponseDto updatedUser = userService.updateUser(id, updateDTO);
         return ResponseEntity.ok(updatedUser);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<UserDto> getUserById(@PathVariable Long id) {
-        UserDto user = userService.getUserById(id);
+    public ResponseEntity<UserResponseDto> getUserById(@PathVariable Long id) {
+        UserResponseDto user = userService.getUserById(id);
         return ResponseEntity.ok(user);
     }
 
     @GetMapping
-    public ResponseEntity<List<UserDto>> getUsers() {
-        List<UserDto> users = userService.getUsers();
+    public ResponseEntity<List<UserResponseDto>> getUsers() {
+        List<UserResponseDto> users = userService.getUsers();
         return ResponseEntity.ok(users);
     }
 }

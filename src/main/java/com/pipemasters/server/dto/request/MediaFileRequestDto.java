@@ -1,13 +1,12 @@
-package com.pipemasters.server.dto;
+package com.pipemasters.server.dto.request;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
+import com.pipemasters.server.dto.BaseDto;
 import com.pipemasters.server.entity.enums.FileType;
 import jakarta.validation.constraints.NotNull;
 
 import java.time.Instant;
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
-public class MediaFileDto extends BaseDto{
+public class MediaFileRequestDto extends BaseDto {
     @NotNull(message = "FileName cannot be empty")
     private String filename;
     @NotNull(message = "fileType cannot be empty")
@@ -19,10 +18,10 @@ public class MediaFileDto extends BaseDto{
     @NotNull(message = "ToDate cannot be empty")
     private Long uploadBatchId;
 
-    public MediaFileDto() {
+    public MediaFileRequestDto() {
     }
 
-    public MediaFileDto( String filename, FileType fileType, Instant uploadedAt, Long sourceId, Long uploadBatchId) {
+    public MediaFileRequestDto(String filename, FileType fileType, Instant uploadedAt, Long sourceId, Long uploadBatchId) {
         this.filename = filename;
         this.fileType = fileType;
         this.uploadedAt = uploadedAt;

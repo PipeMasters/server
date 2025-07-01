@@ -1,6 +1,9 @@
 package com.pipemasters.server.service.impl;
 
 import com.pipemasters.server.dto.*;
+import com.pipemasters.server.dto.request.UploadBatchRequestDto;
+import com.pipemasters.server.dto.response.MediaFileResponseDto;
+import com.pipemasters.server.dto.response.UploadBatchResponseDto;
 import com.pipemasters.server.entity.UploadBatch;
 import com.pipemasters.server.entity.enums.FileType;
 import com.pipemasters.server.repository.UploadBatchRepository;
@@ -33,14 +36,14 @@ public class UploadBatchServiceImpl implements UploadBatchService {
     @Override
     @CacheEvict(value = {"filteredBatches", "batches"}, allEntries = true)
     @Transactional
-    public UploadBatchDto save(UploadBatchDto uploadBatchDto) {
+    public UploadBatchResponseDto save(UploadBatchRequestDto uploadBatchRequestDto) {
         var now = Instant.now();
-        uploadBatchDto.setDirectory(String.valueOf(UUID.randomUUID()));
-        uploadBatchDto.setCreatedAt(now);
-        uploadBatchDto.setDeletedAt(now.plus(180, ChronoUnit.DAYS));
-        uploadBatchDto.setDeleted(false);
+        uploadBatchRequestDto.setDirectory(String.valueOf(UUID.randomUUID()));
+        uploadBatchRequestDto.setCreatedAt(now);
+        uploadBatchRequestDto.setDeletedAt(now.plus(180, ChronoUnit.DAYS));
+        uploadBatchRequestDto.setDeleted(false);
         return modelMapper.map(uploadBatchRepository
-                        .save(modelMapper.map(uploadBatchDto,UploadBatch.class)),UploadBatchDto.class);
+                        .save(modelMapper.map(uploadBatchRequestDto, UploadBatch.class)), UploadBatchResponseDto.class);
     }
 
     @Override
@@ -65,28 +68,28 @@ public class UploadBatchServiceImpl implements UploadBatchService {
 
     @Override
     @Transactional(readOnly = true)
-    public UploadBatchDto getById(Long id) {
+    public UploadBatchResponseDto getById(Long id) {
         var uploadBatch = uploadBatchRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("UploadBatch not found"));
-        return modelMapper.map(uploadBatch,UploadBatchDto.class);
+        return modelMapper.map(uploadBatch, UploadBatchResponseDto.class);
     }
 
     @Override
     @Cacheable("batches")
     @Transactional(readOnly = true)
-    public List<UploadBatchDto> getAll() {
+    public List<UploadBatchResponseDto> getAll() {
         return uploadBatchRepository.findAll().stream()
-                .map(uploadBatch -> modelMapper.map(uploadBatch,UploadBatchDto.class)).toList();
+                .map(uploadBatch -> modelMapper.map(uploadBatch, UploadBatchResponseDto.class)).toList();
     }
 
     @Override
     @CacheEvict(value = {"filteredBatches", "batches"}, allEntries = true)
     @Transactional
-    public UploadBatchDto update(Long uploadBatchId, UploadBatchDto dto) {
+    public UploadBatchResponseDto update(Long uploadBatchId, UploadBatchRequestDto dto) {
         var uploadBatchOrigin = uploadBatchRepository.findById(uploadBatchId)
                 .orElseThrow(() -> new RuntimeException("UploadBatch not found with ID: " + uploadBatchId));
         var uploadBatch = modelMapper.map(dto, UploadBatch.class);
         uploadBatch.setId(uploadBatchOrigin.getId());
 
-        return modelMapper.map(uploadBatchRepository.save(uploadBatch), UploadBatchDto.class);
+        return modelMapper.map(uploadBatchRepository.save(uploadBatch), UploadBatchResponseDto.class);
     }
 }

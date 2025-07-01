@@ -1,6 +1,9 @@
 package com.pipemasters.server.service;
 
 import com.pipemasters.server.dto.*;
+import com.pipemasters.server.dto.request.UploadBatchRequestDto;
+import com.pipemasters.server.dto.response.MediaFileResponseDto;
+import com.pipemasters.server.dto.response.UploadBatchResponseDto;
 import com.pipemasters.server.entity.MediaFile;
 import com.pipemasters.server.entity.UploadBatch;
 import com.pipemasters.server.entity.enums.FileType;
@@ -49,12 +52,13 @@ class UploadBatchServiceImplTest {
     @InjectMocks
     private UploadBatchServiceImpl uploadBatchService;
 
-    private UploadBatchDto testDto;
+    private UploadBatchRequestDto testDto;
     private UploadBatch testEntity;
+    private UploadBatchResponseDto testResponseDto;
 
     @BeforeEach
     void setUp() {
-        testDto = new UploadBatchDto();
+        testDto = new UploadBatchRequestDto();
         testDto.setId(1L);
         testDto.setComment("Test comment");
 
@@ -63,31 +67,44 @@ class UploadBatchServiceImplTest {
         testEntity.setComment("Test comment");
         testEntity.setDirectory(UUID.randomUUID());
         testEntity.setCreatedAt(Instant.now());
+
+        testResponseDto = new UploadBatchResponseDto();
+        testResponseDto.setId(1L);
+        testResponseDto.setComment("Test comment");
+        testResponseDto.setDirectory(testEntity.getDirectory().toString());
+        testResponseDto.setCreatedAt(testEntity.getCreatedAt());
+        testResponseDto.setDeletedAt(testEntity.getCreatedAt().plus(180, ChronoUnit.DAYS));
+        testResponseDto.setDeleted(false);
     }
 
     @Test
     void save_ShouldSetDefaultValuesAndSave() {
         // Arrange
-        when(modelMapper.map(any(UploadBatchDto.class), eq(UploadBatch.class)))
+        when(modelMapper.map(any(UploadBatchRequestDto.class), eq(UploadBatch.class)))
                 .thenAnswer(invocation -> {
-                    UploadBatchDto dto = invocation.getArgument(0);
+                    UploadBatchRequestDto dto = invocation.getArgument(0);
                     UploadBatch entity = new UploadBatch();
-                    entity.setDirectory(UUID.fromString(dto.getDirectory()));
-                    entity.setCreatedAt(dto.getCreatedAt());
+                    entity.setDirectory(UUID.fromString(dto.getDirectory() != null ? dto.getDirectory() : UUID.randomUUID().toString()));
+                    entity.setComment(dto.getComment());
+                    entity.setCreatedAt(dto.getCreatedAt() != null ? dto.getCreatedAt() : Instant.now());
                     entity.setDeletedAt(dto.getDeletedAt());
                     entity.setDeleted(dto.isDeleted());
+                    if (dto.getId() != null) {
+                        entity.setId(dto.getId());
+                    }
                     return entity;
                 });
 
-        when(modelMapper.map(any(UploadBatch.class), eq(UploadBatchDto.class)))
-                .thenReturn(testDto);
 
         ArgumentCaptor<UploadBatch> captor = ArgumentCaptor.forClass(UploadBatch.class);
         when(uploadBatchRepository.save(captor.capture()))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
+        when(modelMapper.map(any(UploadBatch.class), eq(UploadBatchResponseDto.class)))
+                .thenReturn(testResponseDto);
+
         // Act
-        UploadBatchDto result = uploadBatchService.save(testDto);
+        UploadBatchResponseDto result = uploadBatchService.save(testDto);
 
         // Assert
         assertNotNull(result);
@@ -102,15 +119,27 @@ class UploadBatchServiceImplTest {
                 savedEntity.getCreatedAt().plus(180, ChronoUnit.DAYS),
                 savedEntity.getDeletedAt()
         );
+
+        assertEquals(testResponseDto.getId(), result.getId());
+        assertEquals(testResponseDto.getComment(), result.getComment());
+        assertEquals(testResponseDto.getDirectory(), result.getDirectory());
+        assertEquals(testResponseDto.getCreatedAt(), result.getCreatedAt());
+        assertEquals(testResponseDto.getDeletedAt(), result.getDeletedAt());
+        assertEquals(testResponseDto.isDeleted(), result.isDeleted());
+
+        verify(modelMapper).map(testDto, UploadBatch.class);
+        verify(uploadBatchRepository).save(any(UploadBatch.class));
+        verify(modelMapper).map(any(UploadBatch.class), eq(UploadBatchResponseDto.class));
     }
+
     @Test
     void getById_ShouldReturnDtoWhenExists() {
         // Arrange
         when(uploadBatchRepository.findById(1L)).thenReturn(Optional.of(testEntity));
-        when(modelMapper.map(testEntity, UploadBatchDto.class)).thenReturn(testDto);
+        when(modelMapper.map(testEntity, UploadBatchResponseDto.class)).thenReturn(testResponseDto);
 
         // Act
-        UploadBatchDto result = uploadBatchService.getById(1L);
+        UploadBatchResponseDto result = uploadBatchService.getById(1L);
 
         // Assert
         assertNotNull(result);
@@ -131,36 +160,88 @@ class UploadBatchServiceImplTest {
     void getAll_ShouldReturnListOfDtos() {
         // Arrange
         List<UploadBatch> entities = Arrays.asList(testEntity, testEntity);
+        List<UploadBatchResponseDto> expectedResponseDtos = Arrays.asList(testResponseDto, testResponseDto);
+
         when(uploadBatchRepository.findAll()).thenReturn(entities);
-        when(modelMapper.map(any(UploadBatch.class), eq(UploadBatchDto.class))).thenReturn(testDto);
+        when(modelMapper.map(any(UploadBatch.class), eq(UploadBatchResponseDto.class))).thenReturn(testResponseDto);
 
         // Act
-        List<UploadBatchDto> result = uploadBatchService.getAll();
+        List<UploadBatchResponseDto> result = uploadBatchService.getAll();
 
         // Assert
         assertNotNull(result);
         assertEquals(2, result.size());
+        assertEquals(expectedResponseDtos, result);
     }
 
     @Test
     void updateUploadBatchDto_ShouldUpdateExistingEntity() {
         // Arrange
-        UploadBatchDto updatedDto = new UploadBatchDto();
+        UploadBatchRequestDto updatedDto = new UploadBatchRequestDto();
         updatedDto.setId(1L);
         updatedDto.setComment("Updated comment");
+        updatedDto.setCreatedAt(Instant.now().minus(1, ChronoUnit.DAYS));
+        updatedDto.setDirectory(UUID.randomUUID().toString());
+        updatedDto.setDeleted(false);
 
-        when(uploadBatchRepository.findById(1L)).thenReturn(Optional.of(testEntity));
-        when(modelMapper.map(updatedDto, UploadBatch.class)).thenReturn(testEntity);
-        when(uploadBatchRepository.save(any(UploadBatch.class))).thenReturn(testEntity);
-        when(modelMapper.map(testEntity, UploadBatchDto.class)).thenReturn(updatedDto);
+        UploadBatch existingUploadBatch = new UploadBatch();
+        existingUploadBatch.setId(1L);
+        existingUploadBatch.setComment("Original comment");
+        existingUploadBatch.setDirectory(UUID.randomUUID());
+        existingUploadBatch.setCreatedAt(Instant.now().minus(2, ChronoUnit.DAYS));
+        existingUploadBatch.setDeleted(false);
+        existingUploadBatch.setDeletedAt(existingUploadBatch.getCreatedAt().plus(180, ChronoUnit.DAYS));
+
+
+        UploadBatch mappedFromDto = new UploadBatch();
+        mappedFromDto.setComment(updatedDto.getComment());
+        mappedFromDto.setDirectory(UUID.fromString(updatedDto.getDirectory()));
+        mappedFromDto.setCreatedAt(updatedDto.getCreatedAt());
+        mappedFromDto.setDeleted(updatedDto.isDeleted());
+
+        UploadBatch savedUploadBatch = new UploadBatch();
+        savedUploadBatch.setId(existingUploadBatch.getId());
+        savedUploadBatch.setComment(updatedDto.getComment());
+        savedUploadBatch.setDirectory(UUID.fromString(updatedDto.getDirectory()));
+        savedUploadBatch.setCreatedAt(updatedDto.getCreatedAt());
+        savedUploadBatch.setDeleted(updatedDto.isDeleted());
+        savedUploadBatch.setDeletedAt(savedUploadBatch.getCreatedAt().plus(180, ChronoUnit.DAYS));
+
+        UploadBatchResponseDto expectedResponseDto = new UploadBatchResponseDto();
+        expectedResponseDto.setId(savedUploadBatch.getId());
+        expectedResponseDto.setComment(savedUploadBatch.getComment());
+        expectedResponseDto.setDirectory(savedUploadBatch.getDirectory().toString());
+        expectedResponseDto.setCreatedAt(savedUploadBatch.getCreatedAt());
+        expectedResponseDto.setDeleted(savedUploadBatch.isDeleted());
+        expectedResponseDto.setDeletedAt(savedUploadBatch.getDeletedAt());
+
+
+        when(uploadBatchRepository.findById(1L)).thenReturn(Optional.of(existingUploadBatch));
+
+        when(modelMapper.map(eq(updatedDto), eq(UploadBatch.class))).thenReturn(mappedFromDto);
+
+        when(uploadBatchRepository.save(any(UploadBatch.class))).thenReturn(savedUploadBatch);
+
+
+        when(modelMapper.map(eq(savedUploadBatch), eq(UploadBatchResponseDto.class))).thenReturn(expectedResponseDto);
 
         // Act
-        UploadBatchDto result = uploadBatchService.update(1L, updatedDto);
+        UploadBatchResponseDto result = uploadBatchService.update(1L, updatedDto);
 
         // Assert
         assertNotNull(result);
+        assertEquals(expectedResponseDto, result);
         assertEquals("Updated comment", result.getComment());
-        verify(uploadBatchRepository).save(testEntity);
+        assertEquals(1L, result.getId());
+        assertEquals(updatedDto.getDirectory(), result.getDirectory());
+        assertEquals(updatedDto.getCreatedAt(), result.getCreatedAt());
+        assertFalse(result.isDeleted());
+
+
+        verify(uploadBatchRepository).findById(1L);
+        verify(modelMapper).map(eq(updatedDto), eq(UploadBatch.class));
+        verify(uploadBatchRepository).save(any(UploadBatch.class));
+        verify(modelMapper).map(any(UploadBatch.class), eq(UploadBatchResponseDto.class));
     }
 
     @Test
@@ -170,7 +251,9 @@ class UploadBatchServiceImplTest {
 
         // Act & Assert
         assertThrows(RuntimeException.class,
-                () -> uploadBatchService.update(1L, new UploadBatchDto()));
+                () -> uploadBatchService.update(1L, new UploadBatchRequestDto()));
+        verify(uploadBatchRepository).findById(1L);
+        verifyNoMoreInteractions(modelMapper, uploadBatchRepository);
     }
 
     @Test
@@ -182,6 +265,7 @@ class UploadBatchServiceImplTest {
         batch1.setId(1L);
         batch1.setComment("Batch 1 with video");
         batch1.setDirectory(UUID.randomUUID());
+        batch1.setCreatedAt(Instant.now());
         MediaFile videoFile1 = new MediaFile("video1.mp4", FileType.VIDEO, Instant.now(), null, batch1);
         MediaFile audioFile1 = new MediaFile("audio1.mp3", FileType.AUDIO, Instant.now(), null, batch1);
         batch1.setFiles(Arrays.asList(videoFile1, audioFile1));
@@ -190,6 +274,7 @@ class UploadBatchServiceImplTest {
         batch2.setId(2L);
         batch2.setComment("Batch 2 without video");
         batch2.setDirectory(UUID.randomUUID());
+        batch2.setCreatedAt(Instant.now());
         MediaFile imageFile2 = new MediaFile("image2.jpg", FileType.IMAGE, Instant.now(), null, batch2);
         batch2.setFiles(Collections.singletonList(imageFile2));
 
@@ -197,6 +282,7 @@ class UploadBatchServiceImplTest {
         batch3.setId(3L);
         batch3.setComment("Batch 3 with video");
         batch3.setDirectory(UUID.randomUUID());
+        batch3.setCreatedAt(Instant.now());
         MediaFile videoFile3 = new MediaFile("video3.mp4", FileType.VIDEO, Instant.now(), null, batch3);
         batch3.setFiles(Collections.singletonList(videoFile3));
 
@@ -208,26 +294,41 @@ class UploadBatchServiceImplTest {
         UploadBatchResponseDto responseDto1 = new UploadBatchResponseDto();
         responseDto1.setId(1L);
         responseDto1.setComment("Batch 1 with video");
+        responseDto1.setDirectory(batch1.getDirectory().toString());
+        responseDto1.setCreatedAt(batch1.getCreatedAt());
+        responseDto1.setDeleted(batch1.isDeleted());
+        responseDto1.setDeletedAt(batch1.getDeletedAt());
+
         when(modelMapper.map(batch1, UploadBatchResponseDto.class)).thenReturn(responseDto1);
 
         UploadBatchResponseDto responseDto2 = new UploadBatchResponseDto();
         responseDto2.setId(2L);
         responseDto2.setComment("Batch 2 without video");
+        responseDto2.setDirectory(batch2.getDirectory().toString());
+        responseDto2.setCreatedAt(batch2.getCreatedAt());
+        responseDto2.setDeleted(batch2.isDeleted());
+        responseDto2.setDeletedAt(batch2.getDeletedAt());
         when(modelMapper.map(batch2, UploadBatchResponseDto.class)).thenReturn(responseDto2);
 
         UploadBatchResponseDto responseDto3 = new UploadBatchResponseDto();
         responseDto3.setId(3L);
         responseDto3.setComment("Batch 3 with video");
+        responseDto3.setDirectory(batch3.getDirectory().toString());
+        responseDto3.setCreatedAt(batch3.getCreatedAt());
+        responseDto3.setDeleted(batch3.isDeleted());
+        responseDto3.setDeletedAt(batch3.getDeletedAt());
         when(modelMapper.map(batch3, UploadBatchResponseDto.class)).thenReturn(responseDto3);
 
         MediaFileResponseDto videoDto1 = new MediaFileResponseDto();
         videoDto1.setFilename("video1.mp4");
         videoDto1.setFileType(FileType.VIDEO);
+        videoDto1.setUploadedAt(videoFile1.getUploadedAt());
         when(modelMapper.map(videoFile1, MediaFileResponseDto.class)).thenReturn(videoDto1);
 
         MediaFileResponseDto videoDto3 = new MediaFileResponseDto();
         videoDto3.setFilename("video3.mp4");
         videoDto3.setFileType(FileType.VIDEO);
+        videoDto3.setUploadedAt(videoFile3.getUploadedAt());
         when(modelMapper.map(videoFile3, MediaFileResponseDto.class)).thenReturn(videoDto3);
 
         PageDto<UploadBatchResponseDto> resultPage = uploadBatchService.getFilteredBatches(filter, pageable);
@@ -272,7 +373,7 @@ class UploadBatchServiceImplTest {
 
         assertNotNull(resultPage);
         assertEquals(0, resultPage.getTotalElements());
-        assertEquals(0, resultPage.getTotalElements());
+        assertEquals(0, resultPage.getContent().size());
         verify(uploadBatchRepository).findAll(any(Specification.class), eq(pageable));
         verify(modelMapper, never()).map(any(UploadBatch.class), eq(UploadBatchResponseDto.class));
         verify(modelMapper, never()).map(any(MediaFile.class), eq(MediaFileResponseDto.class));

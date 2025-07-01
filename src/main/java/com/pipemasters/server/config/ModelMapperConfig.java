@@ -1,8 +1,12 @@
 package com.pipemasters.server.config;
 
 import com.pipemasters.server.dto.*;
+import com.pipemasters.server.dto.request.BranchRequestDto;
+import com.pipemasters.server.dto.request.DelegationRequestDto;
+import com.pipemasters.server.dto.request.MediaFileRequestDto;
+import com.pipemasters.server.dto.request.UploadBatchRequestDto;
+import com.pipemasters.server.dto.request.update.UserUpdateDto;
 import com.pipemasters.server.entity.*;
-import org.modelmapper.Conditions;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeMap;
 import org.springframework.context.annotation.Bean;
@@ -14,11 +18,13 @@ public class ModelMapperConfig {
     public ModelMapper modelMapper() {
         ModelMapper modelMapper = new ModelMapper();
 
-        modelMapper.typeMap(Delegation.class, DelegationDto.class)
-                .addMapping(e -> e.getDelegator().getId(), DelegationDto::setDelegatorId)
-                .addMapping(e -> e.getSubstitute().getId(), DelegationDto::setSubstituteId);
+        modelMapper.typeMap(Delegation.class, DelegationRequestDto.class)
+                .addMapping(e -> e.getDelegator().getId(), DelegationRequestDto::setDelegatorId)
+                .addMapping(e -> e.getSubstitute().getId(), DelegationRequestDto::setSubstituteId);
 
         configureBranchMapping(modelMapper);
+        configureUserMapping(modelMapper);
+        modelMapper.getConfiguration().setSkipNullEnabled(true);
 //        configureMediaFileMapping(modelMapper);
 //        configureUploadBatchMapping(modelMapper);
 //        configureVideoAbsenceDtoMapping(modelMapper);
@@ -29,33 +35,40 @@ public class ModelMapperConfig {
     }
 
     private void configureBranchMapping(ModelMapper modelMapper) {
-        modelMapper.typeMap(Branch.class, BranchDto.class)
+        modelMapper.typeMap(Branch.class, BranchRequestDto.class)
                 .addMappings(mapper -> {
-                    mapper.skip(BranchDto::setParentId);
+                    mapper.skip(BranchRequestDto::setParentId);
+                });
+    }
+
+    private void configureUserMapping(ModelMapper modelMapper) {
+        modelMapper.createTypeMap(UserUpdateDto.class, User.class)
+                .addMappings(mapper -> {
+                    mapper.skip(User::setId);
                 });
     }
 
     private void configureMediaFileMapping(ModelMapper modelMapper) {
-        TypeMap<MediaFile, MediaFileDto> typeMap = modelMapper.createTypeMap(MediaFile.class, MediaFileDto.class);
+        TypeMap<MediaFile, MediaFileRequestDto> typeMap = modelMapper.createTypeMap(MediaFile.class, MediaFileRequestDto.class);
 
         typeMap.addMappings(mapper -> {
-            mapper.map(MediaFile::getFilename, MediaFileDto::setFilename);
-            mapper.map(MediaFile::getFileType, MediaFileDto::setFileType);
-            mapper.map(MediaFile::getUploadedAt, MediaFileDto::setUploadedAt);
+            mapper.map(MediaFile::getFilename, MediaFileRequestDto::setFilename);
+            mapper.map(MediaFile::getFileType, MediaFileRequestDto::setFileType);
+            mapper.map(MediaFile::getUploadedAt, MediaFileRequestDto::setUploadedAt);
 
-            mapper.skip(MediaFileDto::setSourceId);
-            mapper.skip(MediaFileDto::setUploadBatchId);
+            mapper.skip(MediaFileRequestDto::setSourceId);
+            mapper.skip(MediaFileRequestDto::setUploadBatchId);
         });
     }
 
     private void configureUploadBatchMapping(ModelMapper modelMapper) {
-        modelMapper.typeMap(UploadBatch.class, UploadBatchDto.class)
+        modelMapper.typeMap(UploadBatch.class, UploadBatchRequestDto.class)
                 .addMappings(mapper -> {
-                    mapper.map(UploadBatch::getDeletedAt, UploadBatchDto::setDeletedAt);
+                    mapper.map(UploadBatch::getDeletedAt, UploadBatchRequestDto::setDeletedAt);
                 });
-        modelMapper.typeMap(UploadBatchDto.class, UploadBatch.class)
+        modelMapper.typeMap(UploadBatchRequestDto.class, UploadBatch.class)
                 .addMappings(mapper -> {
-                    mapper.map(UploadBatchDto::getDeletedAt, UploadBatch::setDeletedAt);
+                    mapper.map(UploadBatchRequestDto::getDeletedAt, UploadBatch::setDeletedAt);
                 });
     }
 

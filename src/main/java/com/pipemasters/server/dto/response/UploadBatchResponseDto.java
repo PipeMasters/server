@@ -1,6 +1,7 @@
-package com.pipemasters.server.dto;
+package com.pipemasters.server.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.pipemasters.server.dto.BaseDto;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -8,7 +9,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class UploadBatchResponseDto extends BaseDto{
+public class UploadBatchResponseDto extends BaseDto {
     private String directory;
     private Long uploadedId;
     private Instant createdAt;

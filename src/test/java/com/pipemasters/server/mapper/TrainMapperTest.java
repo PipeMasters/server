@@ -1,6 +1,6 @@
 package com.pipemasters.server.mapper;
 import com.pipemasters.server.config.ModelMapperConfig;
-import com.pipemasters.server.dto.TrainDto;
+import com.pipemasters.server.dto.request.TrainRequestDto;
 import com.pipemasters.server.entity.Train;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -21,7 +21,7 @@ public class TrainMapperTest {
     public void testTrainToTrainDtoMapping() {
         Train train = new Train(123L, "Москва — Сочи", 5, "Иванов Иван Иванович");
 
-        TrainDto dto = modelMapper.map(train, TrainDto.class);
+        TrainRequestDto dto = modelMapper.map(train, TrainRequestDto.class);
 
         assertThat(dto).isNotNull();
         assertThat(dto.getTrainNumber()).isEqualTo(train.getTrainNumber());
@@ -32,7 +32,7 @@ public class TrainMapperTest {
 
     @Test
     public void testTrainDtoToTrainMapping() {
-        TrainDto dto = new TrainDto(456L, "Санкт-Петербург — Владивосток", 8, "Петров Петр Петрович");
+        TrainRequestDto dto = new TrainRequestDto(456L, "Санкт-Петербург — Владивосток", 8, "Петров Петр Петрович");
 
         Train train = modelMapper.map(dto, Train.class);
 
@@ -48,7 +48,7 @@ public class TrainMapperTest {
         // Чтобы проверить null-значения — создадим объект с параметрами, но передадим null туда
         Train train = new Train(null, null, null, null);
 
-        TrainDto dto = modelMapper.map(train, TrainDto.class);
+        TrainRequestDto dto = modelMapper.map(train, TrainRequestDto.class);
 
         assertThat(dto).isNotNull();
         assertThat(dto.getTrainNumber()).isNull();
@@ -59,7 +59,7 @@ public class TrainMapperTest {
 
     @Test
     public void testTrainDtoToTrainMappingWithNullFields() {
-        TrainDto dto = new TrainDto(null, null, null, null);
+        TrainRequestDto dto = new TrainRequestDto(null, null, null, null);
 
         Train train = modelMapper.map(dto, Train.class);
 
