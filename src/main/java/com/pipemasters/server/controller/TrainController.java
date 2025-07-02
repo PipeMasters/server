@@ -2,6 +2,7 @@ package com.pipemasters.server.controller;
 
 import com.pipemasters.server.dto.request.TrainRequestDto;
 import com.pipemasters.server.dto.response.TrainResponseDto;
+import com.pipemasters.server.dto.response.UserResponseDto;
 import com.pipemasters.server.service.TrainService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -43,8 +44,8 @@ public class TrainController {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-    @GetMapping("/chiefs/unique")
-    public ResponseEntity<List<String>> getUniqueChiefs() {
-        return ResponseEntity.ok(trainService.getUniqueChiefs());
+    @GetMapping("/chiefs")
+    public ResponseEntity<List<UserResponseDto>> getChiefs() {
+        return ResponseEntity.ok(trainService.getChiefs());
     }
 }

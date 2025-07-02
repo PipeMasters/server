@@ -2,6 +2,7 @@ package com.pipemasters.server.service;
 
 import com.pipemasters.server.dto.request.TrainRequestDto;
 import com.pipemasters.server.dto.response.TrainResponseDto;
+import com.pipemasters.server.dto.response.UserResponseDto;
 
 import java.util.List;
 
@@ -11,5 +12,5 @@ public interface TrainService {
     List<TrainResponseDto> getAll();
     TrainResponseDto update(Long id, TrainRequestDto trainRequestDto);
     void delete(Long id);
-    List<String> getUniqueChiefs();
+    List<UserResponseDto> getChiefs();
 }

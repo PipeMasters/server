@@ -2,6 +2,7 @@ package com.pipemasters.server.controller;
 
 import com.pipemasters.server.dto.request.TrainRequestDto;
 import com.pipemasters.server.dto.response.TrainResponseDto;
+import com.pipemasters.server.dto.response.UserResponseDto;
 import com.pipemasters.server.service.TrainService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,12 +16,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class TrainControllerTest {
@@ -92,24 +89,28 @@ class TrainControllerTest {
     }
 
     @Test
-    void getUniqueChiefs_ReturnsOkStatusAndListOfUniqueChiefs() {
-        List<String> uniqueChiefs = Arrays.asList("Иванов", "Петров", "Сидоров");
-        when(trainService.getUniqueChiefs()).thenReturn(uniqueChiefs);
+    void getChiefs_ReturnsOkStatusAndListOfUserResponseDto() {
+        UserResponseDto chief1 = new UserResponseDto();
+        UserResponseDto chief2 = new UserResponseDto();
+        UserResponseDto chief3 = new UserResponseDto();
+        List<UserResponseDto> chiefs = Arrays.asList(chief1, chief2, chief3);
 
-        ResponseEntity<List<String>> response = trainController.getUniqueChiefs();
+        when(trainService.getChiefs()).thenReturn(chiefs);
+
+        ResponseEntity<List<UserResponseDto>> response = trainController.getChiefs();
 
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals(3, response.getBody().size());
-        assertEquals(uniqueChiefs, response.getBody());
+        assertEquals(chiefs, response.getBody());
     }
 
     @Test
-    void getUniqueChiefs_ReturnsEmptyListWhenNoChiefsExist() {
-        when(trainService.getUniqueChiefs()).thenReturn(Collections.emptyList());
+    void getChiefs_ReturnsEmptyListWhenNoChiefsExist() {
+        when(trainService.getChiefs()).thenReturn(Collections.emptyList());
 
-        ResponseEntity<List<String>> response = trainController.getUniqueChiefs();
+        ResponseEntity<List<UserResponseDto>> response = trainController.getChiefs();
 
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());

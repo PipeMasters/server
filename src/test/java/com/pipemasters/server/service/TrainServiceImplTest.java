@@ -2,6 +2,7 @@ package com.pipemasters.server.service;
 
 import com.pipemasters.server.dto.request.TrainRequestDto;
 import com.pipemasters.server.dto.response.TrainResponseDto;
+import com.pipemasters.server.dto.response.UserResponseDto;
 import com.pipemasters.server.entity.Branch;
 import com.pipemasters.server.entity.Train;
 import com.pipemasters.server.entity.User;
@@ -136,23 +137,32 @@ class TrainServiceImplTest {
     }
 
     @Test
-    void getUniqueChiefs_ShouldReturnListOfUniqueChiefs() {
-        List<String> distinctChiefsFromRepo = Arrays.asList("Иванов", "Петров", "Сидоров");
-        when(trainRepository.findDistinctChiefs()).thenReturn(distinctChiefsFromRepo);
+    void getChiefs_ShouldReturnListOfUserResponseDto() {
+        User chief2 = new User();
+        chief2.setId(11L);
+        chief2.setName("Петров");
+        chief2.setBranch(branch);
 
-        List<String> result = trainService.getUniqueChiefs();
+        List<User> chiefs = Arrays.asList(chief, chief2);
+        UserResponseDto dto1 = new UserResponseDto();
+        UserResponseDto dto2 = new UserResponseDto();
+        when(trainRepository.findDistinctChiefs()).thenReturn(chiefs);
+        when(modelMapper.map(chief, UserResponseDto.class)).thenReturn(dto1);
+        when(modelMapper.map(chief2, UserResponseDto.class)).thenReturn(dto2);
 
-        assertThat(result).isNotNull();
-        assertThat(result).hasSize(3);
-        assertThat(result).containsExactlyInAnyOrder("Иванов", "Петров", "Сидоров");
+        List<UserResponseDto> result = trainService.getChiefs();
+
+        assertThat(result).hasSize(2);
         verify(trainRepository).findDistinctChiefs();
+        verify(modelMapper).map(chief, UserResponseDto.class);
+        verify(modelMapper).map(chief2, UserResponseDto.class);
     }
 
     @Test
-    void getUniqueChiefs_ShouldReturnEmptyListWhenNoChiefsExist() {
+    void getChiefs_ShouldReturnEmptyListWhenNoChiefsExist() {
         when(trainRepository.findDistinctChiefs()).thenReturn(Collections.emptyList());
 
-        List<String> result = trainService.getUniqueChiefs();
+        List<UserResponseDto> result = trainService.getChiefs();
 
         assertThat(result).isNotNull();
         assertThat(result).isEmpty();

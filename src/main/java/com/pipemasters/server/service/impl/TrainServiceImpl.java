@@ -2,6 +2,7 @@ package com.pipemasters.server.service.impl;
 
 import com.pipemasters.server.dto.request.TrainRequestDto;
 import com.pipemasters.server.dto.response.TrainResponseDto;
+import com.pipemasters.server.dto.response.UserResponseDto;
 import com.pipemasters.server.entity.Train;
 import com.pipemasters.server.entity.User;
 import com.pipemasters.server.exceptions.branch.BranchNotFoundException;
@@ -90,7 +91,9 @@ public class TrainServiceImpl implements TrainService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<String> getUniqueChiefs() {
-        return trainRepository.findDistinctChiefs();
+    public List<UserResponseDto> getChiefs() {
+        return trainRepository.findDistinctChiefs().stream()
+                .map(user -> modelMapper.map(user, UserResponseDto.class))
+                .toList();
     }
 }

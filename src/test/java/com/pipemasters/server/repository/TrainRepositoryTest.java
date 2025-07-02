@@ -127,7 +127,7 @@ public class TrainRepositoryTest {
 
     @Test
     void findDistinctChiefsReturnsEmptyListWhenNoTrainsExist() {
-        List<String> uniqueChiefs = trainRepository.findDistinctChiefs();
+        List<User> uniqueChiefs = trainRepository.findDistinctChiefs();
 
         assertNotNull(uniqueChiefs);
         assertTrue(uniqueChiefs.isEmpty());
