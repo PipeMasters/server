@@ -3,6 +3,7 @@ package com.pipemasters.server.controller;
 import com.pipemasters.server.dto.PageDto;
 import com.pipemasters.server.dto.request.UploadBatchRequestDto;
 import com.pipemasters.server.dto.UploadBatchFilter;
+import com.pipemasters.server.dto.request.create.UploadBatchCreateDto;
 import com.pipemasters.server.dto.response.UploadBatchResponseDto;
 import com.pipemasters.server.service.UploadBatchService;
 import com.pipemasters.server.dto.UploadBatchDtoSmallResponse;
@@ -74,8 +75,8 @@ public class UploadBatchController {
     }
 
     @PostMapping
-    public ResponseEntity<UploadBatchResponseDto> create(@RequestBody UploadBatchRequestDto uploadBatchRequestDto) {
-        return new ResponseEntity<>(uploadBatchService.save(uploadBatchRequestDto), HttpStatus.CREATED);
+    public ResponseEntity<UploadBatchResponseDto> create(@RequestBody UploadBatchCreateDto uploadBatch) {
+        return new ResponseEntity<>(uploadBatchService.save(uploadBatch), HttpStatus.CREATED);
     }
 
     @GetMapping("/{id}")

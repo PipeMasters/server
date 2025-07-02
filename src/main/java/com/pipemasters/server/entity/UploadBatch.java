@@ -83,6 +83,7 @@ public class UploadBatch extends BaseEntity {
     }
 
     public UploadBatch(User uploadedBy, LocalDate trainDeparted, LocalDate trainArrived, Train train, String comment, Branch branch, VideoAbsence absence) {
+        this.directory = UUID.randomUUID();
         this.uploadedBy = uploadedBy;
         this.trainDeparted = trainDeparted;
         this.trainArrived = trainArrived;

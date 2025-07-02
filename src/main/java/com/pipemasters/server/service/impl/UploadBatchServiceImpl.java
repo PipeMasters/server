@@ -3,11 +3,15 @@ package com.pipemasters.server.service.impl;
 import com.pipemasters.server.dto.*;
 import com.pipemasters.server.dto.UploadBatchDtoSmallResponse;
 import com.pipemasters.server.dto.request.UploadBatchRequestDto;
+import com.pipemasters.server.dto.request.create.UploadBatchCreateDto;
 import com.pipemasters.server.dto.response.MediaFileResponseDto;
 import com.pipemasters.server.dto.response.UploadBatchResponseDto;
-import com.pipemasters.server.entity.UploadBatch;
+import com.pipemasters.server.entity.*;
 import com.pipemasters.server.entity.enums.FileType;
-import com.pipemasters.server.repository.UploadBatchRepository;
+import com.pipemasters.server.exceptions.branch.BranchNotFoundException;
+import com.pipemasters.server.exceptions.train.TrainNotFoundException;
+import com.pipemasters.server.exceptions.user.UserNotFoundException;
+import com.pipemasters.server.repository.*;
 import com.pipemasters.server.repository.specifications.UploadBatchSpecifications;
 import com.pipemasters.server.service.UploadBatchService;
 import org.modelmapper.ModelMapper;
@@ -21,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -28,23 +33,42 @@ public class UploadBatchServiceImpl implements UploadBatchService {
 
     private final UploadBatchRepository uploadBatchRepository;
     private final ModelMapper modelMapper;
+    private final UserRepository userRepository;
+    private final TrainRepository trainRepository;
+    private final BranchRepository branchRepository;
+    private final VideoAbsenceRepository videoAbsenceRepository;
 
-    public UploadBatchServiceImpl(UploadBatchRepository uploadBatchRepository, ModelMapper modelMapper) {
+    public UploadBatchServiceImpl(UploadBatchRepository uploadBatchRepository, ModelMapper modelMapper, UserRepository userRepository, TrainRepository trainRepository, BranchRepository branchRepository, VideoAbsenceRepository videoAbsenceRepository) {
         this.uploadBatchRepository = uploadBatchRepository;
         this.modelMapper = modelMapper;
+        this.userRepository = userRepository;
+        this.trainRepository = trainRepository;
+        this.branchRepository = branchRepository;
+        this.videoAbsenceRepository = videoAbsenceRepository;
     }
 
     @Override
     @CacheEvict(value = {"filteredBatches", "batches"}, allEntries = true)
     @Transactional
-    public UploadBatchResponseDto save(UploadBatchRequestDto uploadBatchRequestDto) {
-        var now = Instant.now();
-        uploadBatchRequestDto.setDirectory(String.valueOf(UUID.randomUUID()));
-        uploadBatchRequestDto.setCreatedAt(now);
-        uploadBatchRequestDto.setDeletedAt(now.plus(180, ChronoUnit.DAYS));
-        uploadBatchRequestDto.setDeleted(false);
-        return modelMapper.map(uploadBatchRepository
-                        .save(modelMapper.map(uploadBatchRequestDto, UploadBatch.class)), UploadBatchResponseDto.class);
+    public UploadBatchResponseDto save(UploadBatchCreateDto uploadBatchRequestDto) {
+        User user = userRepository.findById(uploadBatchRequestDto.getUploadedById())
+                .orElseThrow(() -> new UserNotFoundException("User not found with ID: " + uploadBatchRequestDto.getUploadedById()));
+        Train train = trainRepository.findById(uploadBatchRequestDto.getTrainId())
+                .orElseThrow(() -> new TrainNotFoundException("Train not found with ID: " + uploadBatchRequestDto.getTrainId()));
+        Branch branch = branchRepository.findById(uploadBatchRequestDto.getBranchId())
+                .orElseThrow(() -> new BranchNotFoundException("Branch not found with ID: " + uploadBatchRequestDto.getBranchId()));
+        Optional<VideoAbsence> videoAbsence = videoAbsenceRepository.findById(uploadBatchRequestDto.getAbsenceId());
+        UploadBatch uploadBatch = new UploadBatch(
+                user,
+                uploadBatchRequestDto.getTrainDeparted(),
+                uploadBatchRequestDto.getTrainArrived(),
+                train,
+                uploadBatchRequestDto.getComment(),
+                branch,
+                videoAbsence.isPresent() ? videoAbsence.get() : null
+        );
+        uploadBatchRepository.save(uploadBatch);
+        return modelMapper.map(uploadBatch, UploadBatchResponseDto.class);
     }
 
     @Override
