@@ -1,9 +1,8 @@
 package com.pipemasters.server.service.impl;
 
 import com.pipemasters.server.dto.*;
-import com.pipemasters.server.dto.response.UploadBatchDtoResponse;
+import com.pipemasters.server.dto.UploadBatchDtoSmallResponse;
 import com.pipemasters.server.entity.UploadBatch;
-import com.pipemasters.server.entity.enums.FileType;
 import com.pipemasters.server.repository.UploadBatchRepository;
 import com.pipemasters.server.repository.specifications.UploadBatchSpecifications;
 import com.pipemasters.server.service.UploadBatchService;
@@ -47,11 +46,11 @@ public class UploadBatchServiceImpl implements UploadBatchService {
     @Override
     @Cacheable(cacheNames = "filteredBatches", keyGenerator = "uploadBatchFilterKeyGenerator")
     @Transactional(readOnly = true)
-    public PageDto<UploadBatchDtoResponse> getFilteredBatches(UploadBatchFilter filter, Pageable pageable) {
+    public PageDto<UploadBatchDtoSmallResponse> getFilteredBatches(UploadBatchFilter filter, Pageable pageable) {
         Page<UploadBatch> page = uploadBatchRepository.findAll(UploadBatchSpecifications.withFilter(filter), pageable);
 
-        List<UploadBatchDtoResponse> dtoList = page.stream()
-                .map(batch -> modelMapper.map(batch, UploadBatchDtoResponse.class))
+        List<UploadBatchDtoSmallResponse> dtoList = page.stream()
+                .map(batch -> modelMapper.map(batch, UploadBatchDtoSmallResponse.class))
                 .toList();
 
 //        List<UploadBatchResponseDto> dtoList = page.stream().map(batch -> {
@@ -80,7 +79,7 @@ public class UploadBatchServiceImpl implements UploadBatchService {
     @Override
     @Cacheable("batches")
     @Transactional(readOnly = true)
-    public List<UploadBatchDtoResponse> getAll() {
+    public List<UploadBatchDtoSmallResponse> getAll() {
 //        List<UploadBatch> uploadBatchList = uploadBatchRepository.findAll();
 //
 //        List<UploadBatchDtoResponse> dtoList = uploadBatchList.stream()
@@ -93,7 +92,7 @@ public class UploadBatchServiceImpl implements UploadBatchService {
 //                )).toList();
 
         return uploadBatchRepository.findAll().stream()
-                .map(uploadBatch -> modelMapper.map(uploadBatch,UploadBatchDtoResponse.class)).toList();
+                .map(uploadBatch -> modelMapper.map(uploadBatch, UploadBatchDtoSmallResponse.class)).toList();
     }
 
     @Override

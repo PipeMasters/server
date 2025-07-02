@@ -1,18 +1,18 @@
-package com.pipemasters.server.dto.response;
+package com.pipemasters.server.dto;
 
 import java.time.LocalDate;
 
-public class UploadBatchDtoResponse {
+public class UploadBatchDtoSmallResponse {
     private Long id;
     private LocalDate dateDeparted;
     private LocalDate dateArrived;
     private Long trainNumber;
     private String chiefName;
 
-    public UploadBatchDtoResponse() {
+    public UploadBatchDtoSmallResponse() {
     }
 
-    public UploadBatchDtoResponse(Long id, LocalDate dateDeparted, LocalDate dateArrived, Long trainNumber, String chiefName) {
+    public UploadBatchDtoSmallResponse(Long id, LocalDate dateDeparted, LocalDate dateArrived, Long trainNumber, String chiefName) {
         this.id = id;
         this.dateDeparted = dateDeparted;
         this.dateArrived = dateArrived;

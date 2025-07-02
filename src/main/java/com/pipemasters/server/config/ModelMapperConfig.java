@@ -1,7 +1,7 @@
 package com.pipemasters.server.config;
 
 import com.pipemasters.server.dto.*;
-import com.pipemasters.server.dto.response.UploadBatchDtoResponse;
+import com.pipemasters.server.dto.UploadBatchDtoSmallResponse;
 import com.pipemasters.server.entity.*;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeMap;
@@ -75,12 +75,12 @@ public class ModelMapperConfig {
     }
 
     private void configureUploadBatchDtoResponseMapping(ModelMapper modelMapper) {
-        modelMapper.typeMap(UploadBatch.class, UploadBatchDtoResponse.class)
+        modelMapper.typeMap(UploadBatch.class, UploadBatchDtoSmallResponse.class)
                 .addMappings(mapper -> {
-                    mapper.map(tn -> tn.getTrain().getTrainNumber(), UploadBatchDtoResponse::setTrainNumber);
-                    mapper.map(UploadBatch::getTrainDeparted, UploadBatchDtoResponse::setDateDeparted);
-                    mapper.map(UploadBatch::getTrainArrived, UploadBatchDtoResponse::setDateArrived);
-                    mapper.map(chf -> chf.getTrain().getChief().getFullName(), UploadBatchDtoResponse::setChiefName);
+                    mapper.map(tn -> tn.getTrain().getTrainNumber(), UploadBatchDtoSmallResponse::setTrainNumber);
+                    mapper.map(UploadBatch::getTrainDeparted, UploadBatchDtoSmallResponse::setDateDeparted);
+                    mapper.map(UploadBatch::getTrainArrived, UploadBatchDtoSmallResponse::setDateArrived);
+                    mapper.map(chf -> chf.getTrain().getChief().getFullName(), UploadBatchDtoSmallResponse::setChiefName);
                 });
     }
 }

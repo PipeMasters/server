@@ -5,13 +5,13 @@ import java.util.List;
 import com.pipemasters.server.dto.PageDto;
 import com.pipemasters.server.dto.UploadBatchDto;
 import com.pipemasters.server.dto.UploadBatchFilter;
-import com.pipemasters.server.dto.response.UploadBatchDtoResponse;
+import com.pipemasters.server.dto.UploadBatchDtoSmallResponse;
 import org.springframework.data.domain.Pageable;
 
 public interface UploadBatchService {
     UploadBatchDto save(UploadBatchDto uploadBatchDto);
-    PageDto<UploadBatchDtoResponse> getFilteredBatches(UploadBatchFilter filter, Pageable pageable);
+    PageDto<UploadBatchDtoSmallResponse> getFilteredBatches(UploadBatchFilter filter, Pageable pageable);
     UploadBatchDto getById(Long id);
-    List<UploadBatchDtoResponse> getAll();
+    List<UploadBatchDtoSmallResponse> getAll();
     UploadBatchDto update(Long uploadBatchId, UploadBatchDto dto);
 }

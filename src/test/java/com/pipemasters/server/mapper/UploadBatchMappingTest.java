@@ -5,7 +5,7 @@ import com.pipemasters.server.dto.BranchDto;
 import com.pipemasters.server.dto.UploadBatchDto;
 import com.pipemasters.server.dto.TrainDto;
 import com.pipemasters.server.dto.UserDto;
-import com.pipemasters.server.dto.response.UploadBatchDtoResponse;
+import com.pipemasters.server.dto.UploadBatchDtoSmallResponse;
 import com.pipemasters.server.entity.*;
 import com.pipemasters.server.entity.enums.Role;
 import org.junit.jupiter.api.Test;
@@ -59,7 +59,7 @@ public class UploadBatchMappingTest {
         );
         uploadBatch.setTrainArrived(LocalDate.of(2024, 1, 3));
 
-        UploadBatchDtoResponse dto = modelMapper.map(uploadBatch, UploadBatchDtoResponse.class);
+        UploadBatchDtoSmallResponse dto = modelMapper.map(uploadBatch, UploadBatchDtoSmallResponse.class);
 
         assertEquals(uploadBatch.getId(), dto.getId());
         assertEquals(uploadBatch.getTrainDeparted(), dto.getDateDeparted());
@@ -163,7 +163,7 @@ public class UploadBatchMappingTest {
         );
         uploadBatch.setTrainArrived(LocalDate.now());
 
-        UploadBatchDtoResponse dto = modelMapper.map(uploadBatch, UploadBatchDtoResponse.class);
+        UploadBatchDtoSmallResponse dto = modelMapper.map(uploadBatch, UploadBatchDtoSmallResponse.class);
         assertEquals(uploadBatch.getTrain().getChief().getFullName(), dto.getChiefName());
     }
 }

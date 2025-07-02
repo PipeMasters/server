@@ -4,7 +4,7 @@ import com.pipemasters.server.dto.PageDto;
 import com.pipemasters.server.dto.UploadBatchDto;
 import com.pipemasters.server.dto.UploadBatchFilter;
 import com.pipemasters.server.service.UploadBatchService;
-import com.pipemasters.server.dto.response.UploadBatchDtoResponse;
+import com.pipemasters.server.dto.UploadBatchDtoSmallResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -29,7 +29,7 @@ public class UploadBatchController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<UploadBatchDtoResponse>> getFiltered(
+    public ResponseEntity<Page<UploadBatchDtoSmallResponse>> getFiltered(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate departureDateFrom,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate departureDateTo,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate specificDate,
@@ -68,7 +68,7 @@ public class UploadBatchController {
 
         filter.setKeywords(keywords);
 
-        PageDto<UploadBatchDtoResponse> dtoPage = uploadBatchService.getFilteredBatches(filter, pageable);
+        PageDto<UploadBatchDtoSmallResponse> dtoPage = uploadBatchService.getFilteredBatches(filter, pageable);
         return new ResponseEntity<>(dtoPage.toPage(pageable), HttpStatus.OK);
     }
 
@@ -84,7 +84,7 @@ public class UploadBatchController {
     }
 
     @GetMapping("/all")
-    public ResponseEntity<List<UploadBatchDtoResponse>> getAll() {
+    public ResponseEntity<List<UploadBatchDtoSmallResponse>> getAll() {
         return new ResponseEntity<>(uploadBatchService.getAll(), HttpStatus.OK);
     }
 
