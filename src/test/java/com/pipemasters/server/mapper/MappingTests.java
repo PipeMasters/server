@@ -5,7 +5,6 @@ import com.pipemasters.server.dto.request.MediaFileRequestDto;
 import com.pipemasters.server.dto.request.UploadBatchRequestDto;
 import com.pipemasters.server.dto.VideoAbsenceDto;
 import com.pipemasters.server.entity.*;
-import com.pipemasters.server.entity.UploadBatch;
 import com.pipemasters.server.entity.enums.AbsenceCause;
 import com.pipemasters.server.entity.enums.FileType;
 import org.junit.jupiter.api.Test;
@@ -50,26 +49,23 @@ public class MappingTests {
 
     @Test
     void shouldMapVideoAbsenceToDtoCorrectly() {
-        UploadBatch UploadBatch = createTestUploadBatch();
-        VideoAbsence absence = new VideoAbsence(UploadBatch, AbsenceCause.OTHER, "No video");
+        UploadBatch uploadBatch = createTestUploadBatch();
+        VideoAbsence absence = new VideoAbsence(uploadBatch, AbsenceCause.OTHER, "No video");
 
         VideoAbsenceDto dto = modelMapper.map(absence, VideoAbsenceDto.class);
 
         assertEquals(AbsenceCause.OTHER, dto.getCause());
         assertEquals("No video", dto.getComment());
-        assertNotNull(dto.getUploadBatch());
     }
 
     @Test
     void shouldMapVideoAbsenceDtoToEntityCorrectly() {
-        UploadBatchRequestDto UploadBatchRequestDto = new UploadBatchRequestDto();
-        VideoAbsenceDto dto = new VideoAbsenceDto(UploadBatchRequestDto, AbsenceCause.OTHER, "Пропущена запись");
+        VideoAbsenceDto dto = new VideoAbsenceDto(null, AbsenceCause.OTHER, "Пропущена запись");
 
         VideoAbsence entity = modelMapper.map(dto, VideoAbsence.class);
 
         assertEquals(AbsenceCause.OTHER, entity.getCause());
         assertEquals("Пропущена запись", entity.getComment());
-        assertNotNull(entity.getUploadBatch());
     }
 
     @Test

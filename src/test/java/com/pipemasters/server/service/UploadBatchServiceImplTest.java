@@ -4,8 +4,10 @@ import com.pipemasters.server.dto.*;
 import com.pipemasters.server.dto.UploadBatchDtoSmallResponse;
 import com.pipemasters.server.dto.request.UploadBatchRequestDto;
 import com.pipemasters.server.dto.request.create.UploadBatchCreateDto;
+import com.pipemasters.server.dto.request.create.UploadBatchCreateDto.VideoAbsenceCreateDto;
 import com.pipemasters.server.dto.response.UploadBatchResponseDto;
 import com.pipemasters.server.entity.*;
+import com.pipemasters.server.entity.enums.AbsenceCause;
 import com.pipemasters.server.entity.enums.FileType;
 import com.pipemasters.server.repository.*;
 import com.pipemasters.server.service.impl.UploadBatchServiceImpl;
@@ -47,26 +49,40 @@ class UploadBatchServiceImplTest {
     private UploadBatchServiceImpl uploadBatchService;
 
     private UploadBatchCreateDto createDto;
+    private UploadBatchCreateDto createDtoWithAbsence;
     private UploadBatch uploadBatch;
     private UploadBatchResponseDto responseDto;
     private User user;
     private Train train;
     private Branch branch;
-    private VideoAbsence videoAbsence;
 
     @BeforeEach
     void setUp() {
-        createDto = new UploadBatchCreateDto(
-                10L, 20L, "Test comment", LocalDate.now(), LocalDate.now().minusDays(1),
-                30L, 40L
-        );
-
         user = new User();
         user.setId(40L);
 
         train = mock(Train.class);
         branch = mock(Branch.class);
-        videoAbsence = mock(VideoAbsence.class);
+
+        createDto = new UploadBatchCreateDto(
+                null, // absence
+                20L, // branchId
+                "Test comment",
+                LocalDate.now().minusDays(1), // trainArrived
+                LocalDate.now(), // trainDeparted
+                30L, // trainId
+                40L // uploadedById
+        );
+
+        createDtoWithAbsence = new UploadBatchCreateDto(
+                new VideoAbsenceCreateDto("No video", AbsenceCause.DEVICE_FAILURE),
+                20L,
+                "Test comment",
+                LocalDate.now().minusDays(1),
+                LocalDate.now(),
+                30L,
+                40L
+        );
 
         uploadBatch = new UploadBatch(
                 user,
@@ -74,8 +90,7 @@ class UploadBatchServiceImplTest {
                 createDto.getTrainArrived(),
                 train,
                 createDto.getComment(),
-                branch,
-                videoAbsence
+                branch
         );
         uploadBatch.setId(1L);
         uploadBatch.setCreatedAt(Instant.now());
@@ -91,13 +106,11 @@ class UploadBatchServiceImplTest {
     }
 
     @Test
-    void save_ShouldSetDefaultValuesAndSave() {
+    void save_ShouldSetDefaultValuesAndSave_WithoutAbsence() {
         when(userRepository.findById(40L)).thenReturn(Optional.of(user));
         when(trainRepository.findById(30L)).thenReturn(Optional.of(train));
         when(branchRepository.findById(20L)).thenReturn(Optional.of(branch));
-        when(videoAbsenceRepository.findById(10L)).thenReturn(Optional.of(videoAbsence));
         when(uploadBatchRepository.save(any(UploadBatch.class))).thenReturn(uploadBatch);
-        // Use argument matcher for modelMapper
         when(modelMapper.map(any(UploadBatch.class), eq(UploadBatchResponseDto.class))).thenReturn(responseDto);
 
         UploadBatchResponseDto result = uploadBatchService.save(createDto);
@@ -113,10 +126,25 @@ class UploadBatchServiceImplTest {
         verify(userRepository).findById(40L);
         verify(trainRepository).findById(30L);
         verify(branchRepository).findById(20L);
-        verify(videoAbsenceRepository).findById(10L);
         verify(uploadBatchRepository).save(any(UploadBatch.class));
         verify(modelMapper).map(any(UploadBatch.class), eq(UploadBatchResponseDto.class));
+        verifyNoInteractions(videoAbsenceRepository);
     }
+
+    @Test
+    void save_ShouldSetDefaultValuesAndSave_WithAbsence() {
+        when(userRepository.findById(40L)).thenReturn(Optional.of(user));
+        when(trainRepository.findById(30L)).thenReturn(Optional.of(train));
+        when(branchRepository.findById(20L)).thenReturn(Optional.of(branch));
+        when(uploadBatchRepository.save(any(UploadBatch.class))).thenReturn(uploadBatch);
+        when(modelMapper.map(any(UploadBatch.class), eq(UploadBatchResponseDto.class))).thenReturn(responseDto);
+
+        UploadBatchResponseDto result = uploadBatchService.save(createDtoWithAbsence);
+
+        assertNotNull(result);
+        verify(videoAbsenceRepository).save(any(VideoAbsence.class));
+    }
+
     @Test
     void getById_ShouldReturnDtoWhenExists() {
         when(uploadBatchRepository.findById(1L)).thenReturn(Optional.of(uploadBatch));
