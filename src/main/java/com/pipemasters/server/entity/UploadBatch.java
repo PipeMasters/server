@@ -82,7 +82,7 @@ public class UploadBatch extends BaseEntity {
         this.files = files;
     }
 
-    public UploadBatch(User uploadedBy, LocalDate trainDeparted, LocalDate trainArrived, Train train, String comment, Branch branch, VideoAbsence absence) {
+    public UploadBatch(User uploadedBy, LocalDate trainDeparted, LocalDate trainArrived, Train train, String comment, Branch branch) {
         this.directory = UUID.randomUUID();
         this.uploadedBy = uploadedBy;
         this.trainDeparted = trainDeparted;
@@ -90,7 +90,6 @@ public class UploadBatch extends BaseEntity {
         this.train = train;
         this.comment = comment;
         this.branch = branch;
-        this.absence = absence;
     }
 
     public UploadBatch() {

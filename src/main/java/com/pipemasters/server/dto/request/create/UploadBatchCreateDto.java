@@ -1,5 +1,7 @@
 package com.pipemasters.server.dto.request.create;
 
+import com.pipemasters.server.entity.enums.AbsenceCause;
+
 import java.time.LocalDate;
 
 public class UploadBatchCreateDto {
@@ -9,10 +11,10 @@ public class UploadBatchCreateDto {
     private Long trainId;
     private String comment;
     private Long branchId;
-    private Long absenceId;
+    private VideoAbsenceCreateDto absence;
 
-    public UploadBatchCreateDto(Long absenceId, Long branchId, String comment, LocalDate trainArrived, LocalDate trainDeparted, Long trainId, Long uploadedById) {
-        this.absenceId = absenceId;
+    public UploadBatchCreateDto(VideoAbsenceCreateDto absence, Long branchId, String comment, LocalDate trainArrived, LocalDate trainDeparted, Long trainId, Long uploadedById) {
+        this.absence = absence;
         this.branchId = branchId;
         this.comment = comment;
         this.trainArrived = trainArrived;
@@ -21,12 +23,15 @@ public class UploadBatchCreateDto {
         this.uploadedById = uploadedById;
     }
 
-    public Long getAbsenceId() {
-        return absenceId;
+    public UploadBatchCreateDto() {
     }
 
-    public void setAbsenceId(Long absenceId) {
-        this.absenceId = absenceId;
+    public VideoAbsenceCreateDto getAbsence() {
+        return absence;
+    }
+
+    public void setAbsence(VideoAbsenceCreateDto absence) {
+        this.absence = absence;
     }
 
     public Long getBranchId() {
@@ -75,5 +80,34 @@ public class UploadBatchCreateDto {
 
     public void setUploadedById(Long uploadedById) {
         this.uploadedById = uploadedById;
+    }
+
+    public static class VideoAbsenceCreateDto {
+        private AbsenceCause cause;
+        private String comment;
+
+        public VideoAbsenceCreateDto(String comment, AbsenceCause cause) {
+            this.comment = comment;
+            this.cause = cause;
+        }
+
+        public VideoAbsenceCreateDto() {
+        }
+
+        public String getComment() {
+            return comment;
+        }
+
+        public void setComment(String comment) {
+            this.comment = comment;
+        }
+
+        public AbsenceCause getCause() {
+            return cause;
+        }
+
+        public void setCause(AbsenceCause cause) {
+            this.cause = cause;
+        }
     }
 }

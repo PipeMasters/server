@@ -2,6 +2,7 @@ package com.pipemasters.server.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.pipemasters.server.dto.BaseDto;
+import com.pipemasters.server.dto.VideoAbsenceDto;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -22,12 +23,12 @@ public class UploadBatchResponseDto extends BaseDto {
     private Instant deletedAt;
     private boolean deleted;
     private MediaFileResponseDto file;
-    private Long absenceId;
+    private VideoAbsenceDto absence;
 
     public UploadBatchResponseDto() {
     }
 
-    public UploadBatchResponseDto(String directory, Long uploadedId, Instant createdAt, LocalDate trainDeparted, Long trainId, String comment, Set<String> keywords, Long branchId, boolean archived, Instant deletedAt, boolean deleted, MediaFileResponseDto file, Long absenceId) {
+    public UploadBatchResponseDto(String directory, Long uploadedId, Instant createdAt, LocalDate trainDeparted, Long trainId, String comment, Set<String> keywords, Long branchId, boolean archived, Instant deletedAt, boolean deleted, MediaFileResponseDto file, VideoAbsenceDto absence) {
         this.directory = directory;
         this.uploadedId = uploadedId;
         this.createdAt = createdAt;
@@ -40,7 +41,7 @@ public class UploadBatchResponseDto extends BaseDto {
         this.deletedAt = deletedAt;
         this.deleted = deleted;
         this.file = file;
-        this.absenceId = absenceId;
+        this.absence = absence;
     }
 
     public String getDirectory() {
@@ -139,11 +140,11 @@ public class UploadBatchResponseDto extends BaseDto {
         this.file = file;
     }
 
-    public Long getAbsenceId() {
-        return absenceId;
+    public VideoAbsenceDto getAbsence() {
+        return absence;
     }
 
-    public void setAbsenceId(Long absenceId) {
-        this.absenceId = absenceId;
+    public void setAbsence(VideoAbsenceDto absence) {
+        this.absence = absence;
     }
 }

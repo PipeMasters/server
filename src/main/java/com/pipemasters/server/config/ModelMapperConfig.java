@@ -85,8 +85,9 @@ public class ModelMapperConfig {
     private void configureVideoAbsenceDtoMapping(ModelMapper modelMapper) {
         modelMapper.typeMap(VideoAbsence.class, VideoAbsenceDto.class)
                 .addMappings(mapper -> {
-                    mapper.skip(VideoAbsenceDto::setUploadBatch);
-                    mapper.skip(VideoAbsenceDto::setCause);
+                    mapper.map(VideoAbsence::getId, VideoAbsenceDto::setId);
+                    mapper.map(VideoAbsence::getComment, VideoAbsenceDto::setComment);
+                    mapper.map(VideoAbsence::getCause, VideoAbsenceDto::setCause);
                 });
     }
 
