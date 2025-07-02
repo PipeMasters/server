@@ -1,13 +1,15 @@
 package com.pipemasters.server.config;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.jsontype.impl.LaissezFaireSubTypeValidator;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.pipemasters.server.config.serializer.PageDtoRedisSerializer;
 import com.pipemasters.server.dto.PageDto;
 import com.pipemasters.server.dto.UploadBatchFilter;
-import com.pipemasters.server.dto.UploadBatchDtoResponse;
+import com.pipemasters.server.dto.UploadBatchDtoSmallResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cache.interceptor.KeyGenerator;
@@ -19,6 +21,7 @@ import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
+import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 
@@ -63,10 +66,10 @@ public class RedisConfig {
                 RedisSerializationContext.SerializationPair.fromSerializer(defaultSerializer);
 
         // Специальный сериализатор для PageDto<UploadBatchResponseDto>
-        PageDtoRedisSerializer<UploadBatchDtoResponse> pageDtoSerializer =
-                new PageDtoRedisSerializer<>(redisObjectMapper, UploadBatchDtoResponse.class);
+        PageDtoRedisSerializer<UploadBatchDtoSmallResponse> pageDtoSerializer =
+                new PageDtoRedisSerializer<>(redisObjectMapper, UploadBatchDtoSmallResponse.class);
 
-        RedisSerializationContext.SerializationPair<PageDto<UploadBatchDtoResponse>> pageDtoSerializationPair =
+        RedisSerializationContext.SerializationPair<PageDto<UploadBatchDtoSmallResponse>> pageDtoSerializationPair =
                 RedisSerializationContext.SerializationPair.fromSerializer(pageDtoSerializer);
 
         // Общий конфиг для остальных кешей

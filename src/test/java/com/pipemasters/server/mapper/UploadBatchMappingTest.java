@@ -1,12 +1,13 @@
 package com.pipemasters.server.mapper;
 
 import com.pipemasters.server.TestEnvInitializer;
-import com.pipemasters.server.dto.BranchDto;
-import com.pipemasters.server.dto.UploadBatchDto;
-import com.pipemasters.server.dto.TrainDto;
-import com.pipemasters.server.dto.UserDto;
+import com.pipemasters.server.dto.request.BranchRequestDto;
+import com.pipemasters.server.dto.request.UploadBatchRequestDto;
+import com.pipemasters.server.dto.request.TrainRequestDto;
+import com.pipemasters.server.dto.response.UserResponseDto;
 import com.pipemasters.server.dto.UploadBatchDtoSmallResponse;
 import com.pipemasters.server.entity.*;
+import com.pipemasters.server.entity.UploadBatch;
 import com.pipemasters.server.entity.enums.Role;
 import org.junit.jupiter.api.Test;
 import org.modelmapper.ModelMapper;
@@ -14,11 +15,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ContextConfiguration;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.*;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @ContextConfiguration(initializers = TestEnvInitializer.class)
@@ -76,26 +77,25 @@ public class UploadBatchMappingTest {
         Long trainId = 123L;
         Long chiefId = 4L;
 
-        BranchDto parentBranchDto = new BranchDto();
-        parentBranchDto.setId(parentBranchId);
-        parentBranchDto.setName("Parent Branch");
+        BranchRequestDto parentBranchRequestDto = new BranchRequestDto();
+        parentBranchRequestDto.setId(parentBranchId);
+        parentBranchRequestDto.setName("Parent Branch");
 
-        BranchDto branchDto = new BranchDto();
-        branchDto.setId(branchId);
-        branchDto.setName("Child Branch");
-        branchDto.setParentId(parentBranchId);
+        BranchRequestDto branchRequestDto = new BranchRequestDto();
+        branchRequestDto.setId(branchId);
+        branchRequestDto.setName("Child Branch");
+        branchRequestDto.setParentId(parentBranchId);
 
-        UserDto userDto = new UserDto("Иван", "Иванов", "Иванович", Set.of(Role.USER), branchId);
+        UserResponseDto userDto = new UserResponseDto("Иван", "Иванов", "Иванович", Set.of(Role.USER), branchId);
         userDto.setId(userId);
-
-        TrainDto trainDto = new TrainDto();
+        TrainRequestDto trainDto = new TrainRequestDto();
         trainDto.setId(trainId);
         trainDto.setTrainNumber(123L);
         trainDto.setRouteMessage("Route 123");
         trainDto.setChiefId(chiefId);
         trainDto.setBranchId(branchId);
 
-        UploadBatchDto dto = new UploadBatchDto(
+        UploadBatchRequestDto dto = new UploadBatchRequestDto(
                 UUID.randomUUID().toString(),
                 userDto.getId(),
                 Instant.parse("2024-01-01T10:00:00Z"),
@@ -103,7 +103,7 @@ public class UploadBatchMappingTest {
                 trainDto.getId(),
                 "Комментарий",
                 Set.of("ключевое", "видео"),
-                branchDto.getId(),
+                branchRequestDto.getId(),
                 false,
                 Instant.parse("2025-01-01T10:00:00Z"),
                 true,

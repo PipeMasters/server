@@ -1,6 +1,7 @@
 package com.pipemasters.server.service;
 
-import com.pipemasters.server.dto.TrainDto;
+import com.pipemasters.server.dto.request.TrainRequestDto;
+import com.pipemasters.server.dto.response.TrainResponseDto;
 import com.pipemasters.server.entity.Branch;
 import com.pipemasters.server.entity.Train;
 import com.pipemasters.server.entity.User;
@@ -40,6 +41,7 @@ class TrainServiceImplTest {
 
     private User chief;
     private Branch branch;
+
     @BeforeEach
     void setUp() {
         branch = new Branch("Branch", null);
@@ -52,17 +54,17 @@ class TrainServiceImplTest {
 
     @Test
     void save_ShouldSaveAndReturnDto() {
-        TrainDto dto = new TrainDto(123L, "Москва-Сочи", 5, chief.getId(), branch.getId());
+        TrainRequestDto dto = new TrainRequestDto(123L, "Москва-Сочи", 5, chief.getId(), branch.getId());
         Train train = new Train(123L, "Москва-Сочи", 5, chief, branch);
-
+        TrainResponseDto responseDto = new TrainResponseDto(123L, "Москва-Сочи", 5, chief.getId(), branch.getId());
 
         when(modelMapper.map(dto, Train.class)).thenReturn(train);
         when(trainRepository.save(any(Train.class))).thenReturn(train);
         when(userRepository.findById(chief.getId())).thenReturn(Optional.of(chief));
         when(branchRepository.findById(branch.getId())).thenReturn(Optional.of(branch));
-        when(modelMapper.map(train, TrainDto.class)).thenReturn(dto);
+        when(modelMapper.map(train, TrainResponseDto.class)).thenReturn(responseDto);
 
-        TrainDto result = trainService.save(dto);
+        TrainResponseDto result = trainService.save(dto);
 
         assertThat(result.getTrainNumber()).isEqualTo(dto.getTrainNumber());
         verify(trainRepository).save(any(Train.class));
@@ -72,11 +74,11 @@ class TrainServiceImplTest {
     void getById_ShouldReturnDto_WhenFound() {
         Train train = new Train(123L, "Москва-Сочи", 5, chief, branch);
         train.setId(1L);
-        TrainDto dto = new TrainDto(123L, "Москва-Сочи", 5, chief.getId(), branch.getId());
+        TrainResponseDto dto = new TrainResponseDto(123L, "Москва-Сочи", 5, chief.getId(), branch.getId());
         when(trainRepository.findById(1L)).thenReturn(Optional.of(train));
-        when(modelMapper.map(train, TrainDto.class)).thenReturn(dto);
+        when(modelMapper.map(train, TrainResponseDto.class)).thenReturn(dto);
 
-        TrainDto result = trainService.getById(1L);
+        TrainResponseDto result = trainService.getById(1L);
 
         assertThat(result.getTrainNumber()).isEqualTo(123L);
         verify(trainRepository).findById(1L);
@@ -95,14 +97,14 @@ class TrainServiceImplTest {
     void getAll_ShouldReturnListOfDtos() {
         Train train1 = new Train(123L, "Москва-Сочи", 5, chief, branch);
         Train train2 = new Train(456L, "Питер-Казань", 3, chief, branch);
-        TrainDto dto1 = new TrainDto(123L, "Москва-Сочи", 5, chief.getId(), branch.getId());
-        TrainDto dto2 = new TrainDto(456L, "Питер-Казань", 3, chief.getId(), branch.getId());
+        TrainResponseDto dto1 = new TrainResponseDto(123L, "Москва-Сочи", 5, chief.getId(), branch.getId());
+        TrainResponseDto dto2 = new TrainResponseDto(456L, "Питер-Казань", 3, chief.getId(), branch.getId());
 
         when(trainRepository.findAll()).thenReturn(Arrays.asList(train1, train2));
-        when(modelMapper.map(train1, TrainDto.class)).thenReturn(dto1);
-        when(modelMapper.map(train2, TrainDto.class)).thenReturn(dto2);
+        when(modelMapper.map(train1, TrainResponseDto.class)).thenReturn(dto1);
+        when(modelMapper.map(train2, TrainResponseDto.class)).thenReturn(dto2);
 
-        List<TrainDto> result = trainService.getAll();
+        List<TrainResponseDto> result = trainService.getAll();
 
         assertThat(result).hasSize(2);
         assertThat(result.get(0).getTrainNumber()).isEqualTo(123L);
@@ -112,16 +114,17 @@ class TrainServiceImplTest {
     void update_ShouldUpdateTrain() {
         Train existing = new Train(111L, "Старый", 2, chief, branch);
         existing.setId(1L);
-        TrainDto updatedDto = new TrainDto(123L, "Москва-Сочи", 5, chief.getId(), branch.getId());
+        TrainRequestDto updatedDto = new TrainRequestDto(123L, "Москва-Сочи", 5, chief.getId(), branch.getId());
         Train updatedTrain = new Train(123L, "Москва-Сочи", 5, chief, branch);
+        TrainResponseDto responseDto = new TrainResponseDto(123L, "Москва-Сочи", 5, chief.getId(), branch.getId());
 
         when(trainRepository.findById(1L)).thenReturn(Optional.of(existing));
         when(userRepository.findById(chief.getId())).thenReturn(Optional.of(chief));
         when(branchRepository.findById(branch.getId())).thenReturn(Optional.of(branch));
         when(trainRepository.save(any(Train.class))).thenReturn(updatedTrain);
-        when(modelMapper.map(updatedTrain, TrainDto.class)).thenReturn(updatedDto);
+        when(modelMapper.map(updatedTrain, TrainResponseDto.class)).thenReturn(responseDto);
 
-        TrainDto result = trainService.update(1L, updatedDto);
+        TrainResponseDto result = trainService.update(1L, updatedDto);
 
         assertThat(result.getRouteMessage()).isEqualTo("Москва-Сочи");
     }

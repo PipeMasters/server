@@ -1,14 +1,13 @@
 package com.pipemasters.server.mapper;
 
 import com.pipemasters.server.TestEnvInitializer;
-import com.pipemasters.server.dto.MediaFileDto;
-import com.pipemasters.server.dto.UploadBatchDto;
+import com.pipemasters.server.dto.request.MediaFileRequestDto;
+import com.pipemasters.server.dto.request.UploadBatchRequestDto;
 import com.pipemasters.server.dto.VideoAbsenceDto;
 import com.pipemasters.server.entity.*;
 import com.pipemasters.server.entity.UploadBatch;
 import com.pipemasters.server.entity.enums.AbsenceCause;
 import com.pipemasters.server.entity.enums.FileType;
-import com.pipemasters.server.repository.MediaFileRepository;
 import org.junit.jupiter.api.Test;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,8 +62,8 @@ public class MappingTests {
 
     @Test
     void shouldMapVideoAbsenceDtoToEntityCorrectly() {
-        UploadBatchDto UploadBatchDto = new UploadBatchDto();
-        VideoAbsenceDto dto = new VideoAbsenceDto(UploadBatchDto, AbsenceCause.OTHER, "Пропущена запись");
+        UploadBatchRequestDto UploadBatchRequestDto = new UploadBatchRequestDto();
+        VideoAbsenceDto dto = new VideoAbsenceDto(UploadBatchRequestDto, AbsenceCause.OTHER, "Пропущена запись");
 
         VideoAbsence entity = modelMapper.map(dto, VideoAbsence.class);
 
@@ -81,7 +80,7 @@ public class MappingTests {
         MediaFile file = new MediaFile("video.mp4", FileType.VIDEO, Instant.now(), sourceFile, uploadBatch);
         file.setId(456L);
 
-        MediaFileDto dto = modelMapper.map(file, MediaFileDto.class);
+        MediaFileRequestDto dto = modelMapper.map(file, MediaFileRequestDto.class);
 
         assertEquals("video.mp4", dto.getFilename());
         assertEquals(FileType.VIDEO, dto.getFileType());
@@ -93,13 +92,13 @@ public class MappingTests {
 
     @Test
     void shouldMapMediaFileDtoToEntityCorrectly() {
-        UploadBatchDto uploadBatchDto = new UploadBatchDto();
-        uploadBatchDto.setId(10L);
+        UploadBatchRequestDto uploadBatchRequestDto = new UploadBatchRequestDto();
+        uploadBatchRequestDto.setId(10L);
         Long sourceId = 123L;
 
-        MediaFileDto sourceDto = new MediaFileDto("old.mp4", FileType.VIDEO, Instant.now(), null, uploadBatchDto.getId());
+        MediaFileRequestDto sourceDto = new MediaFileRequestDto("old.mp4", FileType.VIDEO, Instant.now(), null, uploadBatchRequestDto.getId());
         sourceDto.setId(sourceId);
-        MediaFileDto dto = new MediaFileDto("new.mp4", FileType.VIDEO, Instant.now(), sourceDto.getId(), uploadBatchDto.getId());
+        MediaFileRequestDto dto = new MediaFileRequestDto("new.mp4", FileType.VIDEO, Instant.now(), sourceDto.getId(), uploadBatchRequestDto.getId());
 
         MediaFile entity = modelMapper.map(dto, MediaFile.class);
 

@@ -1,6 +1,7 @@
 package com.pipemasters.server.service.impl;
 
-import com.pipemasters.server.dto.TrainDto;
+import com.pipemasters.server.dto.request.TrainRequestDto;
+import com.pipemasters.server.dto.response.TrainResponseDto;
 import com.pipemasters.server.entity.Train;
 import com.pipemasters.server.entity.User;
 import com.pipemasters.server.exceptions.branch.BranchNotFoundException;
@@ -36,7 +37,7 @@ public class TrainServiceImpl implements TrainService {
     @Override
     @CacheEvict(cacheNames = "trains", allEntries = true)
     @Transactional
-    public TrainDto save(TrainDto trainDto) {
+    public TrainResponseDto save(TrainRequestDto trainDto) {
         Train train = modelMapper.map(trainDto, Train.class);
         User chief = userRepository.findById(trainDto.getChiefId()).orElseThrow(() -> new UserNotFoundException("Chief user not found with ID: " + trainDto.getChiefId()));
         train.setChief(chief);
@@ -44,29 +45,29 @@ public class TrainServiceImpl implements TrainService {
             train.setBranch(branchRepository.findById(trainDto.getBranchId())
                     .orElseThrow(() -> new BranchNotFoundException("Branch not found with ID: " + trainDto.getBranchId())));
         }
-        return modelMapper.map(trainRepository.save(train), TrainDto.class);
+        return modelMapper.map(trainRepository.save(train), TrainResponseDto.class);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public TrainDto getById(Long id) {
+    public TrainResponseDto getById(Long id) {
         Train train = trainRepository.findById(id).orElseThrow(() -> new TrainNotFoundException("Train not found with ID: " + id));
-        return modelMapper.map(train, TrainDto.class);
+        return modelMapper.map(train, TrainResponseDto.class);
     }
 
     @Override
     @Cacheable("trains")
     @Transactional(readOnly = true)
-    public List<TrainDto> getAll() {
+    public List<TrainResponseDto> getAll() {
         return trainRepository.findAll().stream()
-                .map(train -> modelMapper.map(train, TrainDto.class))
+                .map(train -> modelMapper.map(train, TrainResponseDto.class))
                 .toList();
     }
 
     @Override
     @CacheEvict(cacheNames = "trains", allEntries = true)
     @Transactional
-    public TrainDto update(Long id, TrainDto trainDto) {
+    public TrainResponseDto update(Long id, TrainRequestDto trainDto) {
         Train train = trainRepository.findById(id).orElseThrow(() -> new TrainNotFoundException("Train not found with ID: " + id));
         User chief = userRepository.findById(trainDto.getChiefId()).orElseThrow(() -> new UserNotFoundException("Chief user not found with ID: " + trainDto.getChiefId()));
         train.setTrainNumber(trainDto.getTrainNumber());
@@ -77,7 +78,7 @@ public class TrainServiceImpl implements TrainService {
             train.setBranch(branchRepository.findById(trainDto.getBranchId())
                     .orElseThrow(() -> new BranchNotFoundException("Branch not found with ID: " + trainDto.getBranchId())));
         }
-        return modelMapper.map(trainRepository.save(train), TrainDto.class);
+        return modelMapper.map(trainRepository.save(train), TrainResponseDto.class);
     }
 
     @Override

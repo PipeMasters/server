@@ -1,6 +1,7 @@
 package com.pipemasters.server.controller;
 
-import com.pipemasters.server.dto.DelegationDto;
+import com.pipemasters.server.dto.request.DelegationRequestDto;
+import com.pipemasters.server.dto.response.DelegationResponseDto;
 import com.pipemasters.server.service.DelegationService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -25,12 +26,12 @@ class DelegationControllerTest {
 
     @Test
     void delegateReturnsCreatedStatusAndDelegationDto() {
-        DelegationDto inputDTO = new DelegationDto();
-        DelegationDto resultDTO = new DelegationDto();
+        DelegationRequestDto inputDTO = new DelegationRequestDto();
+        DelegationResponseDto resultDTO = new DelegationResponseDto();
 
         when(delegationService.delegate(inputDTO)).thenReturn(resultDTO);
 
-        ResponseEntity<DelegationDto> response = delegationController.delegate(inputDTO);
+        ResponseEntity<DelegationResponseDto> response = delegationController.delegate(inputDTO);
 
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertEquals(resultDTO, response.getBody());
@@ -38,7 +39,7 @@ class DelegationControllerTest {
 
     @Test
     void delegateThrowsExceptionPropagates() {
-        DelegationDto inputDTO = new DelegationDto();
+        DelegationRequestDto inputDTO = new DelegationRequestDto();
 
         when(delegationService.delegate(inputDTO)).thenThrow(new IllegalArgumentException("Invalid data"));
 

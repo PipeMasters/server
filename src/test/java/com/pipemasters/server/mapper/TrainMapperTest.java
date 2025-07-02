@@ -1,7 +1,6 @@
 package com.pipemasters.server.mapper;
-
 import com.pipemasters.server.config.ModelMapperConfig;
-import com.pipemasters.server.dto.TrainDto;
+import com.pipemasters.server.dto.request.TrainRequestDto;
 import com.pipemasters.server.entity.Branch;
 import com.pipemasters.server.entity.Train;
 import com.pipemasters.server.entity.User;
@@ -33,7 +32,7 @@ public class TrainMapperTest {
 
         Train train = new Train(123L, "Москва — Сочи", 5, chief, branch);
 
-        TrainDto dto = modelMapper.map(train, TrainDto.class);
+        TrainRequestDto dto = modelMapper.map(train, TrainRequestDto.class);
 
         assertThat(dto).isNotNull();
         assertThat(dto.getTrainNumber()).isEqualTo(train.getTrainNumber());
@@ -47,7 +46,7 @@ public class TrainMapperTest {
     public void testTrainDtoToTrainMapping() {
         Long chiefId = 20L;
         Long branchId = 30L;
-        TrainDto dto = new TrainDto(456L, "Санкт-Петербург — Владивосток", 8, chiefId, branchId);
+        TrainRequestDto dto = new TrainRequestDto(456L, "Санкт-Петербург — Владивосток", 8, chiefId, branchId);
 
         Train train = modelMapper.map(dto, Train.class);
 
@@ -72,7 +71,7 @@ public class TrainMapperTest {
     public void testTrainToTrainDtoMappingWithNullFields() {
         Train train = new Train(null, null, null, null, null);
 
-        TrainDto dto = modelMapper.map(train, TrainDto.class);
+        TrainRequestDto dto = modelMapper.map(train, TrainRequestDto.class);
 
         assertThat(dto).isNotNull();
         assertThat(dto.getTrainNumber()).isNull();
@@ -84,7 +83,7 @@ public class TrainMapperTest {
 
     @Test
     public void testTrainDtoToTrainMappingWithNullFields() {
-        TrainDto dto = new TrainDto(null, null, null, null, null);
+        TrainRequestDto dto = new TrainRequestDto(null, null, null, null, null);
 
         Train train = modelMapper.map(dto, Train.class);
 

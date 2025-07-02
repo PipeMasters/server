@@ -1,7 +1,7 @@
 package com.pipemasters.server.mapper;
 
 import com.pipemasters.server.config.ModelMapperConfig;
-import com.pipemasters.server.dto.UploadBatchDto;
+import com.pipemasters.server.dto.request.UploadBatchRequestDto;
 import com.pipemasters.server.dto.VideoAbsenceDto;
 import com.pipemasters.server.entity.UploadBatch;
 import com.pipemasters.server.entity.VideoAbsence;
@@ -49,11 +49,11 @@ class VideoAbsenceMapperTest {
     @Test
     void testDtoToVideoAbsenceMapping() {
         // Given
-        UploadBatchDto uploadBatchDto = new UploadBatchDto();
-        uploadBatchDto.setId(20L);
+        UploadBatchRequestDto uploadBatchRequestDto = new UploadBatchRequestDto();
+        uploadBatchRequestDto.setId(20L);
 
         VideoAbsenceDto dto = new VideoAbsenceDto(
-                uploadBatchDto,
+                uploadBatchRequestDto,
                 AbsenceCause.DEVICE_FAILURE,
                 "Видео слишком низкого качества"
         );

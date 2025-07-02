@@ -1,7 +1,7 @@
 package com.pipemasters.server.mapper;
 import com.pipemasters.server.config.ModelMapperConfig;
-import com.pipemasters.server.dto.MediaFileDto;
-import com.pipemasters.server.dto.UploadBatchDto;
+import com.pipemasters.server.dto.request.MediaFileRequestDto;
+import com.pipemasters.server.dto.request.UploadBatchRequestDto;
 import com.pipemasters.server.entity.MediaFile;
 import com.pipemasters.server.entity.UploadBatch;
 import com.pipemasters.server.entity.enums.FileType;
@@ -43,7 +43,7 @@ public class MediaFileMapperTest {
         mediaFile.setId(300L);
 
         // Act
-        MediaFileDto dto = modelMapper.map(mediaFile, MediaFileDto.class);
+        MediaFileRequestDto dto = modelMapper.map(mediaFile, MediaFileRequestDto.class);
 
         // Assert
         assertEquals(mediaFile.getFilename(), dto.getFilename());
@@ -60,24 +60,24 @@ public class MediaFileMapperTest {
     @Test
     public void testDtoToEntityMapping() {
         // Arrange
-        UploadBatchDto uploadBatchDto = new UploadBatchDto();
-        uploadBatchDto.setId(101L);
+        UploadBatchRequestDto uploadBatchRequestDto = new UploadBatchRequestDto();
+        uploadBatchRequestDto.setId(101L);
 
-        MediaFileDto sourceDto = new MediaFileDto(
+        MediaFileRequestDto sourceDto = new MediaFileRequestDto(
                 "source_video.mp4",
                 FileType.VIDEO,
                 Instant.parse("2024-01-01T10:00:00Z"),
                 null,
-                uploadBatchDto.getId()
+                uploadBatchRequestDto.getId()
         );
         sourceDto.setId(200L);
 
-        MediaFileDto dto = new MediaFileDto(
+        MediaFileRequestDto dto = new MediaFileRequestDto(
                 "audio.mp3",
                 FileType.AUDIO,
                 Instant.parse("2024-01-01T12:00:00Z"),
                 sourceDto.getId(),
-                uploadBatchDto.getId()
+                uploadBatchRequestDto.getId()
         );
 
         // Act
@@ -90,7 +90,7 @@ public class MediaFileMapperTest {
         entity.setSource(sourceEntity);
 
         UploadBatch batch = new UploadBatch();
-        batch.setId(uploadBatchDto.getId());
+        batch.setId(uploadBatchRequestDto.getId());
         entity.setUploadBatch(batch);
 
         // Assert

@@ -1,13 +1,14 @@
 package com.pipemasters.server.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.pipemasters.server.dto.request.UploadBatchRequestDto;
 import com.pipemasters.server.entity.enums.AbsenceCause;
 import jakarta.validation.constraints.NotNull;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class VideoAbsenceDto extends BaseDto{
     @NotNull(message = "UploadBatchDto cannot be empty")
-    private UploadBatchDto uploadBatch;
+    private UploadBatchRequestDto uploadBatch;
     @NotNull(message = "AbsenceCause cannot be empty")
     private AbsenceCause cause;
 //    @NotNull(message = "Comment cannot be empty")
@@ -16,17 +17,17 @@ public class VideoAbsenceDto extends BaseDto{
     public VideoAbsenceDto() {
     }
 
-    public VideoAbsenceDto( UploadBatchDto uploadBatch, AbsenceCause cause, String comment) {
+    public VideoAbsenceDto(UploadBatchRequestDto uploadBatch, AbsenceCause cause, String comment) {
         this.uploadBatch = uploadBatch;
         this.cause = cause;
         this.comment = comment;
     }
 
-    public UploadBatchDto getUploadBatch() {
+    public UploadBatchRequestDto getUploadBatch() {
         return uploadBatch;
     }
 
-    public void setUploadBatch(UploadBatchDto uploadBatch) {
+    public void setUploadBatch(UploadBatchRequestDto uploadBatch) {
         this.uploadBatch = uploadBatch;
     }
 

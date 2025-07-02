@@ -1,6 +1,6 @@
 package com.pipemasters.server.controller;
 
-import com.pipemasters.server.dto.MediaFileResponseDto;
+import com.pipemasters.server.dto.response.MediaFileResponseDto;
 import com.pipemasters.server.service.MediaFileService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;

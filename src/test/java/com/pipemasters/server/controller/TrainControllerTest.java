@@ -1,6 +1,7 @@
 package com.pipemasters.server.controller;
 
-import com.pipemasters.server.dto.TrainDto;
+import com.pipemasters.server.dto.request.TrainRequestDto;
+import com.pipemasters.server.dto.response.TrainResponseDto;
 import com.pipemasters.server.service.TrainService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,12 +33,12 @@ class TrainControllerTest {
 
     @Test
     void create_ReturnsCreatedStatusAndDto() {
-        TrainDto input = new TrainDto();
-        TrainDto saved = new TrainDto();
+        TrainRequestDto input = new TrainRequestDto();
+        TrainResponseDto saved = new TrainResponseDto();
 
         when(trainService.save(input)).thenReturn(saved);
 
-        ResponseEntity<TrainDto> response = trainController.create(input);
+        ResponseEntity<TrainResponseDto> response = trainController.create(input);
 
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertEquals(saved, response.getBody());
@@ -46,10 +47,10 @@ class TrainControllerTest {
     @Test
     void get_ReturnsOkStatusAndDto() {
         Long id = 1L;
-        TrainDto dto = new TrainDto();
+        TrainResponseDto dto = new TrainResponseDto();
         when(trainService.getById(id)).thenReturn(dto);
 
-        ResponseEntity<TrainDto> response = trainController.get(id);
+        ResponseEntity<TrainResponseDto> response = trainController.get(id);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(dto, response.getBody());
@@ -57,10 +58,10 @@ class TrainControllerTest {
 
     @Test
     void getAll_ReturnsOkStatusAndList() {
-        List<TrainDto> list = List.of(new TrainDto(), new TrainDto());
+        List<TrainResponseDto> list = List.of(new TrainResponseDto(), new TrainResponseDto());
         when(trainService.getAll()).thenReturn(list);
 
-        ResponseEntity<List<TrainDto>> response = trainController.getAll();
+        ResponseEntity<List<TrainResponseDto>> response = trainController.getAll();
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(list, response.getBody());
@@ -69,12 +70,12 @@ class TrainControllerTest {
     @Test
     void update_ReturnsOkStatusAndUpdatedDto() {
         Long id = 1L;
-        TrainDto input = new TrainDto();
-        TrainDto updated = new TrainDto();
+        TrainRequestDto input = new TrainRequestDto();
+        TrainResponseDto updated = new TrainResponseDto();
 
         when(trainService.update(id, input)).thenReturn(updated);
 
-        ResponseEntity<TrainDto> response = trainController.update(id, input);
+        ResponseEntity<TrainResponseDto> response = trainController.update(id, input);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(updated, response.getBody());

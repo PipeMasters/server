@@ -1,14 +1,14 @@
 package com.pipemasters.server.service;
 
-import com.pipemasters.server.dto.UserDto;
-import com.pipemasters.server.dto.UserCreateDto;
-import com.pipemasters.server.dto.UserUpdateDto;
+import com.pipemasters.server.dto.request.create.UserCreateDto;
+import com.pipemasters.server.dto.response.UserResponseDto;
+import com.pipemasters.server.dto.request.update.UserUpdateDto;
 
 import java.util.List;
 
 public interface UserService {
-    UserDto createUser(UserCreateDto dto);
-    UserDto updateUser(Long userId, UserUpdateDto dto);
-    UserDto getUserById(Long userId);
-    List<UserDto> getUsers();
+    UserResponseDto createUser(UserCreateDto dto);
+    UserResponseDto updateUser(Long userId, UserUpdateDto dto);
+    UserResponseDto getUserById(Long userId);
+    List<UserResponseDto> getUsers();
 }

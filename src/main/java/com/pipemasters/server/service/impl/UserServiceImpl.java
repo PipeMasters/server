@@ -1,8 +1,8 @@
 package com.pipemasters.server.service.impl;
 
-import com.pipemasters.server.dto.UserDto;
-import com.pipemasters.server.dto.UserCreateDto;
-import com.pipemasters.server.dto.UserUpdateDto;
+import com.pipemasters.server.dto.response.UserResponseDto;
+import com.pipemasters.server.dto.request.create.UserCreateDto;
+import com.pipemasters.server.dto.request.update.UserUpdateDto;
 import com.pipemasters.server.entity.Branch;
 import com.pipemasters.server.entity.User;
 import com.pipemasters.server.entity.enums.Role;
@@ -36,7 +36,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @CacheEvict(cacheNames = "users", allEntries = true)
     @Transactional
-    public UserDto createUser(UserCreateDto dto) {
+    public UserResponseDto createUser(UserCreateDto dto) {
         Branch branch = branchRepository.findById(dto.getBranchId())
                 .orElseThrow(() -> new BranchNotFoundException("Branch not found with ID: " + dto.getBranchId()));
 
@@ -52,13 +52,13 @@ public class UserServiceImpl implements UserService {
             user.setRoles(defaultRoles);
         }
 
-        return modelMapper.map(userRepository.save(user), UserDto.class);
+        return modelMapper.map(userRepository.save(user), UserResponseDto.class);
     }
 
     @Override
     @CacheEvict(cacheNames = "users", allEntries = true)
     @Transactional
-    public UserDto updateUser(Long userId, UserUpdateDto dto) {
+    public UserResponseDto updateUser(Long userId, UserUpdateDto dto) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("User not found with ID: " + userId));
 
@@ -75,21 +75,21 @@ public class UserServiceImpl implements UserService {
             user.setBranch(newBranch);
         }
 
-        return modelMapper.map(userRepository.save(user), UserDto.class);
+        return modelMapper.map(userRepository.save(user), UserResponseDto.class);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public UserDto getUserById(Long userId) {
+    public UserResponseDto getUserById(Long userId) {
         User user = userRepository.findByIdWithBranch(userId)
                 .orElseThrow(() -> new UserNotFoundException("User not found with ID: " + userId));
-        return modelMapper.map(user, UserDto.class);
+        return modelMapper.map(user, UserResponseDto.class);
     }
 
     @Override
     @Cacheable("users")
-    public List<UserDto> getUsers() {
+    public List<UserResponseDto> getUsers() {
         List<User> users = userRepository.findAll();
-        return users.stream().map(u -> modelMapper.map(u,UserDto.class)).toList();
+        return users.stream().map(u -> modelMapper.map(u, UserResponseDto.class)).toList();
     }
 }

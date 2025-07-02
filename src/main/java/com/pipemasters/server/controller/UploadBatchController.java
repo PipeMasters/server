@@ -1,8 +1,9 @@
 package com.pipemasters.server.controller;
 
 import com.pipemasters.server.dto.PageDto;
-import com.pipemasters.server.dto.UploadBatchDto;
+import com.pipemasters.server.dto.request.UploadBatchRequestDto;
 import com.pipemasters.server.dto.UploadBatchFilter;
+import com.pipemasters.server.dto.response.UploadBatchResponseDto;
 import com.pipemasters.server.service.UploadBatchService;
 import com.pipemasters.server.dto.UploadBatchDtoSmallResponse;
 import org.springframework.data.domain.Page;
@@ -73,13 +74,12 @@ public class UploadBatchController {
     }
 
     @PostMapping
-    public ResponseEntity<UploadBatchDto> create(@RequestBody UploadBatchDto uploadBatchDto) {
-        UploadBatchDto saved = uploadBatchService.save(uploadBatchDto);
-        return new ResponseEntity<>(uploadBatchService.save(uploadBatchDto), HttpStatus.CREATED);
+    public ResponseEntity<UploadBatchResponseDto> create(@RequestBody UploadBatchRequestDto uploadBatchRequestDto) {
+        return new ResponseEntity<>(uploadBatchService.save(uploadBatchRequestDto), HttpStatus.CREATED);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<UploadBatchDto> getById(@PathVariable Long id) {
+    public ResponseEntity<UploadBatchResponseDto> getById(@PathVariable Long id) {
         return new ResponseEntity<>(uploadBatchService.getById(id), HttpStatus.OK);
     }
 
@@ -89,7 +89,7 @@ public class UploadBatchController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<UploadBatchDto> update(@PathVariable Long id, @RequestBody UploadBatchDto dto) {
+    public ResponseEntity<UploadBatchResponseDto> update(@PathVariable Long id, @RequestBody UploadBatchRequestDto dto) {
         return new ResponseEntity<>(uploadBatchService.update(id, dto), HttpStatus.OK);
     }
 }

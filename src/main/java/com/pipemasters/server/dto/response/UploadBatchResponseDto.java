@@ -1,6 +1,7 @@
-package com.pipemasters.server.dto;
+package com.pipemasters.server.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.pipemasters.server.dto.BaseDto;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -8,7 +9,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class UploadBatchDtoResponse extends BaseDto{
+public class UploadBatchResponseDto extends BaseDto {
     private String directory;
     private Long uploadedId;
     private Instant createdAt;
@@ -23,10 +24,10 @@ public class UploadBatchDtoResponse extends BaseDto{
     private MediaFileResponseDto file;
     private Long absenceId;
 
-    public UploadBatchDtoResponse() {
+    public UploadBatchResponseDto() {
     }
 
-    public UploadBatchDtoResponse(String directory, Long uploadedId, Instant createdAt, LocalDate trainDeparted, Long trainId, String comment, Set<String> keywords, Long branchId, boolean archived, Instant deletedAt, boolean deleted, MediaFileResponseDto file, Long absenceId) {
+    public UploadBatchResponseDto(String directory, Long uploadedId, Instant createdAt, LocalDate trainDeparted, Long trainId, String comment, Set<String> keywords, Long branchId, boolean archived, Instant deletedAt, boolean deleted, MediaFileResponseDto file, Long absenceId) {
         this.directory = directory;
         this.uploadedId = uploadedId;
         this.createdAt = createdAt;

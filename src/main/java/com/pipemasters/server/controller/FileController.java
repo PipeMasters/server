@@ -1,6 +1,6 @@
 package com.pipemasters.server.controller;
 
-import com.pipemasters.server.dto.FileUploadRequestDto;
+import com.pipemasters.server.dto.request.FileUploadRequestDto;
 import com.pipemasters.server.service.FileService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

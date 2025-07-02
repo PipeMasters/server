@@ -1,6 +1,7 @@
 package com.pipemasters.server.controller;
 
-import com.pipemasters.server.dto.BranchDto;
+import com.pipemasters.server.dto.request.BranchRequestDto;
+import com.pipemasters.server.dto.response.BranchResponseDto;
 import com.pipemasters.server.service.BranchService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,56 +20,56 @@ public class BranchController {
     }
 
     @PostMapping
-    public ResponseEntity<BranchDto> create(@RequestBody BranchDto dto) {
-        BranchDto created = branchService.createBranch(dto);
+    public ResponseEntity<BranchResponseDto> create(@RequestBody BranchRequestDto dto) {
+        BranchResponseDto created = branchService.createBranch(dto);
         return new ResponseEntity<>(created, HttpStatus.CREATED);
     }
 
     @PatchMapping("/{id}/rename")
-    public ResponseEntity<BranchDto> rename(@PathVariable Long id, @RequestParam String name) {
-        BranchDto updated = branchService.updateBranchName(id, name);
+    public ResponseEntity<BranchResponseDto> rename(@PathVariable Long id, @RequestParam String name) {
+        BranchResponseDto updated = branchService.updateBranchName(id, name);
         return new ResponseEntity<>(updated, HttpStatus.OK);
     }
 
     @PatchMapping("/{id}/reassign")
-    public ResponseEntity<BranchDto> reassignParent(@PathVariable Long id, @RequestParam(required = false) Long parentId) {
-        BranchDto updated = branchService.reassignParent(id, parentId);
+    public ResponseEntity<BranchResponseDto> reassignParent(@PathVariable Long id, @RequestParam(required = false) Long parentId) {
+        BranchResponseDto updated = branchService.reassignParent(id, parentId);
         return new ResponseEntity<>(updated, HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<BranchDto> getBranchById(
+    public ResponseEntity<BranchResponseDto> getBranchById(
             @PathVariable Long id,
             @RequestParam(value = "includeParent", defaultValue = "false") boolean includeParent) {
-        BranchDto branch = branchService.getBranchById(id, includeParent);
+        BranchResponseDto branch = branchService.getBranchById(id, includeParent);
         return ResponseEntity.ok(branch);
     }
 
     @GetMapping("/by-name")
-    public ResponseEntity<BranchDto> getBranchByName(
+    public ResponseEntity<BranchResponseDto> getBranchByName(
             @RequestParam String name,
             @RequestParam(value = "includeParent", defaultValue = "false") boolean includeParent) {
-        BranchDto branch = branchService.getBranchByName(name, includeParent);
+        BranchResponseDto branch = branchService.getBranchByName(name, includeParent);
         return ResponseEntity.ok(branch);
     }
 
     @GetMapping("/all")
-    public ResponseEntity<List<BranchDto>> getAllBranches(
+    public ResponseEntity<List<BranchResponseDto>> getAllBranches(
             @RequestParam(value = "includeParent", defaultValue = "false") boolean includeParent) {
-        List<BranchDto> branches = branchService.getAllBranches(includeParent);
+        List<BranchResponseDto> branches = branchService.getAllBranches(includeParent);
         return ResponseEntity.ok(branches);
     }
 
     @GetMapping("/children/{parentId}")
-    public ResponseEntity<List<BranchDto>> getChildBranches(
+    public ResponseEntity<List<BranchResponseDto>> getChildBranches(
             @PathVariable Long parentId,
             @RequestParam(value = "includeParent", defaultValue = "false") boolean includeParent) {
-        List<BranchDto> childBranches = branchService.getChildBranches(parentId, includeParent);
+        List<BranchResponseDto> childBranches = branchService.getChildBranches(parentId, includeParent);
         return ResponseEntity.ok(childBranches);
     }
 
     @GetMapping("/parents")
-    public ResponseEntity<List<BranchDto>> getParentsBranches() {
+    public ResponseEntity<List<BranchResponseDto>> getParentsBranches() {
         return ResponseEntity.ok(branchService.getParentBranches());
     }
 }

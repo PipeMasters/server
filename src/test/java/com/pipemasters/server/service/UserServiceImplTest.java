@@ -1,9 +1,9 @@
 package com.pipemasters.server.service;
 
-import com.pipemasters.server.dto.BranchDto;
-import com.pipemasters.server.dto.UserDto;
-import com.pipemasters.server.dto.UserCreateDto;
-import com.pipemasters.server.dto.UserUpdateDto;
+import com.pipemasters.server.dto.request.create.UserCreateDto;
+import com.pipemasters.server.dto.request.BranchRequestDto;
+import com.pipemasters.server.dto.response.UserResponseDto;
+import com.pipemasters.server.dto.request.update.UserUpdateDto;
 import com.pipemasters.server.entity.Branch;
 import com.pipemasters.server.entity.User;
 import com.pipemasters.server.entity.enums.Role;
@@ -59,30 +59,30 @@ class UserServiceImplTest {
         savedUser.setBranch(mockBranch);
         savedUser.setRoles(Collections.singleton(Role.USER));
 
-        UserDto expectedUserDto = new UserDto();
-        expectedUserDto.setId(1L);
-        expectedUserDto.setName("Test");
-        expectedUserDto.setSurname("User");
+        UserResponseDto expectedUserResponseDto = new UserResponseDto();
+        expectedUserResponseDto.setId(1L);
+        expectedUserResponseDto.setName("Test");
+        expectedUserResponseDto.setSurname("User");
 
-        BranchDto expectedBranchDto = new BranchDto();
-        expectedBranchDto.setId(1L);
-        expectedUserDto.setBranchId(expectedBranchDto.getId());
+        BranchRequestDto expectedBranchRequestDto = new BranchRequestDto();
+        expectedBranchRequestDto.setId(1L);
+        expectedUserResponseDto.setBranchId(expectedBranchRequestDto.getId());
 
-        expectedUserDto.setRoles(Collections.singleton(Role.USER));
+        expectedUserResponseDto.setRoles(Collections.singleton(Role.USER));
 
         when(branchRepository.findById(1L)).thenReturn(Optional.of(mockBranch));
         when(userRepository.save(any(User.class))).thenReturn(savedUser);
-        when(modelMapper.map(savedUser, UserDto.class)).thenReturn(expectedUserDto);
+        when(modelMapper.map(savedUser, UserResponseDto.class)).thenReturn(expectedUserResponseDto);
 
-        UserDto result = userService.createUser(createDto);
+        UserResponseDto result = userService.createUser(createDto);
 
         assertNotNull(result);
-        assertEquals(expectedUserDto.getId(), result.getId());
-        assertEquals(expectedUserDto.getName(), result.getName());
-        assertEquals(expectedUserDto.getBranchId(), result.getBranchId());
+        assertEquals(expectedUserResponseDto.getId(), result.getId());
+        assertEquals(expectedUserResponseDto.getName(), result.getName());
+        assertEquals(expectedUserResponseDto.getBranchId(), result.getBranchId());
         verify(branchRepository, times(1)).findById(1L);
         verify(userRepository, times(1)).save(any(User.class));
-        verify(modelMapper, times(1)).map(any(User.class), eq(UserDto.class));
+        verify(modelMapper, times(1)).map(any(User.class), eq(UserResponseDto.class));
     }
 
     @Test
@@ -101,7 +101,6 @@ class UserServiceImplTest {
     void updateUserSuccessfully() {
         Long userId = 1L;
         UserUpdateDto updateDto = new UserUpdateDto();
-        updateDto.setId(userId);
         updateDto.setName("UpdatedName");
         updateDto.setBranchId(2L);
         updateDto.setRoles(new HashSet<>(Collections.singletonList(Role.ADMIN)));
@@ -124,27 +123,27 @@ class UserServiceImplTest {
         updatedUserAfterSave.setRoles(new HashSet<>(Collections.singletonList(Role.ADMIN)));
 
 
-        UserDto expectedUserDto = new UserDto();
-        expectedUserDto.setId(userId);
-        expectedUserDto.setName("UpdatedName");
+        UserResponseDto expectedUserResponseDto = new UserResponseDto();
+        expectedUserResponseDto.setId(userId);
+        expectedUserResponseDto.setName("UpdatedName");
 
-        BranchDto expectedBranchDto = new BranchDto();
-        expectedBranchDto.setId(2L);
-        expectedUserDto.setBranchId(expectedBranchDto.getId());
+        BranchRequestDto expectedBranchRequestDto = new BranchRequestDto();
+        expectedBranchRequestDto.setId(2L);
+        expectedUserResponseDto.setBranchId(expectedBranchRequestDto.getId());
 
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
         when(branchRepository.findById(2L)).thenReturn(Optional.of(newBranch));
         when(userRepository.save(any(User.class))).thenReturn(updatedUserAfterSave);
-        when(modelMapper.map(any(User.class), eq(UserDto.class))).thenReturn(expectedUserDto);
+        when(modelMapper.map(any(User.class), eq(UserResponseDto.class))).thenReturn(expectedUserResponseDto);
         doNothing().when(modelMapper).map(updateDto, existingUser);
 
 
-        UserDto result = userService.updateUser(userId, updateDto);
+        UserResponseDto result = userService.updateUser(userId, updateDto);
 
         assertNotNull(result);
-        assertEquals(expectedUserDto.getName(), result.getName());
-        assertEquals(expectedUserDto.getBranchId(), result.getBranchId());
+        assertEquals(expectedUserResponseDto.getName(), result.getName());
+        assertEquals(expectedUserResponseDto.getBranchId(), result.getBranchId());
         verify(userRepository, times(1)).findById(userId);
         verify(branchRepository, times(1)).findById(2L);
         verify(userRepository, times(1)).save(existingUser);
@@ -175,27 +174,27 @@ class UserServiceImplTest {
         foundUser.setName("RetrievedUser");
         foundUser.setBranch(branchForUser);
 
-        UserDto expectedUserDto = new UserDto();
-        expectedUserDto.setId(userId);
-        expectedUserDto.setName("RetrievedUser");
+        UserResponseDto expectedUserResponseDto = new UserResponseDto();
+        expectedUserResponseDto.setId(userId);
+        expectedUserResponseDto.setName("RetrievedUser");
 
-        BranchDto expectedBranchDto = new BranchDto();
-        expectedBranchDto.setId(1L);
-        expectedBranchDto.setName("Main Branch");
-        expectedUserDto.setBranchId(expectedBranchDto.getId());
+        BranchRequestDto expectedBranchRequestDto = new BranchRequestDto();
+        expectedBranchRequestDto.setId(1L);
+        expectedBranchRequestDto.setName("Main Branch");
+        expectedUserResponseDto.setBranchId(expectedBranchRequestDto.getId());
 
 
         when(userRepository.findByIdWithBranch(userId)).thenReturn(Optional.of(foundUser));
-        when(modelMapper.map(foundUser, UserDto.class)).thenReturn(expectedUserDto);
+        when(modelMapper.map(foundUser, UserResponseDto.class)).thenReturn(expectedUserResponseDto);
 
-        UserDto result = userService.getUserById(userId);
+        UserResponseDto result = userService.getUserById(userId);
 
         assertNotNull(result);
-        assertEquals(expectedUserDto.getId(), result.getId());
-        assertEquals(expectedUserDto.getName(), result.getName());
-        assertEquals(expectedUserDto.getBranchId(), result.getBranchId());
+        assertEquals(expectedUserResponseDto.getId(), result.getId());
+        assertEquals(expectedUserResponseDto.getName(), result.getName());
+        assertEquals(expectedUserResponseDto.getBranchId(), result.getBranchId());
         verify(userRepository, times(1)).findByIdWithBranch(userId);
-        verify(modelMapper, times(1)).map(foundUser, UserDto.class);
+        verify(modelMapper, times(1)).map(foundUser, UserResponseDto.class);
     }
 
     @Test
@@ -222,16 +221,16 @@ class UserServiceImplTest {
 
         List<User> mockUsers = List.of(user1, user2);
 
-        UserDto userDto1 = new UserDto("Alice", "Smith", "A.", Set.of(Role.USER), null);
-        userDto1.setId(1L);
-        UserDto userDto2 = new UserDto("Bob", "Johnson", "B.", Set.of(Role.ADMIN), null);
-        userDto2.setId(2L);
+        UserResponseDto userResponseDto1 = new UserResponseDto("Alice", "Smith", "A.", Set.of(Role.USER), null);
+        userResponseDto1.setId(1L);
+        UserResponseDto userResponseDto2 = new UserResponseDto("Bob", "Johnson", "B.", Set.of(Role.ADMIN), null);
+        userResponseDto2.setId(2L);
 
         when(userRepository.findAll()).thenReturn(mockUsers);
-        when(modelMapper.map(user1, UserDto.class)).thenReturn(userDto1);
-        when(modelMapper.map(user2, UserDto.class)).thenReturn(userDto2);
+        when(modelMapper.map(user1, UserResponseDto.class)).thenReturn(userResponseDto1);
+        when(modelMapper.map(user2, UserResponseDto.class)).thenReturn(userResponseDto2);
 
-        List<UserDto> result = userService.getUsers();
+        List<UserResponseDto> result = userService.getUsers();
 
         assertNotNull(result);
         assertEquals(2, result.size());
@@ -239,8 +238,8 @@ class UserServiceImplTest {
         assertEquals("Bob", result.get(1).getName());
 
         verify(userRepository, times(1)).findAll();
-        verify(modelMapper, times(1)).map(user1, UserDto.class);
-        verify(modelMapper, times(1)).map(user2, UserDto.class);
+        verify(modelMapper, times(1)).map(user1, UserResponseDto.class);
+        verify(modelMapper, times(1)).map(user2, UserResponseDto.class);
     }
 
 }

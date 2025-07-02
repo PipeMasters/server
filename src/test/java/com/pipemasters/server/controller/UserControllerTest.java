@@ -1,9 +1,9 @@
 package com.pipemasters.server.controller;
 
-import com.pipemasters.server.dto.BranchDto;
-import com.pipemasters.server.dto.UserDto;
-import com.pipemasters.server.dto.UserCreateDto;
-import com.pipemasters.server.dto.UserUpdateDto;
+import com.pipemasters.server.dto.request.BranchRequestDto;
+import com.pipemasters.server.dto.response.UserResponseDto;
+import com.pipemasters.server.dto.request.create.UserCreateDto;
+import com.pipemasters.server.dto.request.update.UserUpdateDto;
 import com.pipemasters.server.entity.enums.Role;
 import com.pipemasters.server.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -13,7 +13,7 @@ import org.springframework.http.ResponseEntity;
 
 import java.util.Collections;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.hibernate.validator.internal.util.Contracts.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
@@ -35,29 +35,25 @@ class UserControllerTest {
         createDto.setSurname("User");
         createDto.setBranchId(1L);
 
-        UserDto expectedUserDto = new UserDto();
-        expectedUserDto.setId(1L);
-        expectedUserDto.setName("Test");
-        expectedUserDto.setSurname("User");
+        UserResponseDto expectedUserResponseDto = new UserResponseDto();
+        expectedUserResponseDto.setId(1L);
+        expectedUserResponseDto.setName("Test");
+        expectedUserResponseDto.setSurname("User");
 
-        // FIX: Initialize BranchDto and set it on expectedUserDto
-        BranchDto branchDto = new BranchDto();
-        branchDto.setId(1L);
-        // If BranchDto also has a 'name' field and your DTO mapping fills it, you might want to set it here too:
-        // branchDto.setName("Test Branch");
-        expectedUserDto.setBranchId(branchDto.getId()); // Set the initialized BranchDto
+        BranchRequestDto branchRequestDto = new BranchRequestDto();
+        branchRequestDto.setId(1L);
+        expectedUserResponseDto.setBranchId(branchRequestDto.getId());
 
-        expectedUserDto.setRoles(Collections.singleton(Role.USER));
+        expectedUserResponseDto.setRoles(Collections.singleton(Role.USER));
 
-        when(userService.createUser(createDto)).thenReturn(expectedUserDto);
+        when(userService.createUser(createDto)).thenReturn(expectedUserResponseDto);
 
-        ResponseEntity<UserDto> response = userController.createUser(createDto);
+        ResponseEntity<UserResponseDto> response = userController.createUser(createDto);
 
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        // Verify that the branch in the returned DTO is not null and has the correct ID
         assertNotNull(response.getBody().getBranchId());
-        assertEquals(expectedUserDto.getBranchId(), response.getBody().getBranchId());
-        assertEquals(expectedUserDto.getId(), response.getBody().getId()); // General check for other fields
+        assertEquals(expectedUserResponseDto.getBranchId(), response.getBody().getBranchId());
+        assertEquals(expectedUserResponseDto.getId(), response.getBody().getId());
         verify(userService, times(1)).createUser(createDto);
     }
 
@@ -66,49 +62,46 @@ class UserControllerTest {
         Long userId = 1L;
         UserUpdateDto updateDto = new UserUpdateDto();
         updateDto.setName("UpdatedName");
-        updateDto.setId(userId);
 
-        UserDto expectedUserDto = new UserDto();
-        expectedUserDto.setId(userId);
-        expectedUserDto.setName("UpdatedName");
-        // FIX: Initialize BranchDto and set it, assuming updates can change the branch
-        BranchDto branchDto = new BranchDto();
-        branchDto.setId(2L); // Assuming branch might change to ID 2
-        expectedUserDto.setBranchId(branchDto.getId());
+        UserResponseDto expectedUserResponseDto = new UserResponseDto();
+        expectedUserResponseDto.setId(userId);
+        expectedUserResponseDto.setName("UpdatedName");
+        BranchRequestDto branchRequestDto = new BranchRequestDto();
+        branchRequestDto.setId(2L);
+        expectedUserResponseDto.setBranchId(branchRequestDto.getId());
 
 
-        when(userService.updateUser(userId, updateDto)).thenReturn(expectedUserDto);
+        when(userService.updateUser(userId, updateDto)).thenReturn(expectedUserResponseDto);
 
-        ResponseEntity<UserDto> response = userController.updateUser(userId, updateDto);
+        ResponseEntity<UserResponseDto> response = userController.updateUser(userId, updateDto);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody().getBranchId()); // Assert branch is not null
-        assertEquals(expectedUserDto.getBranchId(), response.getBody().getBranchId());
-        assertEquals(expectedUserDto.getId(), response.getBody().getId());
+        assertNotNull(response.getBody().getBranchId());
+        assertEquals(expectedUserResponseDto.getBranchId(), response.getBody().getBranchId());
+        assertEquals(expectedUserResponseDto.getId(), response.getBody().getId());
         verify(userService, times(1)).updateUser(userId, updateDto);
     }
 
     @Test
     void getUserByIdReturnsUser() {
         Long userId = 1L;
-        UserDto expectedUserDto = new UserDto();
-        expectedUserDto.setId(userId);
-        expectedUserDto.setName("Retrieved");
-        // FIX: Initialize BranchDto and set it
-        BranchDto branchDto = new BranchDto();
-        branchDto.setId(1L);
-        branchDto.setName("Retrieved Branch Name"); // If your UserDto also populates branch name
-        expectedUserDto.setBranchId(branchDto.getId());
+        UserResponseDto expectedUserResponseDto = new UserResponseDto();
+        expectedUserResponseDto.setId(userId);
+        expectedUserResponseDto.setName("Retrieved");
+        BranchRequestDto branchRequestDto = new BranchRequestDto();
+        branchRequestDto.setId(1L);
+        branchRequestDto.setName("Retrieved Branch Name");
+        expectedUserResponseDto.setBranchId(branchRequestDto.getId());
 
 
-        when(userService.getUserById(userId)).thenReturn(expectedUserDto);
+        when(userService.getUserById(userId)).thenReturn(expectedUserResponseDto);
 
-        ResponseEntity<UserDto> response = userController.getUserById(userId);
+        ResponseEntity<UserResponseDto> response = userController.getUserById(userId);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody().getBranchId()); // Assert branch is not null
-        assertEquals(expectedUserDto.getBranchId(), response.getBody().getBranchId());
-        assertEquals(expectedUserDto.getId(), response.getBody().getId());
+        assertNotNull(response.getBody().getBranchId());
+        assertEquals(expectedUserResponseDto.getBranchId(), response.getBody().getBranchId());
+        assertEquals(expectedUserResponseDto.getId(), response.getBody().getId());
         verify(userService, times(1)).getUserById(userId);
     }
 }

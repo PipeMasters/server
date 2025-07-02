@@ -1,6 +1,7 @@
 package com.pipemasters.server.controller;
 
-import com.pipemasters.server.dto.BranchDto;
+import com.pipemasters.server.dto.request.BranchRequestDto;
+import com.pipemasters.server.dto.response.BranchResponseDto;
 import com.pipemasters.server.exceptions.branch.BranchNotFoundException;
 import com.pipemasters.server.service.BranchService;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,29 +30,29 @@ class BranchControllerTest {
     @InjectMocks
     private BranchController branchController;
 
-    private BranchDto mockBranchDto1;
-    private BranchDto mockBranchDto2;
+    private BranchResponseDto mockBranchResponseDto1;
+    private BranchResponseDto mockBranchResponseDto2;
 
     @BeforeEach
     void setUp() {
-        mockBranchDto1 = new BranchDto();
-        mockBranchDto1.setId(1L);
-        mockBranchDto1.setName("Test Branch 1");
+        mockBranchResponseDto1 = new BranchResponseDto();
+        mockBranchResponseDto1.setId(1L);
+        mockBranchResponseDto1.setName("Test Branch 1");
 
-        mockBranchDto2 = new BranchDto();
-        mockBranchDto2.setId(2L);
-        mockBranchDto2.setName("Test Branch 2");
-        mockBranchDto2.setParentId(mockBranchDto1.getId());
+        mockBranchResponseDto2 = new BranchResponseDto();
+        mockBranchResponseDto2.setId(2L);
+        mockBranchResponseDto2.setName("Test Branch 2");
+        mockBranchResponseDto2.setParentId(mockBranchResponseDto1.getId());
     }
 
     @Test
     void create_ReturnsCreatedStatusAndDto() {
-        BranchDto input = new BranchDto();
-        BranchDto saved = new BranchDto();
+        BranchRequestDto input = new BranchRequestDto();
+        BranchResponseDto saved = new BranchResponseDto();
 
         when(branchService.createBranch(input)).thenReturn(saved);
 
-        ResponseEntity<BranchDto> response = branchController.create(input);
+        ResponseEntity<BranchResponseDto> response = branchController.create(input);
 
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertEquals(saved, response.getBody());
@@ -61,11 +62,11 @@ class BranchControllerTest {
     void updateName_ReturnsOkStatusAndUpdatedDto() {
         Long id = 1L;
         String newName = "UpdatedName";
-        BranchDto updated = new BranchDto();
+        BranchResponseDto updated = new BranchResponseDto();
 
         when(branchService.updateBranchName(id, newName)).thenReturn(updated);
 
-        ResponseEntity<BranchDto> response = branchController.rename(id, newName);
+        ResponseEntity<BranchResponseDto> response = branchController.rename(id, newName);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(updated, response.getBody());
@@ -75,11 +76,11 @@ class BranchControllerTest {
     void reassignParent_ReturnsOkStatusAndDto() {
         Long id = 2L;
         Long newParentId = 1L;
-        BranchDto updated = new BranchDto();
+        BranchResponseDto updated = new BranchResponseDto();
 
         when(branchService.reassignParent(id, newParentId)).thenReturn(updated);
 
-        ResponseEntity<BranchDto> response = branchController.reassignParent(id, newParentId);
+        ResponseEntity<BranchResponseDto> response = branchController.reassignParent(id, newParentId);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(updated, response.getBody());
@@ -87,29 +88,29 @@ class BranchControllerTest {
 
     @Test
     void getBranchById_ReturnsOkStatusAndDtoWhenFound_NoParent() {
-        when(branchService.getBranchById(mockBranchDto1.getId(), false)).thenReturn(mockBranchDto1);
+        when(branchService.getBranchById(mockBranchResponseDto1.getId(), false)).thenReturn(mockBranchResponseDto1);
 
-        ResponseEntity<BranchDto> response = branchController.getBranchById(mockBranchDto1.getId(), false);
+        ResponseEntity<BranchResponseDto> response = branchController.getBranchById(mockBranchResponseDto1.getId(), false);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(mockBranchDto1, response.getBody());
+        assertEquals(mockBranchResponseDto1, response.getBody());
     }
 
     @Test
     void getBranchById_ReturnsOkStatusAndDtoWhenFound_WithParent() {
-        BranchDto childWithParentDto = new BranchDto();
-        childWithParentDto.setId(mockBranchDto2.getId());
-        childWithParentDto.setName(mockBranchDto2.getName());
-        childWithParentDto.setParentId(mockBranchDto1.getId());
+        BranchResponseDto childWithParentDto = new BranchResponseDto();
+        childWithParentDto.setId(mockBranchResponseDto2.getId());
+        childWithParentDto.setName(mockBranchResponseDto2.getName());
+        childWithParentDto.setParentId(mockBranchResponseDto1.getId());
 
-        when(branchService.getBranchById(mockBranchDto2.getId(), true)).thenReturn(childWithParentDto);
+        when(branchService.getBranchById(mockBranchResponseDto2.getId(), true)).thenReturn(childWithParentDto);
 
-        ResponseEntity<BranchDto> response = branchController.getBranchById(mockBranchDto2.getId(), true);
+        ResponseEntity<BranchResponseDto> response = branchController.getBranchById(mockBranchResponseDto2.getId(), true);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(childWithParentDto, response.getBody());
         assertNotNull(response.getBody().getParentId());
-        assertEquals(mockBranchDto1.getId(), response.getBody().getParentId());
+        assertEquals(mockBranchResponseDto1.getId(), response.getBody().getParentId());
     }
 
     @Test
@@ -123,24 +124,24 @@ class BranchControllerTest {
 
     @Test
     void getBranchByName_ReturnsOkStatusAndDtoWhenFound_NoParent() {
-        when(branchService.getBranchByName(mockBranchDto1.getName(), false)).thenReturn(mockBranchDto1);
+        when(branchService.getBranchByName(mockBranchResponseDto1.getName(), false)).thenReturn(mockBranchResponseDto1);
 
-        ResponseEntity<BranchDto> response = branchController.getBranchByName(mockBranchDto1.getName(), false);
+        ResponseEntity<BranchResponseDto> response = branchController.getBranchByName(mockBranchResponseDto1.getName(), false);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(mockBranchDto1, response.getBody());
+        assertEquals(mockBranchResponseDto1, response.getBody());
     }
 
     @Test
     void getBranchByName_ReturnsOkStatusAndDtoWhenFound_WithParent() {
-        BranchDto childWithParentDto = new BranchDto();
-        childWithParentDto.setId(mockBranchDto2.getId());
-        childWithParentDto.setName(mockBranchDto2.getName());
-        childWithParentDto.setParentId(mockBranchDto1.getId());
+        BranchResponseDto childWithParentDto = new BranchResponseDto();
+        childWithParentDto.setId(mockBranchResponseDto2.getId());
+        childWithParentDto.setName(mockBranchResponseDto2.getName());
+        childWithParentDto.setParentId(mockBranchResponseDto1.getId());
 
-        when(branchService.getBranchByName(mockBranchDto2.getName(), true)).thenReturn(childWithParentDto);
+        when(branchService.getBranchByName(mockBranchResponseDto2.getName(), true)).thenReturn(childWithParentDto);
 
-        ResponseEntity<BranchDto> response = branchController.getBranchByName(mockBranchDto2.getName(), true);
+        ResponseEntity<BranchResponseDto> response = branchController.getBranchByName(mockBranchResponseDto2.getName(), true);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(childWithParentDto, response.getBody());
@@ -158,35 +159,35 @@ class BranchControllerTest {
 
     @Test
     void getAllBranches_ReturnsOkStatusAndListOfDtos_NoParents() {
-        List<BranchDto> expectedBranches = Arrays.asList(mockBranchDto1, mockBranchDto2);
-        BranchDto simpleBranchDto1 = new BranchDto();
-        simpleBranchDto1.setId(mockBranchDto1.getId());
-        simpleBranchDto1.setName(mockBranchDto1.getName());
+        List<BranchResponseDto> expectedBranches = Arrays.asList(mockBranchResponseDto1, mockBranchResponseDto2);
+        BranchResponseDto simpleBranchResponseDto1 = new BranchResponseDto();
+        simpleBranchResponseDto1.setId(mockBranchResponseDto1.getId());
+        simpleBranchResponseDto1.setName(mockBranchResponseDto1.getName());
 
-        BranchDto simpleBranchDto2 = new BranchDto();
-        simpleBranchDto2.setId(mockBranchDto2.getId());
-        simpleBranchDto2.setName(mockBranchDto2.getName());
-        simpleBranchDto2.setParentId(null);
+        BranchResponseDto simpleBranchResponseDto2 = new BranchResponseDto();
+        simpleBranchResponseDto2.setId(mockBranchResponseDto2.getId());
+        simpleBranchResponseDto2.setName(mockBranchResponseDto2.getName());
+        simpleBranchResponseDto2.setParentId(null);
 
-        when(branchService.getAllBranches(false)).thenReturn(Arrays.asList(simpleBranchDto1, simpleBranchDto2));
+        when(branchService.getAllBranches(false)).thenReturn(Arrays.asList(simpleBranchResponseDto1, simpleBranchResponseDto2));
 
-        ResponseEntity<List<BranchDto>> response = branchController.getAllBranches(false);
+        ResponseEntity<List<BranchResponseDto>> response = branchController.getAllBranches(false);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals(2, response.getBody().size());
-        assertEquals(simpleBranchDto1, response.getBody().get(0));
-        assertEquals(simpleBranchDto2, response.getBody().get(1));
+        assertEquals(simpleBranchResponseDto1, response.getBody().get(0));
+        assertEquals(simpleBranchResponseDto2, response.getBody().get(1));
         assertNull(response.getBody().get(0).getParentId());
         assertNull(response.getBody().get(1).getParentId());
     }
 
     @Test
     void getAllBranches_ReturnsOkStatusAndListOfDtos_WithParents() {
-        List<BranchDto> expectedBranches = Arrays.asList(mockBranchDto1, mockBranchDto2);
+        List<BranchResponseDto> expectedBranches = Arrays.asList(mockBranchResponseDto1, mockBranchResponseDto2);
         when(branchService.getAllBranches(true)).thenReturn(expectedBranches);
 
-        ResponseEntity<List<BranchDto>> response = branchController.getAllBranches(true);
+        ResponseEntity<List<BranchResponseDto>> response = branchController.getAllBranches(true);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -200,7 +201,7 @@ class BranchControllerTest {
     void getAllBranches_ReturnsEmptyListWhenNoBranchesExist() {
         when(branchService.getAllBranches(anyBoolean())).thenReturn(Collections.emptyList());
 
-        ResponseEntity<List<BranchDto>> response = branchController.getAllBranches(false);
+        ResponseEntity<List<BranchResponseDto>> response = branchController.getAllBranches(false);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -209,15 +210,15 @@ class BranchControllerTest {
 
     @Test
     void getChildBranches_ReturnsOkStatusAndListOfDtosWhenParentIdGiven_NoParentsInResponse() {
-        List<BranchDto> children = Arrays.asList(mockBranchDto2);
-        BranchDto childWithoutParentInResponse = new BranchDto();
-        childWithoutParentInResponse.setId(mockBranchDto2.getId());
-        childWithoutParentInResponse.setName(mockBranchDto2.getName());
+        List<BranchResponseDto> children = Arrays.asList(mockBranchResponseDto2);
+        BranchResponseDto childWithoutParentInResponse = new BranchResponseDto();
+        childWithoutParentInResponse.setId(mockBranchResponseDto2.getId());
+        childWithoutParentInResponse.setName(mockBranchResponseDto2.getName());
         childWithoutParentInResponse.setParentId(null);
 
-        when(branchService.getChildBranches(mockBranchDto1.getId(), false)).thenReturn(Arrays.asList(childWithoutParentInResponse));
+        when(branchService.getChildBranches(mockBranchResponseDto1.getId(), false)).thenReturn(Arrays.asList(childWithoutParentInResponse));
 
-        ResponseEntity<List<BranchDto>> response = branchController.getChildBranches(mockBranchDto1.getId(), false);
+        ResponseEntity<List<BranchResponseDto>> response = branchController.getChildBranches(mockBranchResponseDto1.getId(), false);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -228,24 +229,24 @@ class BranchControllerTest {
 
     @Test
     void getChildBranches_ReturnsOkStatusAndListOfDtosWhenParentIdGiven_WithParentsInResponse() {
-        List<BranchDto> children = Arrays.asList(mockBranchDto2);
-        when(branchService.getChildBranches(mockBranchDto1.getId(), true)).thenReturn(children);
+        List<BranchResponseDto> children = Arrays.asList(mockBranchResponseDto2);
+        when(branchService.getChildBranches(mockBranchResponseDto1.getId(), true)).thenReturn(children);
 
-        ResponseEntity<List<BranchDto>> response = branchController.getChildBranches(mockBranchDto1.getId(), true);
+        ResponseEntity<List<BranchResponseDto>> response = branchController.getChildBranches(mockBranchResponseDto1.getId(), true);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals(1, response.getBody().size());
         assertEquals(children, response.getBody());
         assertNotNull(response.getBody().get(0).getParentId());
-        assertEquals(mockBranchDto1.getId(), response.getBody().get(0).getParentId());
+        assertEquals(mockBranchResponseDto1.getId(), response.getBody().get(0).getParentId());
     }
 
     @Test
     void getChildBranches_ReturnsEmptyListWhenNoChildrenFound() {
-        when(branchService.getChildBranches(eq(mockBranchDto1.getId()), anyBoolean())).thenReturn(Collections.emptyList());
+        when(branchService.getChildBranches(eq(mockBranchResponseDto1.getId()), anyBoolean())).thenReturn(Collections.emptyList());
 
-        ResponseEntity<List<BranchDto>> response = branchController.getChildBranches(mockBranchDto1.getId(), false);
+        ResponseEntity<List<BranchResponseDto>> response = branchController.getChildBranches(mockBranchResponseDto1.getId(), false);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -263,15 +264,15 @@ class BranchControllerTest {
 
     @Test
     void getParentsBranches_ReturnsOkStatusAndListOfRootBranches() {
-        List<BranchDto> rootBranches = Arrays.asList(mockBranchDto1);
+        List<BranchResponseDto> rootBranches = Arrays.asList(mockBranchResponseDto1);
         when(branchService.getParentBranches()).thenReturn(rootBranches);
 
-        ResponseEntity<List<BranchDto>> response = branchController.getParentsBranches();
+        ResponseEntity<List<BranchResponseDto>> response = branchController.getParentsBranches();
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals(1, response.getBody().size());
-        assertEquals(mockBranchDto1, response.getBody().get(0));
+        assertEquals(mockBranchResponseDto1, response.getBody().get(0));
         assertNull(response.getBody().get(0).getParentId());
     }
 
@@ -279,7 +280,7 @@ class BranchControllerTest {
     void getParentsBranches_ReturnsEmptyListWhenNoRootBranchesExist() {
         when(branchService.getParentBranches()).thenReturn(Collections.emptyList());
 
-        ResponseEntity<List<BranchDto>> response = branchController.getParentsBranches();
+        ResponseEntity<List<BranchResponseDto>> response = branchController.getParentsBranches();
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());

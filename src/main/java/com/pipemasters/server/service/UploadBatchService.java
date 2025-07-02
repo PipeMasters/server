@@ -2,16 +2,18 @@ package com.pipemasters.server.service;
 
 import java.util.List;
 
-import com.pipemasters.server.dto.PageDto;
-import com.pipemasters.server.dto.UploadBatchDto;
-import com.pipemasters.server.dto.UploadBatchFilter;
 import com.pipemasters.server.dto.UploadBatchDtoSmallResponse;
+import com.pipemasters.server.dto.PageDto;
+import com.pipemasters.server.dto.request.UploadBatchRequestDto;
+import com.pipemasters.server.dto.UploadBatchFilter;
+import com.pipemasters.server.dto.response.UploadBatchResponseDto;
 import org.springframework.data.domain.Pageable;
 
+
 public interface UploadBatchService {
-    UploadBatchDto save(UploadBatchDto uploadBatchDto);
+    UploadBatchResponseDto save(UploadBatchRequestDto uploadBatchDto);
     PageDto<UploadBatchDtoSmallResponse> getFilteredBatches(UploadBatchFilter filter, Pageable pageable);
-    UploadBatchDto getById(Long id);
+    UploadBatchResponseDto getById(Long id);
     List<UploadBatchDtoSmallResponse> getAll();
-    UploadBatchDto update(Long uploadBatchId, UploadBatchDto dto);
+    UploadBatchResponseDto update(Long uploadBatchId, UploadBatchRequestDto dto);
 }

@@ -1,6 +1,6 @@
 package com.pipemasters.server.service;
 
-import com.pipemasters.server.dto.MediaFileResponseDto;
+import com.pipemasters.server.dto.response.MediaFileResponseDto;
 import com.pipemasters.server.entity.MediaFile;
 import com.pipemasters.server.entity.UploadBatch;
 import com.pipemasters.server.entity.enums.FileType;

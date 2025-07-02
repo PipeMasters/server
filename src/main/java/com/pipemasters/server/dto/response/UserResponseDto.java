@@ -1,13 +1,13 @@
-package com.pipemasters.server.dto;
+package com.pipemasters.server.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.pipemasters.server.dto.BaseDto;
 import com.pipemasters.server.entity.enums.Role;
 
 import java.util.Set;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class UserUpdateDto extends BaseDto {
-    //    private String adSid;
+public class UserResponseDto extends BaseDto {
 
     private String name;
     private String surname;
@@ -15,11 +15,10 @@ public class UserUpdateDto extends BaseDto {
     private Set<Role> roles;
     private Long branchId;
 
-    public UserUpdateDto() {
+    public UserResponseDto() {
     }
 
-    public UserUpdateDto(Long id, String name, String surname, String patronymic, Set<Role> roles, Long branchId) {
-        super(id);
+    public UserResponseDto(String name, String surname, String patronymic, Set<Role> roles, Long branchId) {
         this.name = name;
         this.surname = surname;
         this.patronymic = patronymic;

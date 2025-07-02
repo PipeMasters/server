@@ -1,6 +1,7 @@
 package com.pipemasters.server.service;
 
-import com.pipemasters.server.dto.BranchDto;
+import com.pipemasters.server.dto.request.BranchRequestDto;
+import com.pipemasters.server.dto.response.BranchResponseDto;
 import com.pipemasters.server.entity.Branch;
 import com.pipemasters.server.exceptions.branch.BranchNotFoundException;
 import com.pipemasters.server.repository.BranchRepository;
@@ -37,8 +38,8 @@ class BranchServiceImplTest {
 
     private Branch mockBranch1;
     private Branch mockBranch2;
-    private BranchDto mockBranchDto1;
-    private BranchDto mockBranchDto2;
+    private BranchResponseDto mockBranchResponseDto1;
+    private BranchResponseDto mockBranchResponseDto2;
 
     @BeforeEach
     void setUp() {
@@ -48,21 +49,21 @@ class BranchServiceImplTest {
         mockBranch2 = new Branch("Child Branch", mockBranch1);
         mockBranch2.setId(2L);
 
-        mockBranchDto1 = new BranchDto();
-        mockBranchDto1.setId(1L);
-        mockBranchDto1.setName("Root Branch");
+        mockBranchResponseDto1 = new BranchResponseDto();
+        mockBranchResponseDto1.setId(1L);
+        mockBranchResponseDto1.setName("Root Branch");
 
-        mockBranchDto2 = new BranchDto();
-        mockBranchDto2.setId(2L);
-        mockBranchDto2.setName("Child Branch");
-        mockBranchDto2.setParentId(mockBranchDto1.getId());
+        mockBranchResponseDto2 = new BranchResponseDto();
+        mockBranchResponseDto2.setId(2L);
+        mockBranchResponseDto2.setName("Child Branch");
+        mockBranchResponseDto2.setParentId(mockBranchResponseDto1.getId());
     }
 
     @Test
     void createBranch_withParent() {
-        BranchDto inputDto = new BranchDto();
+        BranchRequestDto inputDto = new BranchRequestDto();
         inputDto.setName("Child");
-        BranchDto parentDto = new BranchDto();
+        BranchRequestDto parentDto = new BranchRequestDto(); // Assuming parentDto is just a placeholder here
         parentDto.setId(1L);
         inputDto.setParentId(parentDto.getId());
 
@@ -72,15 +73,22 @@ class BranchServiceImplTest {
         Branch child = new Branch("Child", parent);
         child.setId(2L);
 
-        when(branchRepository.findById(1L)).thenReturn(Optional.of(parent));
-        when(branchRepository.save(any())).thenReturn(child);
-        when(modelMapper.map(any(Branch.class), eq(BranchDto.class))).thenReturn(inputDto);
+        BranchResponseDto expectedResponseDto = new BranchResponseDto();
+        expectedResponseDto.setId(2L);
+        expectedResponseDto.setName("Child");
+        expectedResponseDto.setParentId(1L);
 
-        BranchDto result = branchService.createBranch(inputDto);
+        when(branchRepository.findById(1L)).thenReturn(Optional.of(parent));
+        when(branchRepository.save(any(Branch.class))).thenReturn(child); // Ensure to save Branch entity
+        when(modelMapper.map(any(Branch.class), eq(BranchResponseDto.class))).thenReturn(expectedResponseDto); // Map Branch to BranchResponseDto
+
+        BranchResponseDto result = branchService.createBranch(inputDto);
 
         assertEquals("Child", result.getName());
-        verify(branchRepository).save(any());
+        assertEquals(expectedResponseDto, result); // Compare with the full DTO
+        verify(branchRepository).save(any(Branch.class)); // Verify saving Branch entity
     }
+
 
     @Test
     void updateBranchName_success() {
@@ -90,17 +98,18 @@ class BranchServiceImplTest {
         Branch updated = new Branch("New", null);
         updated.setId(1L);
 
-        BranchDto resultDto = new BranchDto();
+        BranchResponseDto resultDto = new BranchResponseDto();
         resultDto.setId(1L);
         resultDto.setName("New");
 
         when(branchRepository.findById(1L)).thenReturn(Optional.of(branch));
-        when(branchRepository.save(any())).thenReturn(updated);
-        when(modelMapper.map(any(Branch.class), eq(BranchDto.class))).thenReturn(resultDto);
+        when(branchRepository.save(any(Branch.class))).thenReturn(updated);
+        when(modelMapper.map(any(Branch.class), eq(BranchResponseDto.class))).thenReturn(resultDto);
 
-        BranchDto result = branchService.updateBranchName(1L, "New");
+        BranchResponseDto result = branchService.updateBranchName(1L, "New");
 
         assertEquals("New", result.getName());
+        assertEquals(resultDto, result);
     }
 
     @Test
@@ -114,45 +123,47 @@ class BranchServiceImplTest {
         Branch reassigned = new Branch("Child", newParent);
         reassigned.setId(2L);
 
-        BranchDto resultDto = new BranchDto();
+        BranchResponseDto resultDto = new BranchResponseDto();
         resultDto.setId(2L);
         resultDto.setName("Child");
+        resultDto.setParentId(1L); // Updated parent ID
 
         when(branchRepository.findById(2L)).thenReturn(Optional.of(child));
         when(branchRepository.findById(1L)).thenReturn(Optional.of(newParent));
-        when(branchRepository.save(any())).thenReturn(reassigned);
-        when(modelMapper.map(any(Branch.class), eq(BranchDto.class))).thenReturn(resultDto);
+        when(branchRepository.save(any(Branch.class))).thenReturn(reassigned);
+        when(modelMapper.map(any(Branch.class), eq(BranchResponseDto.class))).thenReturn(resultDto);
 
-        BranchDto result = branchService.reassignParent(2L, 1L);
+        BranchResponseDto result = branchService.reassignParent(2L, 1L);
 
         assertEquals(2L, result.getId());
-        verify(branchRepository).save(any());
+        assertEquals(resultDto, result);
+        verify(branchRepository).save(any(Branch.class));
     }
 
     @Test
     void getBranchById_shouldReturnBranchDtoWhenFound_NoParent() {
         when(branchRepository.findById(mockBranch1.getId())).thenReturn(Optional.of(mockBranch1));
-        when(modelMapper.map(mockBranch1, BranchDto.class)).thenReturn(mockBranchDto1);
-        mockBranchDto1.setParentId(null);
+        when(modelMapper.map(mockBranch1, BranchResponseDto.class)).thenReturn(mockBranchResponseDto1);
+        mockBranchResponseDto1.setParentId(null);
 
-        BranchDto result = branchService.getBranchById(mockBranch1.getId(), false);
+        BranchResponseDto result = branchService.getBranchById(mockBranch1.getId(), false);
 
         assertNotNull(result);
-        assertEquals(mockBranchDto1, result);
+        assertEquals(mockBranchResponseDto1, result);
         assertNull(result.getParentId());
     }
 
     @Test
     void getBranchById_shouldReturnBranchDtoWhenFound_WithParent() {
         when(branchRepository.findById(mockBranch2.getId())).thenReturn(Optional.of(mockBranch2));
-        when(modelMapper.map(mockBranch2, BranchDto.class)).thenReturn(mockBranchDto2);
+        when(modelMapper.map(mockBranch2, BranchResponseDto.class)).thenReturn(mockBranchResponseDto2);
 
-        BranchDto result = branchService.getBranchById(mockBranch2.getId(), true);
+        BranchResponseDto result = branchService.getBranchById(mockBranch2.getId(), true);
 
         assertNotNull(result);
-        assertEquals(mockBranchDto2, result);
+        assertEquals(mockBranchResponseDto2, result);
         assertNotNull(result.getParentId());
-        assertEquals(mockBranchDto1.getId(), result.getParentId());
+        assertEquals(mockBranchResponseDto1.getId(), result.getParentId());
     }
 
     @Test
@@ -167,27 +178,27 @@ class BranchServiceImplTest {
     @Test
     void getBranchByName_shouldReturnBranchDtoWhenFound_NoParent() {
         when(branchRepository.findByName(mockBranch1.getName())).thenReturn(Optional.of(mockBranch1));
-        when(modelMapper.map(mockBranch1, BranchDto.class)).thenReturn(mockBranchDto1);
-        mockBranchDto1.setParentId(null);
+        when(modelMapper.map(mockBranch1, BranchResponseDto.class)).thenReturn(mockBranchResponseDto1);
+        mockBranchResponseDto1.setParentId(null);
 
-        BranchDto result = branchService.getBranchByName(mockBranch1.getName(), false);
+        BranchResponseDto result = branchService.getBranchByName(mockBranch1.getName(), false);
 
         assertNotNull(result);
-        assertEquals(mockBranchDto1, result);
+        assertEquals(mockBranchResponseDto1, result);
         assertNull(result.getParentId());
     }
 
     @Test
     void getBranchByName_shouldReturnBranchDtoWhenFound_WithParent() {
         when(branchRepository.findByName(mockBranch2.getName())).thenReturn(Optional.of(mockBranch2));
-        when(modelMapper.map(mockBranch2, BranchDto.class)).thenReturn(mockBranchDto2);
+        when(modelMapper.map(mockBranch2, BranchResponseDto.class)).thenReturn(mockBranchResponseDto2);
 
-        BranchDto result = branchService.getBranchByName(mockBranch2.getName(), true);
+        BranchResponseDto result = branchService.getBranchByName(mockBranch2.getName(), true);
 
         assertNotNull(result);
-        assertEquals(mockBranchDto2, result);
+        assertEquals(mockBranchResponseDto2, result);
         assertNotNull(result.getParentId());
-        assertEquals(mockBranchDto1.getId(), result.getParentId());
+        assertEquals(mockBranchResponseDto1.getId(), result.getParentId());
     }
 
     @Test
@@ -204,25 +215,25 @@ class BranchServiceImplTest {
         List<Branch> allBranches = Arrays.asList(mockBranch1, mockBranch2);
         when(branchRepository.findAll()).thenReturn(allBranches);
 
-        BranchDto simpleBranchDto1 = new BranchDto();
-        simpleBranchDto1.setId(mockBranch1.getId());
-        simpleBranchDto1.setName(mockBranch1.getName());
-        simpleBranchDto1.setParentId(null);
+        BranchResponseDto simpleBranchResponseDto1 = new BranchResponseDto();
+        simpleBranchResponseDto1.setId(mockBranch1.getId());
+        simpleBranchResponseDto1.setName(mockBranch1.getName());
+        simpleBranchResponseDto1.setParentId(null);
 
-        BranchDto simpleBranchDto2 = new BranchDto();
-        simpleBranchDto2.setId(mockBranch2.getId());
-        simpleBranchDto2.setName(mockBranch2.getName());
-        simpleBranchDto2.setParentId(null);
+        BranchResponseDto simpleBranchResponseDto2 = new BranchResponseDto();
+        simpleBranchResponseDto2.setId(mockBranch2.getId());
+        simpleBranchResponseDto2.setName(mockBranch2.getName());
+        simpleBranchResponseDto2.setParentId(null);
 
-        when(modelMapper.map(mockBranch1, BranchDto.class)).thenReturn(simpleBranchDto1);
-        when(modelMapper.map(mockBranch2, BranchDto.class)).thenReturn(simpleBranchDto2);
+        when(modelMapper.map(mockBranch1, BranchResponseDto.class)).thenReturn(simpleBranchResponseDto1);
+        when(modelMapper.map(mockBranch2, BranchResponseDto.class)).thenReturn(simpleBranchResponseDto2);
 
-        List<BranchDto> result = branchService.getAllBranches(false);
+        List<BranchResponseDto> result = branchService.getAllBranches(false);
 
         assertNotNull(result);
         assertEquals(2, result.size());
-        assertEquals(simpleBranchDto1, result.get(0));
-        assertEquals(simpleBranchDto2, result.get(1));
+        assertEquals(simpleBranchResponseDto1, result.get(0));
+        assertEquals(simpleBranchResponseDto2, result.get(1));
         assertNull(result.get(0).getParentId());
         assertNull(result.get(1).getParentId());
     }
@@ -232,25 +243,25 @@ class BranchServiceImplTest {
         List<Branch> allBranches = Arrays.asList(mockBranch1, mockBranch2);
         when(branchRepository.findAll()).thenReturn(allBranches);
 
-        when(modelMapper.map(mockBranch1, BranchDto.class)).thenReturn(mockBranchDto1);
-        when(modelMapper.map(mockBranch2, BranchDto.class)).thenReturn(mockBranchDto2);
+        when(modelMapper.map(mockBranch1, BranchResponseDto.class)).thenReturn(mockBranchResponseDto1);
+        when(modelMapper.map(mockBranch2, BranchResponseDto.class)).thenReturn(mockBranchResponseDto2);
 
-        List<BranchDto> result = branchService.getAllBranches(true);
+        List<BranchResponseDto> result = branchService.getAllBranches(true);
 
         assertNotNull(result);
         assertEquals(2, result.size());
-        assertEquals(mockBranchDto1, result.get(0));
-        assertEquals(mockBranchDto2, result.get(1));
+        assertEquals(mockBranchResponseDto1, result.get(0));
+        assertEquals(mockBranchResponseDto2, result.get(1));
         assertNull(result.get(0).getParentId());
         assertNotNull(result.get(1).getParentId());
-        assertEquals(mockBranchDto1.getId(), result.get(1).getParentId());
+        assertEquals(mockBranchResponseDto1.getId(), result.get(1).getParentId());
     }
 
     @Test
     void getAllBranches_shouldReturnEmptyListWhenNoBranchesExist() {
         when(branchRepository.findAll()).thenReturn(Collections.emptyList());
 
-        List<BranchDto> result = branchService.getAllBranches(false);
+        List<BranchResponseDto> result = branchService.getAllBranches(false);
 
         assertNotNull(result);
         assertTrue(result.isEmpty());
@@ -262,14 +273,14 @@ class BranchServiceImplTest {
         when(branchRepository.existsById(mockBranch1.getId())).thenReturn(true);
         when(branchRepository.findByParentId(mockBranch1.getId())).thenReturn(childrenEntities);
 
-        BranchDto childWithoutParentInResponse = new BranchDto();
+        BranchResponseDto childWithoutParentInResponse = new BranchResponseDto();
         childWithoutParentInResponse.setId(mockBranch2.getId());
         childWithoutParentInResponse.setName(mockBranch2.getName());
         childWithoutParentInResponse.setParentId(null);
 
-        when(modelMapper.map(mockBranch2, BranchDto.class)).thenReturn(childWithoutParentInResponse);
+        when(modelMapper.map(mockBranch2, BranchResponseDto.class)).thenReturn(childWithoutParentInResponse);
 
-        List<BranchDto> result = branchService.getChildBranches(mockBranch1.getId(), false);
+        List<BranchResponseDto> result = branchService.getChildBranches(mockBranch1.getId(), false);
 
         assertNotNull(result);
         assertEquals(1, result.size());
@@ -283,15 +294,15 @@ class BranchServiceImplTest {
         when(branchRepository.existsById(mockBranch1.getId())).thenReturn(true);
         when(branchRepository.findByParentId(mockBranch1.getId())).thenReturn(childrenEntities);
 
-        when(modelMapper.map(mockBranch2, BranchDto.class)).thenReturn(mockBranchDto2);
+        when(modelMapper.map(mockBranch2, BranchResponseDto.class)).thenReturn(mockBranchResponseDto2);
 
-        List<BranchDto> result = branchService.getChildBranches(mockBranch1.getId(), true);
+        List<BranchResponseDto> result = branchService.getChildBranches(mockBranch1.getId(), true);
 
         assertNotNull(result);
         assertEquals(1, result.size());
-        assertEquals(mockBranchDto2, result.get(0));
+        assertEquals(mockBranchResponseDto2, result.get(0));
         assertNotNull(result.get(0).getParentId());
-        assertEquals(mockBranchDto1.getId(), result.get(0).getParentId());
+        assertEquals(mockBranchResponseDto1.getId(), result.get(0).getParentId());
     }
 
 
@@ -300,7 +311,7 @@ class BranchServiceImplTest {
         when(branchRepository.existsById(mockBranch1.getId())).thenReturn(true);
         when(branchRepository.findByParentId(mockBranch1.getId())).thenReturn(Collections.emptyList());
 
-        List<BranchDto> result = branchService.getChildBranches(mockBranch1.getId(), anyBoolean());
+        List<BranchResponseDto> result = branchService.getChildBranches(mockBranch1.getId(), anyBoolean());
 
         assertNotNull(result);
         assertTrue(result.isEmpty());
@@ -320,14 +331,14 @@ class BranchServiceImplTest {
         List<Branch> rootEntities = Arrays.asList(mockBranch1);
         when(branchRepository.findByParentIsNull()).thenReturn(rootEntities);
 
-        BranchDto simpleRootDto = new BranchDto();
+        BranchResponseDto simpleRootDto = new BranchResponseDto();
         simpleRootDto.setId(mockBranch1.getId());
         simpleRootDto.setName(mockBranch1.getName());
         simpleRootDto.setParentId(null);
 
-        when(modelMapper.map(mockBranch1, BranchDto.class)).thenReturn(simpleRootDto);
+        when(modelMapper.map(mockBranch1, BranchResponseDto.class)).thenReturn(simpleRootDto);
 
-        List<BranchDto> result = branchService.getParentBranches();
+        List<BranchResponseDto> result = branchService.getParentBranches();
 
         assertNotNull(result);
         assertEquals(1, result.size());
@@ -339,7 +350,7 @@ class BranchServiceImplTest {
     void getRootBranches_shouldReturnEmptyListWhenNoParentBranchesExist() {
         when(branchRepository.findByParentIsNull()).thenReturn(Collections.emptyList());
 
-        List<BranchDto> result = branchService.getParentBranches();
+        List<BranchResponseDto> result = branchService.getParentBranches();
 
         assertNotNull(result);
         assertTrue(result.isEmpty());

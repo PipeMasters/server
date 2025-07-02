@@ -1,4 +1,4 @@
-package com.pipemasters.server.dto;
+package com.pipemasters.server.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.validation.constraints.NotNull;
@@ -6,23 +6,19 @@ import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class DelegationDto {
-    @NotNull(message = "DelegatorId cannot be empty")
+public class DelegationResponseDto {
     private Long delegatorId;
-    @NotNull(message = "SubstituteId cannot be empty")
     private Long substituteId;
-    @NotNull(message = "FromDate cannot be empty")
     private LocalDate fromDate;
-    @NotNull(message = "ToDate cannot be empty")
     private LocalDate toDate;
 
-    public DelegationDto(Long delegatorId, Long substituteId, LocalDate fromDate, LocalDate toDate) {
+    public DelegationResponseDto(Long delegatorId, Long substituteId, LocalDate fromDate, LocalDate toDate) {
         this.delegatorId = delegatorId;
         this.substituteId = substituteId;
         this.fromDate = fromDate;
         this.toDate = toDate;
     }
-    public DelegationDto() {}
+    public DelegationResponseDto() {}
 
     public Long getDelegatorId() {
         return delegatorId;
