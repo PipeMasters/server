@@ -1,12 +1,15 @@
 package com.pipemasters.server.config;
 
 import com.pipemasters.server.dto.*;
+import com.pipemasters.server.dto.UploadBatchDtoSmallResponse;
 import com.pipemasters.server.dto.request.BranchRequestDto;
 import com.pipemasters.server.dto.request.DelegationRequestDto;
 import com.pipemasters.server.dto.request.MediaFileRequestDto;
 import com.pipemasters.server.dto.request.UploadBatchRequestDto;
 import com.pipemasters.server.dto.request.update.UserUpdateDto;
+import com.pipemasters.server.dto.response.TrainResponseDto;
 import com.pipemasters.server.entity.*;
+import org.modelmapper.Conditions;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeMap;
 import org.springframework.context.annotation.Bean;
@@ -22,7 +25,14 @@ public class ModelMapperConfig {
                 .addMapping(e -> e.getDelegator().getId(), DelegationRequestDto::setDelegatorId)
                 .addMapping(e -> e.getSubstitute().getId(), DelegationRequestDto::setSubstituteId);
 
+        modelMapper.typeMap(Train.class, TrainResponseDto.class)
+                .addMapping(e -> e.getChief().getId(), TrainResponseDto::setChiefId)
+                .addMapping(e -> e.getChief().getId(), TrainResponseDto::setChiefId)
+                .addMapping(e -> e.getBranch().getId(), TrainResponseDto::setBranchId);
+
         configureBranchMapping(modelMapper);
+        configureUploadBatchDtoResponseMapping(modelMapper);
+
         configureUserMapping(modelMapper);
         modelMapper.getConfiguration().setSkipNullEnabled(true);
 //        configureMediaFileMapping(modelMapper);
@@ -75,8 +85,19 @@ public class ModelMapperConfig {
     private void configureVideoAbsenceDtoMapping(ModelMapper modelMapper) {
         modelMapper.typeMap(VideoAbsence.class, VideoAbsenceDto.class)
                 .addMappings(mapper -> {
-                    mapper.skip(VideoAbsenceDto::setUploadBatch);
-                    mapper.skip(VideoAbsenceDto::setCause);
+                    mapper.map(VideoAbsence::getId, VideoAbsenceDto::setId);
+                    mapper.map(VideoAbsence::getComment, VideoAbsenceDto::setComment);
+                    mapper.map(VideoAbsence::getCause, VideoAbsenceDto::setCause);
+                });
+    }
+
+    private void configureUploadBatchDtoResponseMapping(ModelMapper modelMapper) {
+        modelMapper.typeMap(UploadBatch.class, UploadBatchDtoSmallResponse.class)
+                .addMappings(mapper -> {
+                    mapper.map(tn -> tn.getTrain().getTrainNumber(), UploadBatchDtoSmallResponse::setTrainNumber);
+                    mapper.map(UploadBatch::getTrainDeparted, UploadBatchDtoSmallResponse::setDateDeparted);
+                    mapper.map(UploadBatch::getTrainArrived, UploadBatchDtoSmallResponse::setDateArrived);
+                    mapper.map(chf -> chf.getTrain().getChief().getFullName(), UploadBatchDtoSmallResponse::setChiefName);
                 });
     }
 }

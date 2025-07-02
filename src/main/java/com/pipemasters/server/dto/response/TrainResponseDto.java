@@ -2,19 +2,23 @@ package com.pipemasters.server.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.pipemasters.server.dto.BaseDto;
+import com.pipemasters.server.entity.User;
+import java.time.LocalDate;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class TrainResponseDto extends BaseDto {
     private Long trainNumber;
     private String routeMessage;
     private Integer consistCount;
-    private String chief;
+    private Long chiefId;
+    private Long branchId;
 
-    public TrainResponseDto(Long trainNumber, String routeMessage, Integer consistCount, String chief) {
+    public TrainResponseDto(Long trainNumber, String routeMessage, Integer consistCount, Long chiefId, Long branchId) {
         this.trainNumber = trainNumber;
         this.routeMessage = routeMessage;
         this.consistCount = consistCount;
-        this.chief = chief;
+        this.chiefId = chiefId;
+        this.branchId = branchId;
     }
 
     public TrainResponseDto() {
@@ -44,21 +48,29 @@ public class TrainResponseDto extends BaseDto {
         this.consistCount = consistCount;
     }
 
-    public String getChief() {
-        return chief;
+    public Long getChiefId() {
+        return chiefId;
     }
 
-    public void setChief(String chief) {
-        this.chief = chief;
+    public void setChiefId(Long chiefId) {
+        this.chiefId = chiefId;
+    }
+    public Long getBranchId() {
+        return branchId;
+    }
+
+    public void setBranchId(Long branchId) {
+        this.branchId = branchId;
     }
 
     @Override
     public String toString() {
-        return "TrainDTO{" +
+        return "TrainDto{" +
                 "trainNumber=" + trainNumber +
-                ", routeMessage='" + routeMessage +
+                ", routeMessage='" + routeMessage + '\'' +
                 ", consistCount=" + consistCount +
-                ", chief='" + chief +
+                ", chiefId=" + chiefId +
+                ", branchId=" + branchId +
                 '}';
     }
 }

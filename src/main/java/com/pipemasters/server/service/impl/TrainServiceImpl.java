@@ -2,9 +2,15 @@ package com.pipemasters.server.service.impl;
 
 import com.pipemasters.server.dto.request.TrainRequestDto;
 import com.pipemasters.server.dto.response.TrainResponseDto;
+import com.pipemasters.server.dto.response.UserResponseDto;
 import com.pipemasters.server.entity.Train;
+import com.pipemasters.server.entity.User;
+import com.pipemasters.server.exceptions.branch.BranchNotFoundException;
 import com.pipemasters.server.exceptions.train.TrainNotFoundException;
+import com.pipemasters.server.exceptions.user.UserNotFoundException;
+import com.pipemasters.server.repository.BranchRepository;
 import com.pipemasters.server.repository.TrainRepository;
+import com.pipemasters.server.repository.UserRepository;
 import com.pipemasters.server.service.TrainService;
 import org.modelmapper.ModelMapper;
 import org.springframework.cache.annotation.CacheEvict;
@@ -18,18 +24,28 @@ import java.util.List;
 public class TrainServiceImpl implements TrainService {
 
     private final TrainRepository trainRepository;
+    private final UserRepository userRepository;
+    private final BranchRepository branchRepository;
     private final ModelMapper modelMapper;
 
-    public TrainServiceImpl(TrainRepository trainRepository, ModelMapper modelMapper) {
+    public TrainServiceImpl(TrainRepository trainRepository, UserRepository userRepository, BranchRepository branchRepository, ModelMapper modelMapper) {
         this.trainRepository = trainRepository;
+        this.userRepository = userRepository;
+        this.branchRepository = branchRepository;
         this.modelMapper = modelMapper;
     }
 
     @Override
     @CacheEvict(cacheNames = "trains", allEntries = true)
     @Transactional
-    public TrainResponseDto save(TrainRequestDto trainRequestDto) {
-        Train train = modelMapper.map(trainRequestDto, Train.class);
+    public TrainResponseDto save(TrainRequestDto trainDto) {
+        Train train = modelMapper.map(trainDto, Train.class);
+        User chief = userRepository.findById(trainDto.getChiefId()).orElseThrow(() -> new UserNotFoundException("Chief user not found with ID: " + trainDto.getChiefId()));
+        train.setChief(chief);
+        if (trainDto.getBranchId() != null) {
+            train.setBranch(branchRepository.findById(trainDto.getBranchId())
+                    .orElseThrow(() -> new BranchNotFoundException("Branch not found with ID: " + trainDto.getBranchId())));
+        }
         return modelMapper.map(trainRepository.save(train), TrainResponseDto.class);
     }
 
@@ -52,12 +68,17 @@ public class TrainServiceImpl implements TrainService {
     @Override
     @CacheEvict(cacheNames = "trains", allEntries = true)
     @Transactional
-    public TrainResponseDto update(Long id, TrainRequestDto trainRequestDto) {
+    public TrainResponseDto update(Long id, TrainRequestDto trainDto) {
         Train train = trainRepository.findById(id).orElseThrow(() -> new TrainNotFoundException("Train not found with ID: " + id));
-        train.setTrainNumber(trainRequestDto.getTrainNumber());
-        train.setRouteMessage(trainRequestDto.getRouteMessage());
-        train.setConsistCount(trainRequestDto.getConsistCount());
-        train.setChief(trainRequestDto.getChief());
+        User chief = userRepository.findById(trainDto.getChiefId()).orElseThrow(() -> new UserNotFoundException("Chief user not found with ID: " + trainDto.getChiefId()));
+        train.setTrainNumber(trainDto.getTrainNumber());
+        train.setRouteMessage(trainDto.getRouteMessage());
+        train.setConsistCount(trainDto.getConsistCount());
+        train.setChief(chief);
+        if (trainDto.getBranchId() != null) {
+            train.setBranch(branchRepository.findById(trainDto.getBranchId())
+                    .orElseThrow(() -> new BranchNotFoundException("Branch not found with ID: " + trainDto.getBranchId())));
+        }
         return modelMapper.map(trainRepository.save(train), TrainResponseDto.class);
     }
 
@@ -70,7 +91,9 @@ public class TrainServiceImpl implements TrainService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<String> getUniqueChiefs() {
-        return trainRepository.findDistinctChiefs();
+    public List<UserResponseDto> getChiefs() {
+        return trainRepository.findDistinctChiefs().stream()
+                .map(user -> modelMapper.map(user, UserResponseDto.class))
+                .toList();
     }
 }

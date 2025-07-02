@@ -1,5 +1,6 @@
 package com.pipemasters.server.entity;
 
+import com.pipemasters.server.entity.enums.FileType;
 import jakarta.persistence.*;
 
 import java.time.Instant;
@@ -26,6 +27,10 @@ public class UploadBatch extends BaseEntity {
     /* дата отправления поезда (без времени) */
     @Column(nullable = false)
     private LocalDate trainDeparted;
+
+    /* дата прибытия поезда (без времени) */
+    @Column(nullable = false)
+    private LocalDate trainArrived;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "train_id")
@@ -77,13 +82,14 @@ public class UploadBatch extends BaseEntity {
         this.files = files;
     }
 
-    public UploadBatch(User uploadedBy, LocalDate trainDeparted, Train train, String comment, Branch branch, VideoAbsence absence) {
+    public UploadBatch(User uploadedBy, LocalDate trainDeparted, LocalDate trainArrived, Train train, String comment, Branch branch) {
+        this.directory = UUID.randomUUID();
         this.uploadedBy = uploadedBy;
         this.trainDeparted = trainDeparted;
+        this.trainArrived = trainArrived;
         this.train = train;
         this.comment = comment;
         this.branch = branch;
-        this.absence = absence;
     }
 
     public UploadBatch() {
@@ -191,5 +197,39 @@ public class UploadBatch extends BaseEntity {
 
     public void setAbsence(VideoAbsence absence) {
         this.absence = absence;
+    }
+
+    public LocalDate getTrainArrived() {
+        return trainArrived;
+    }
+
+    public void setTrainArrived(LocalDate trainArrived) {
+        this.trainArrived = trainArrived;
+    }
+
+    public List<MediaFile> getChainedFiles() {
+        return files.stream()
+                .filter(file -> file.getFileType() == FileType.VIDEO)
+                .filter(file -> {
+                    String filename = file.getFilename();
+                    int underscoreIndex = filename.lastIndexOf('_');
+                    int dotIndex = filename.lastIndexOf('.');
+                    if (underscoreIndex == -1 || dotIndex == -1 || underscoreIndex >= dotIndex) return false;
+                    String postfix = filename.substring(underscoreIndex + 1, dotIndex);
+                    try {
+                        Integer.parseInt(postfix);
+                        return true;
+                    } catch (NumberFormatException e) {
+                        return false;
+                    }
+                })
+                .sorted(Comparator.comparing(file -> {
+                    String filename = file.getFilename();
+                    int underscoreIndex = filename.lastIndexOf('_');
+                    int dotIndex = filename.lastIndexOf('.');
+                    String postfix = filename.substring(underscoreIndex + 1, dotIndex);
+                    return Integer.parseInt(postfix);
+                }))
+                .toList();
     }
 }

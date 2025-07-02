@@ -1,7 +1,6 @@
 package com.pipemasters.server.mapper;
 
 import com.pipemasters.server.config.ModelMapperConfig;
-import com.pipemasters.server.dto.request.UploadBatchRequestDto;
 import com.pipemasters.server.dto.VideoAbsenceDto;
 import com.pipemasters.server.entity.UploadBatch;
 import com.pipemasters.server.entity.VideoAbsence;
@@ -21,7 +20,6 @@ class VideoAbsenceMapperTest {
         modelMapper = new ModelMapperConfig().modelMapper();
     }
 
-
     @Test
     void testVideoAbsenceToDtoMapping() {
         // Given
@@ -40,8 +38,6 @@ class VideoAbsenceMapperTest {
 
         // Then
         assertThat(dto).isNotNull();
-        assertThat(dto.getUploadBatch()).isNotNull();
-        assertThat(dto.getUploadBatch().getId()).isEqualTo(10L);
         assertThat(dto.getCause()).isEqualTo(AbsenceCause.DEVICE_FAILURE);
         assertThat(dto.getComment()).isEqualTo("Камера отсутствовала во время загрузки");
     }
@@ -49,11 +45,8 @@ class VideoAbsenceMapperTest {
     @Test
     void testDtoToVideoAbsenceMapping() {
         // Given
-        UploadBatchRequestDto uploadBatchRequestDto = new UploadBatchRequestDto();
-        uploadBatchRequestDto.setId(20L);
-
         VideoAbsenceDto dto = new VideoAbsenceDto(
-                uploadBatchRequestDto,
+                null,
                 AbsenceCause.DEVICE_FAILURE,
                 "Видео слишком низкого качества"
         );
@@ -64,8 +57,6 @@ class VideoAbsenceMapperTest {
 
         // Then
         assertThat(entity).isNotNull();
-        assertThat(entity.getUploadBatch()).isNotNull();
-        assertThat(entity.getUploadBatch().getId()).isEqualTo(20L);
         assertThat(entity.getCause()).isEqualTo(AbsenceCause.DEVICE_FAILURE);
         assertThat(entity.getComment()).isEqualTo("Видео слишком низкого качества");
     }

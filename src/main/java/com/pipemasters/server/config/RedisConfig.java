@@ -1,13 +1,15 @@
 package com.pipemasters.server.config;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.jsontype.impl.LaissezFaireSubTypeValidator;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.pipemasters.server.config.serializer.PageDtoRedisSerializer;
 import com.pipemasters.server.dto.PageDto;
 import com.pipemasters.server.dto.UploadBatchFilter;
-import com.pipemasters.server.dto.response.UploadBatchResponseDto;
+import com.pipemasters.server.dto.UploadBatchDtoSmallResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cache.interceptor.KeyGenerator;
@@ -19,10 +21,14 @@ import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
+import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 @Configuration
 @EnableCaching
@@ -60,10 +66,10 @@ public class RedisConfig {
                 RedisSerializationContext.SerializationPair.fromSerializer(defaultSerializer);
 
         // Специальный сериализатор для PageDto<UploadBatchResponseDto>
-        PageDtoRedisSerializer<UploadBatchResponseDto> pageDtoSerializer =
-                new PageDtoRedisSerializer<>(redisObjectMapper, UploadBatchResponseDto.class);
+        PageDtoRedisSerializer<UploadBatchDtoSmallResponse> pageDtoSerializer =
+                new PageDtoRedisSerializer<>(redisObjectMapper, UploadBatchDtoSmallResponse.class);
 
-        RedisSerializationContext.SerializationPair<PageDto<UploadBatchResponseDto>> pageDtoSerializationPair =
+        RedisSerializationContext.SerializationPair<PageDto<UploadBatchDtoSmallResponse>> pageDtoSerializationPair =
                 RedisSerializationContext.SerializationPair.fromSerializer(pageDtoSerializer);
 
         // Общий конфиг для остальных кешей
@@ -88,20 +94,33 @@ public class RedisConfig {
     @Bean("uploadBatchFilterKeyGenerator")
     public KeyGenerator uploadBatchFilterKeyGenerator() {
         return (target, method, params) -> {
-            UploadBatchFilter filter = (UploadBatchFilter) params[0];
-            Pageable pageable = (Pageable) params[1];
+            UploadBatchFilter f = (UploadBatchFilter) params[0];
+            Pageable p = (Pageable) params[1];
+
+            String kw = "";
+            if (f.getKeywords() != null && !f.getKeywords().isEmpty()) {
+                List<String> list = new ArrayList<>(f.getKeywords());
+                Collections.sort(list);
+                kw = String.join(",", list);
+            }
 
             return "uploadBatchFilter:" +
-                    (filter.getSpecificDate() != null ? filter.getSpecificDate().toString() : "") + ":" +
-                    (filter.getDateFrom() != null ? filter.getDateFrom().toString() : "") + ":" +
-                    (filter.getDateTo() != null ? filter.getDateTo().toString() : "") + ":" +
-                    (filter.getTrainNumber() != null ? filter.getTrainNumber() : "") + ":" +
-                    (filter.getChiefName() != null ? filter.getChiefName() : "") + ":" +
-                    (filter.getUploadedByName() != null ? filter.getUploadedByName() : "") + ":" +
-                    (filter.getKeywords() != null ? String.join(",", filter.getKeywords()) : "") + ":" +
-                    pageable.getPageNumber() + ":" +
-                    pageable.getPageSize() + ":" +
-                    pageable.getSort();
+                    (f.getSpecificDate() != null ? f.getSpecificDate() : "") + ":" +
+                    (f.getDepartureDateFrom() != null ? f.getDepartureDateFrom() : "") + ":" +
+                    (f.getDepartureDateTo() != null ? f.getDepartureDateTo() : "") + ":" +
+                    (f.getArrivalDateFrom() != null ? f.getArrivalDateFrom() : "") + ":" +
+                    (f.getArrivalDateTo() != null ? f.getArrivalDateTo() : "") + ":" +
+                    (f.getCreatedFrom() != null ? f.getCreatedFrom() : "") + ":" +
+                    (f.getCreatedTo() != null ? f.getCreatedTo() : "") + ":" +
+                    (f.getTrainId() != null ? f.getTrainId() : "") + ":" +
+                    (f.getChiefName() != null ? f.getChiefName() : "") + ":" +
+                    (f.getUploadedById() != null ? f.getUploadedById() : "") + ":" +
+                    (f.getUploadedByName() != null ? f.getUploadedByName() : "") + ":" +
+                    (f.getBranchId() != null ? f.getBranchId() : "") + ":" +
+                    kw + ":" +
+                    p.getPageNumber() + ":" +
+                    p.getPageSize() + ":" +
+                    p.getSort();
         };
     }
 }
