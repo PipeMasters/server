@@ -48,4 +48,14 @@ public class TrainController {
     public ResponseEntity<List<UserResponseDto>> getChiefs() {
         return ResponseEntity.ok(trainService.getChiefs());
     }
+
+    @PutMapping("/{trainId}/assignBranch/{branchId}")
+    public ResponseEntity<TrainResponseDto> assignTrainToBranch(@PathVariable Long trainId, @PathVariable Long branchId) {
+        return ResponseEntity.ok(trainService.assignTrainToBranch(trainId, branchId));
+    }
+
+    @PutMapping("/{trainId}/chief/{newChiefId}")
+    public ResponseEntity<TrainResponseDto> updateTrainChief(@PathVariable Long trainId, @PathVariable Long newChiefId) {
+        return ResponseEntity.ok(trainService.updateTrainChief(trainId, newChiefId));
+    }
 }
