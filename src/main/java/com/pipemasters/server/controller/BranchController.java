@@ -20,19 +20,24 @@ public class BranchController {
     }
 
     @PostMapping
-    public ResponseEntity<BranchResponseDto> create(@RequestBody BranchRequestDto dto) {
+    public ResponseEntity<BranchResponseDto> create(
+            @RequestBody BranchRequestDto dto) {
         BranchResponseDto created = branchService.createBranch(dto);
         return new ResponseEntity<>(created, HttpStatus.CREATED);
     }
 
     @PatchMapping("/{id}/rename")
-    public ResponseEntity<BranchResponseDto> rename(@PathVariable Long id, @RequestParam String name) {
+    public ResponseEntity<BranchResponseDto> rename(
+            @PathVariable Long id,
+            @RequestParam String name) {
         BranchResponseDto updated = branchService.updateBranchName(id, name);
         return new ResponseEntity<>(updated, HttpStatus.OK);
     }
 
     @PatchMapping("/{id}/reassign")
-    public ResponseEntity<BranchResponseDto> reassignParent(@PathVariable Long id, @RequestParam(required = false) Long parentId) {
+    public ResponseEntity<BranchResponseDto> reassignParent(
+            @PathVariable Long id,
+            @RequestParam(required = false) Long parentId) {
         BranchResponseDto updated = branchService.reassignParent(id, parentId);
         return new ResponseEntity<>(updated, HttpStatus.OK);
     }
@@ -71,5 +76,11 @@ public class BranchController {
     @GetMapping("/parents")
     public ResponseEntity<List<BranchResponseDto>> getParentsBranches() {
         return ResponseEntity.ok(branchService.getParentBranches());
+    }
+
+    @GetMapping("/level/{level}")
+    public ResponseEntity<List<BranchResponseDto>> getBranchesByLevel(
+            @PathVariable int level) {
+        return ResponseEntity.ok(branchService.getBranchesByLevel(level));
     }
 }

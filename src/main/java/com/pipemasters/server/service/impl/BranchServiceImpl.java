@@ -5,6 +5,7 @@ import com.pipemasters.server.dto.response.BranchResponseDto;
 import com.pipemasters.server.entity.Branch;
 import com.pipemasters.server.exceptions.branch.BranchNotFoundException;
 import com.pipemasters.server.exceptions.branch.InvalidBranchHierarchyException;
+import com.pipemasters.server.exceptions.branch.InvalidBranchLevelException;
 import com.pipemasters.server.repository.BranchRepository;
 import com.pipemasters.server.service.BranchService;
 import org.modelmapper.ModelMapper;
@@ -27,11 +28,11 @@ public class BranchServiceImpl implements BranchService {
     }
 
     @Override
-    @CacheEvict(value = {"branches", "branches_parent","branches_child" }, allEntries = true)
+    @CacheEvict(value = {"branches", "branches_parent","branches_child", "branches_level" }, allEntries = true)
     @Transactional
     public BranchResponseDto createBranch(BranchRequestDto branchRequestDto) {
         Branch parent = null;
-        if (branchRequestDto.getParentId() != null && branchRepository.findById(branchRequestDto.getParentId()).map(Branch::getId).isPresent()) {
+        if (branchRequestDto.getParentId() != null) {
             parent = branchRepository.findById(branchRequestDto.getParentId())
                     .orElseThrow(() -> new BranchNotFoundException("Parent branch not found with ID: " + branchRequestDto.getParentId()));
         }
@@ -42,7 +43,7 @@ public class BranchServiceImpl implements BranchService {
     }
 
     @Override
-    @CacheEvict(value = {"branches", "branches_parent","branches_child" }, allEntries = true)
+    @CacheEvict(value = {"branches", "branches_parent","branches_child", "branches_level"}, allEntries = true)
     @Transactional
     public BranchResponseDto updateBranchName(Long id, String newName) {
         Branch branch = branchRepository.findById(id)
@@ -54,7 +55,7 @@ public class BranchServiceImpl implements BranchService {
     }
 
     @Override
-    @CacheEvict(value = {"branches", "branches_parent","branches_child" }, allEntries = true)
+    @CacheEvict(value = {"branches", "branches_parent","branches_child", "branches_level" }, allEntries = true)
     @Transactional
     public BranchResponseDto reassignParent(Long id, Long newParentId) {
         Branch branch = branchRepository.findById(id)
@@ -126,6 +127,22 @@ public class BranchServiceImpl implements BranchService {
                 .map(this::toDto)
                 .toList();
     }
+
+
+    @Override
+    @Cacheable("branches_level")
+    @Transactional(readOnly = true)
+    public List<BranchResponseDto> getBranchesByLevel(int level) {
+        if (level < 0) {
+            throw new InvalidBranchLevelException("Branch level cannot be negative.");
+        }
+        List<Branch> branches = branchRepository.findByLevel(level);
+
+        return branches.stream()
+                .map(this::toDto)
+                .toList();
+    }
+
 
     private BranchResponseDto toDto(Branch entity, boolean includeParent) {
         BranchResponseDto dto = modelMapper.map(entity, BranchResponseDto.class);
