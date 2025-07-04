@@ -97,10 +97,9 @@ public class AudioServiceImpl implements AudioService {
 
                 String targetName = sourceFileName + "_audio.mp3";
 
-                FileUploadRequestDto uploadDto = new FileUploadRequestDto(
-                        source.getUploadBatch().getId(), targetName, FileType.AUDIO, mediaFileId);
+                String sourceKey = source.getUploadBatch().getDirectory() + "/" + source.getFilename();
 
-                String presignedPut = fileService.generatePresignedUploadUrl(uploadDto);
+                String presignedPut = fileService.generatePresignedUploadUrlForAudio(sourceKey);
 
                 HttpRequest uploadRequest = HttpRequest.newBuilder()
                         .uri(URI.create(presignedPut))
