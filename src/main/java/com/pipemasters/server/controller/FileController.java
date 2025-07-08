@@ -22,7 +22,7 @@ public class FileController {
     }
 
     @PostMapping("/upload-url-audio")
-    public ResponseEntity<String> getPresignedUploadUrlForAudio(@RequestBody String sourceKey) {
+    public ResponseEntity<String> getPresignedUploadUrlForAudio(@PathVariable String sourceKey) {
         String url = fileService.generatePresignedUploadUrlForAudio(sourceKey);
         return ResponseEntity.ok(url);
     }
