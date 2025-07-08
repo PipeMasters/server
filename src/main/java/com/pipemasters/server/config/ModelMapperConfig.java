@@ -8,6 +8,7 @@ import com.pipemasters.server.dto.request.MediaFileRequestDto;
 import com.pipemasters.server.dto.request.UploadBatchRequestDto;
 import com.pipemasters.server.dto.request.update.UserUpdateDto;
 import com.pipemasters.server.dto.response.TrainResponseDto;
+import com.pipemasters.server.dto.response.UploadBatchResponseDto;
 import com.pipemasters.server.entity.*;
 import org.modelmapper.Conditions;
 import org.modelmapper.ModelMapper;
@@ -29,6 +30,11 @@ public class ModelMapperConfig {
                 .addMapping(e -> e.getChief().getId(), TrainResponseDto::setChiefId)
                 .addMapping(e -> e.getChief().getId(), TrainResponseDto::setChiefId)
                 .addMapping(e -> e.getBranch().getId(), TrainResponseDto::setBranchId);
+
+        modelMapper.typeMap(UploadBatch.class, UploadBatchResponseDto.class)
+                .addMapping(u -> u.getTrain().getChief(), UploadBatchResponseDto::setChief);
+//                .addMapping(UploadBatch::getUploadedBy, UploadBatchResponseDto::setUploadedBy);
+
 
         configureBranchMapping(modelMapper);
         configureUploadBatchDtoResponseMapping(modelMapper);
