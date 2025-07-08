@@ -3,6 +3,7 @@ package com.pipemasters.server.service.impl;
 import com.pipemasters.server.dto.request.TrainRequestDto;
 import com.pipemasters.server.dto.response.TrainResponseDto;
 import com.pipemasters.server.dto.response.UserResponseDto;
+import com.pipemasters.server.entity.Branch;
 import com.pipemasters.server.entity.Train;
 import com.pipemasters.server.entity.User;
 import com.pipemasters.server.exceptions.branch.BranchNotFoundException;
@@ -95,5 +96,33 @@ public class TrainServiceImpl implements TrainService {
         return trainRepository.findDistinctChiefs().stream()
                 .map(user -> modelMapper.map(user, UserResponseDto.class))
                 .toList();
+    }
+
+    @Override
+    @CacheEvict(cacheNames = "trains", allEntries = true)
+    @Transactional
+    public TrainResponseDto assignTrainToBranch(Long trainId, Long branchId) {
+        Train train = trainRepository.findById(trainId)
+                .orElseThrow(() -> new TrainNotFoundException("Train not found with ID: " + trainId));
+
+        Branch branch = branchRepository.findById(branchId)
+                .orElseThrow(() -> new BranchNotFoundException("Branch not found with ID: " + branchId));
+
+        train.setBranch(branch);
+        return modelMapper.map(trainRepository.save(train), TrainResponseDto.class);
+    }
+
+    @Override
+    @CacheEvict(cacheNames = "trains", allEntries = true)
+    @Transactional
+    public TrainResponseDto updateTrainChief(Long trainId, Long newChiefId) {
+        Train train = trainRepository.findById(trainId)
+                .orElseThrow(() -> new TrainNotFoundException("Train not found with ID: " + trainId));
+
+        User newChief = userRepository.findById(newChiefId)
+                .orElseThrow(() -> new UserNotFoundException("Chief user not found with ID: " + newChiefId));
+
+        train.setChief(newChief);
+        return modelMapper.map(trainRepository.save(train), TrainResponseDto.class);
     }
 }

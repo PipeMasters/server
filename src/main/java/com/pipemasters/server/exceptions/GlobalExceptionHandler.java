@@ -2,6 +2,7 @@ package com.pipemasters.server.exceptions;
 
 import com.pipemasters.server.exceptions.audio.AudioExtractionException;
 import com.pipemasters.server.exceptions.branch.InvalidBranchHierarchyException;
+import com.pipemasters.server.exceptions.branch.InvalidBranchLevelException;
 import com.pipemasters.server.exceptions.file.MediaFileNotFoundException;
 import com.pipemasters.server.exceptions.delegation.DelegationDateValidationException;
 import com.pipemasters.server.exceptions.file.*;
@@ -14,7 +15,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import java.time.LocalDateTime;
@@ -131,6 +131,14 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     public ResponseEntity<Object> handleInvalidBranchHierarchyException(
             InvalidBranchHierarchyException ex) {
         log.error("InvalidBranchHierarchyException: {}", ex.getMessage());
+        return new ResponseEntity<>(createErrorBody(
+                HttpStatus.BAD_REQUEST, "Bad Request", ex.getMessage()), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(InvalidBranchLevelException.class)
+    public ResponseEntity<Object> handleInvalidBranchLevelException(
+            InvalidBranchLevelException ex) {
+        log.error("InvalidBranchLevelException: {}", ex.getMessage());
         return new ResponseEntity<>(createErrorBody(
                 HttpStatus.BAD_REQUEST, "Bad Request", ex.getMessage()), HttpStatus.BAD_REQUEST);
     }

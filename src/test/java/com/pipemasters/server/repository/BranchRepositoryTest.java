@@ -126,4 +126,76 @@ class BranchRepositoryTest {
         assertNotNull(rootBranches);
         assertTrue(rootBranches.isEmpty());
     }
+
+    @Test
+    void findByLevel_shouldReturnCorrectBranchesForLevel0() {
+        Branch level0Branch1 = branchRepository.save(new Branch("Root Branch 1", null));
+        Branch level0Branch2 = branchRepository.save(new Branch("Root Branch 2", null));
+        branchRepository.save(new Branch("Child Branch", level0Branch1));
+
+        List<Branch> branches = branchRepository.findByLevel(0);
+
+        assertNotNull(branches);
+        assertEquals(2, branches.size());
+        assertTrue(branches.stream().anyMatch(b -> b.getName().equals("Root Branch 1")));
+        assertTrue(branches.stream().anyMatch(b -> b.getName().equals("Root Branch 2")));
+    }
+
+    @Test
+    void findByLevel_shouldReturnCorrectBranchesForLevel1() {
+        Branch level0Branch = branchRepository.save(new Branch("Parent Branch", null));
+        Branch level1Branch1 = branchRepository.save(new Branch("Child Branch A", level0Branch));
+        Branch level1Branch2 = branchRepository.save(new Branch("Child Branch B", level0Branch));
+        branchRepository.save(new Branch("Grandchild Branch", level1Branch1));
+
+        List<Branch> branches = branchRepository.findByLevel(1);
+
+        assertNotNull(branches);
+        assertEquals(2, branches.size());
+        assertTrue(branches.stream().anyMatch(b -> b.getName().equals("Child Branch A")));
+        assertTrue(branches.stream().anyMatch(b -> b.getName().equals("Child Branch B")));
+    }
+
+    @Test
+    void findByLevel_shouldReturnCorrectBranchesForLevel2() {
+        Branch level0Branch = branchRepository.save(new Branch("Top Parent", null));
+        Branch level1Branch = branchRepository.save(new Branch("Mid Parent", level0Branch));
+        Branch level2Branch = branchRepository.save(new Branch("Leaf Branch", level1Branch));
+
+        List<Branch> branches = branchRepository.findByLevel(2);
+
+        assertNotNull(branches);
+        assertEquals(1, branches.size());
+        assertTrue(branches.stream().anyMatch(b -> b.getName().equals("Leaf Branch")));
+    }
+
+    @Test
+    void findByLevel_shouldReturnEmptyListForNonExistentLevel() {
+        branchRepository.save(new Branch("Root", null));
+        branchRepository.save(new Branch("Child", branchRepository.findAll().get(0)));
+
+        List<Branch> branches = branchRepository.findByLevel(999);
+
+        assertNotNull(branches);
+        assertTrue(branches.isEmpty());
+    }
+
+    @Test
+    void findByLevel_shouldReturnEmptyListWhenNoBranchesAtGivenLevel() {
+        branchRepository.save(new Branch("Root A", null));
+        branchRepository.save(new Branch("Root B", null));
+
+        List<Branch> branches = branchRepository.findByLevel(1);
+
+        assertNotNull(branches);
+        assertTrue(branches.isEmpty());
+    }
+
+    @Test
+    void findByLevel_shouldReturnEmptyListWhenRepositoryIsEmpty() {
+        List<Branch> branches = branchRepository.findByLevel(0);
+
+        assertNotNull(branches);
+        assertTrue(branches.isEmpty());
+    }
 }

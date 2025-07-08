@@ -117,4 +117,38 @@ class TrainControllerTest {
         assertNotNull(response.getBody());
         assertTrue(response.getBody().isEmpty());
     }
+
+    @Test
+    void assignTrainToBranch_ReturnsOkStatusAndUpdatedDto() {
+        Long trainId = 1L;
+        Long branchId = 2L;
+        TrainResponseDto updatedDto = new TrainResponseDto();
+        updatedDto.setId(trainId);
+        updatedDto.setBranchId(branchId);
+
+        when(trainService.assignTrainToBranch(trainId, branchId)).thenReturn(updatedDto);
+
+        ResponseEntity<TrainResponseDto> response = trainController.assignTrainToBranch(trainId, branchId);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(updatedDto, response.getBody());
+        verify(trainService).assignTrainToBranch(trainId, branchId);
+    }
+
+    @Test
+    void updateTrainChief_ReturnsOkStatusAndUpdatedDto() {
+        Long trainId = 1L;
+        Long newChiefId = 3L;
+        TrainResponseDto updatedDto = new TrainResponseDto();
+        updatedDto.setId(trainId);
+        updatedDto.setChiefId(newChiefId);
+
+        when(trainService.updateTrainChief(trainId, newChiefId)).thenReturn(updatedDto);
+
+        ResponseEntity<TrainResponseDto> response = trainController.updateTrainChief(trainId, newChiefId);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(updatedDto, response.getBody());
+        verify(trainService).updateTrainChief(trainId, newChiefId);
+    }
 }

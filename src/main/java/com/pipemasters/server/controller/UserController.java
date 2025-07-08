@@ -27,7 +27,7 @@ public class UserController {
         return new ResponseEntity<>(newUser, HttpStatus.CREATED);
     }
 
-    @PatchMapping("/{id}")
+    @PutMapping("/{id}")
     public ResponseEntity<UserResponseDto> updateUser(@PathVariable Long id, @RequestBody UserUpdateDto updateDTO) {
         UserResponseDto updatedUser = userService.updateUser(id, updateDTO);
         return ResponseEntity.ok(updatedUser);
@@ -43,5 +43,11 @@ public class UserController {
     public ResponseEntity<List<UserResponseDto>> getUsers() {
         List<UserResponseDto> users = userService.getUsers();
         return ResponseEntity.ok(users);
+    }
+
+    @PutMapping("/{userId}/assignBranch/{branchId}")
+    public ResponseEntity<UserResponseDto> assignUserToBranch(@PathVariable Long userId, @PathVariable Long branchId) {
+        UserResponseDto updatedUser = userService.assignUserToBranch(userId, branchId);
+        return ResponseEntity.ok(updatedUser);
     }
 }
