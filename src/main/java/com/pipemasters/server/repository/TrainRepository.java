@@ -10,4 +10,5 @@ public interface TrainRepository extends GeneralRepository<Train, Long> {
     void deleteById(Long id);
     @Query("SELECT DISTINCT t.chief FROM Train t")
     List<User> findDistinctChiefs();
+    boolean existsByTrainNumber(Long trainNumber);
 }

@@ -40,6 +40,9 @@ public class TrainServiceImpl implements TrainService {
     @CacheEvict(cacheNames = "trains", allEntries = true)
     @Transactional
     public TrainResponseDto save(TrainRequestDto trainDto) {
+        if (trainRepository.existsByTrainNumber(trainDto.getTrainNumber())) {
+            throw new IllegalArgumentException("Train with number " + trainDto.getTrainNumber() + " already exists.");
+        }
         Train train = modelMapper.map(trainDto, Train.class);
         User chief = userRepository.findById(trainDto.getChiefId()).orElseThrow(() -> new UserNotFoundException("Chief user not found with ID: " + trainDto.getChiefId()));
         train.setChief(chief);
