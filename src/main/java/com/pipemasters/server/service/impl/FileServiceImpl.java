@@ -3,6 +3,7 @@ package com.pipemasters.server.service.impl;
 import com.pipemasters.server.dto.request.FileUploadRequestDto;
 import com.pipemasters.server.entity.UploadBatch;
 import com.pipemasters.server.entity.MediaFile;
+import com.pipemasters.server.entity.enums.FileType;
 import com.pipemasters.server.entity.enums.MediaFileStatus;
 import com.pipemasters.server.exceptions.file.MediaFileNotFoundException;
 import com.pipemasters.server.exceptions.file.FileAlreadyExistsException;
@@ -51,17 +52,16 @@ public class FileServiceImpl implements FileService {
 
     @Override
     @Transactional
-    public String generatePresignedUploadUrl(FileUploadRequestDto fileUploadRequestDTO) {
+    public String generatePresignedUploadUrlForVideo(FileUploadRequestDto fileUploadRequestDTO) {
         UploadBatch uploadBatch = uploadBatchRepository.findById(fileUploadRequestDTO.getUploadBatchId())
                 .orElseThrow(() -> new UploadBatchNotFoundException("UploadBatch not found with ID: " + fileUploadRequestDTO.getUploadBatchId()));
 
-        String s3Key = fileUploadRequestDTO.getFilename();
-        String fullS3Path = uploadBatch.getDirectory() + "/" + s3Key;
-        logger.debug("Generated S3 key for uploadUrl: {}", uploadBatch.getDirectory() + "/" + s3Key);
+        String filename = fileUploadRequestDTO.getFilename();
+        UUID directory = uploadBatch.getDirectory();
+        String fullPath = directory + "/" + filename;
+        logger.debug("Generated S3 key for uploadUrl: {}", fullPath);
 
-        Optional<MediaFile> existingMediaFileOptional = mediaFileRepository.findByFilenameAndUploadBatchDirectory(
-                fileUploadRequestDTO.getFilename(), uploadBatch.getDirectory());
-
+        Optional<MediaFile> existingMediaFileOptional = mediaFileRepository.findByFilenameAndUploadBatchDirectory(filename, directory);
         MediaFile mediaFile;
 
         if (existingMediaFileOptional.isPresent()) {
@@ -70,39 +70,79 @@ public class FileServiceImpl implements FileService {
             if (mediaFile.getStatus() != MediaFileStatus.PENDING) {
                 throw new FileAlreadyExistsException("File with the name " + fileUploadRequestDTO.getFilename() + " already exists.");
             }
-            logger.info("Found existing MediaFile with PENDING status. Re-generating upload URL for file: {}", fullS3Path);
+            logger.info("Found existing MediaFile with PENDING status. Re-generating upload URL for file: {}", fullPath);
         } else {
             mediaFile = new MediaFile();
-            mediaFile.setFilename(s3Key);
+            mediaFile.setFilename(filename);
             mediaFile.setFileType(fileUploadRequestDTO.getFileType());
             mediaFile.setUploadBatch(uploadBatch);
             mediaFile.setStatus(MediaFileStatus.PENDING);
+            mediaFileRepository.save(mediaFile);
+        }
+        return generatePresignedPutUrl(fullPath);
+    }
+
+    @Override
+    @Transactional
+    public String generatePresignedUploadUrlForAudio(String sourceKey) {
+        if (sourceKey == null || !sourceKey.contains("/")) {
+            throw new IllegalArgumentException("Invalid sourceKey for audio upload: " + sourceKey);
         }
 
-        if (fileUploadRequestDTO.getSourceId() != null) {
-            mediaFile.setSource(mediaFileRepository.findById(fileUploadRequestDTO.getSourceId()).orElseThrow(() -> new MediaFileNotFoundException("Source MediaFile not found with ID: " + fileUploadRequestDTO.getSourceId())));
+        String[] parts = sourceKey.split("/", 2);
+        String directory = parts[0];
+        String sourceFilename = parts[1];
+
+        MediaFile sourceMediaFile = mediaFileRepository
+                .findByFilenameAndUploadBatchDirectory(sourceFilename, UUID.fromString(directory))
+                .orElseThrow(() -> new MediaFileNotFoundException("Source VideoFile not found for key: " + sourceKey));
+
+        UploadBatch uploadBatch = sourceMediaFile.getUploadBatch();
+
+        String audioFilename = (sourceFilename.lastIndexOf(".") != -1) ? sourceFilename.substring(0, sourceFilename.lastIndexOf(".")) : sourceFilename;
+
+        Optional<MediaFile> existingAudioFile = mediaFileRepository
+                .findByFilenameAndUploadBatchDirectory(audioFilename, uploadBatch.getDirectory());
+
+        MediaFile mediaFile;
+        if (existingAudioFile.isPresent()) {
+            mediaFile = existingAudioFile.get();
+            if (mediaFile.getStatus() != MediaFileStatus.PENDING) {
+                throw new FileAlreadyExistsException("Audio file already exists and is not in PENDING status: " + audioFilename);
+            }
+        } else {
+            mediaFile = new MediaFile();
+            mediaFile.setFilename(audioFilename);
+            mediaFile.setFileType(FileType.AUDIO);
+            mediaFile.setUploadBatch(uploadBatch);
+            mediaFile.setSource(sourceMediaFile);
+            mediaFile.setStatus(MediaFileStatus.PENDING);
+            mediaFileRepository.save(mediaFile);
         }
+        String fullPath = uploadBatch.getDirectory() + "/" + audioFilename;
 
-        mediaFileRepository.save(mediaFile);
+        return generatePresignedPutUrl(fullPath);
+    }
 
+    private String generatePresignedPutUrl(String s3Key) {
         try {
-            PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+            PutObjectRequest request = PutObjectRequest.builder()
                     .bucket(minioBucketName)
-                    .key(fullS3Path)
+                    .key(s3Key)
                     .build();
 
-            PutObjectPresignRequest presignRequest = PutObjectPresignRequest.builder()
+            PutObjectPresignRequest presign = PutObjectPresignRequest.builder()
                     .signatureDuration(Duration.ofMinutes(5))
-                    .putObjectRequest(putObjectRequest)
+                    .putObjectRequest(request)
                     .build();
 
-            PresignedPutObjectRequest presignedRequest = s3Presigner.presignPutObject(presignRequest);
-            return presignedRequest.url().toString();
+            return s3Presigner.presignPutObject(presign).url().toString();
         } catch (Exception e) {
-            logger.error("Failed to generate presigned upload URL for file: {}", s3Key, e);
-            throw new FileGenerationException("Failed to generate presigned upload URL for file: " + s3Key, e);
+            logger.error("Failed to generate upload URL for key: {}", s3Key, e);
+            throw new FileGenerationException("Could not generate upload URL for: " + s3Key, e);
         }
     }
+
 
     @Override
     @Transactional(readOnly = true)

@@ -5,7 +5,9 @@ import com.pipemasters.server.dto.request.FileUploadRequestDto;
 import java.util.UUID;
 
 public interface FileService {
-    String generatePresignedUploadUrl(FileUploadRequestDto fileUploadRequestDTO);
+    String generatePresignedUploadUrlForVideo(FileUploadRequestDto fileUploadRequestDTO);
+
+    String generatePresignedUploadUrlForAudio(String sourceKey);
 
     String generatePresignedDownloadUrl(Long mediaFileId);
 
