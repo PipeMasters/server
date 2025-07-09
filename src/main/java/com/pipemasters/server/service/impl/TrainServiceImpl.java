@@ -8,6 +8,7 @@ import com.pipemasters.server.entity.Train;
 import com.pipemasters.server.entity.User;
 import com.pipemasters.server.exceptions.branch.BranchNotFoundException;
 import com.pipemasters.server.exceptions.train.TrainNotFoundException;
+import com.pipemasters.server.exceptions.train.TrainNumberExistsException;
 import com.pipemasters.server.exceptions.user.UserNotFoundException;
 import com.pipemasters.server.repository.BranchRepository;
 import com.pipemasters.server.repository.TrainRepository;
@@ -40,6 +41,9 @@ public class TrainServiceImpl implements TrainService {
     @CacheEvict(cacheNames = "trains", allEntries = true)
     @Transactional
     public TrainResponseDto save(TrainRequestDto trainDto) {
+        if (trainRepository.existsByTrainNumber(trainDto.getTrainNumber())) {
+            throw new TrainNumberExistsException("Train with number " + trainDto.getTrainNumber() + " already exists.");
+        }
         Train train = modelMapper.map(trainDto, Train.class);
         User chief = userRepository.findById(trainDto.getChiefId()).orElseThrow(() -> new UserNotFoundException("Chief user not found with ID: " + trainDto.getChiefId()));
         train.setChief(chief);
@@ -71,6 +75,11 @@ public class TrainServiceImpl implements TrainService {
     @Transactional
     public TrainResponseDto update(Long id, TrainRequestDto trainDto) {
         Train train = trainRepository.findById(id).orElseThrow(() -> new TrainNotFoundException("Train not found with ID: " + id));
+        if (!train.getTrainNumber().equals(trainDto.getTrainNumber())) {
+            if (trainRepository.existsByTrainNumber(trainDto.getTrainNumber())) {
+                throw new TrainNumberExistsException("Train with number " + trainDto.getTrainNumber() + " already exists.");
+            }
+        }
         User chief = userRepository.findById(trainDto.getChiefId()).orElseThrow(() -> new UserNotFoundException("Chief user not found with ID: " + trainDto.getChiefId()));
         train.setTrainNumber(trainDto.getTrainNumber());
         train.setRouteMessage(trainDto.getRouteMessage());

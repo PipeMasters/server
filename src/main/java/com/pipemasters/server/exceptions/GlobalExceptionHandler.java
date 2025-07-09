@@ -8,6 +8,7 @@ import com.pipemasters.server.exceptions.delegation.DelegationDateValidationExce
 import com.pipemasters.server.exceptions.file.*;
 import com.pipemasters.server.exceptions.train.TrainNotFoundException;
 import com.pipemasters.server.exceptions.branch.BranchNotFoundException;
+import com.pipemasters.server.exceptions.train.TrainNumberExistsException;
 import com.pipemasters.server.exceptions.user.UserNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -139,6 +140,14 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     public ResponseEntity<Object> handleInvalidBranchLevelException(
             InvalidBranchLevelException ex) {
         log.error("InvalidBranchLevelException: {}", ex.getMessage());
+        return new ResponseEntity<>(createErrorBody(
+                HttpStatus.BAD_REQUEST, "Bad Request", ex.getMessage()), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(TrainNumberExistsException.class)
+    public ResponseEntity<Object> handleTrainNumberExistsException(
+            TrainNumberExistsException ex) {
+        log.error("TrainNumberExistsException: {}", ex.getMessage());
         return new ResponseEntity<>(createErrorBody(
                 HttpStatus.BAD_REQUEST, "Bad Request", ex.getMessage()), HttpStatus.BAD_REQUEST);
     }
