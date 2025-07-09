@@ -38,9 +38,9 @@ public class UploadBatchSpecifications {
                 p.add(cb.equal(train.get("id"), f.getTrainId()));
             }
 
-            if (f.getChiefName() != null) {
+            if (f.getChiefId() != null) {
                 Join<Object, Object> train = root.join("train");
-                p.add(cb.like(cb.lower(train.get("chief")), "%" + f.getChiefName().toLowerCase() + "%"));
+                p.add(cb.equal(train.get("chief"), "%" + f.getChiefId() + "%"));
             }
 
             if (f.getUploadedById() != null) {
