@@ -15,7 +15,7 @@ public class UploadBatchFilter {
 
     private Long trainId;
 
-    private String chiefName;
+    private Long chiefId;
 
     private Instant  createdFrom;
 
@@ -77,12 +77,12 @@ public class UploadBatchFilter {
         this.trainId = trainId;
     }
 
-    public String getChiefName() {
-        return chiefName;
+    public Long getChiefId() {
+        return chiefId;
     }
 
-    public void setChiefName(String chiefName) {
-        this.chiefName = chiefName;
+    public void setChiefId(Long chiefId) {
+        this.chiefId = chiefId;
     }
 
     public Instant getCreatedFrom() {

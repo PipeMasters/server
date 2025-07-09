@@ -113,7 +113,7 @@ public class RedisConfig {
                     (f.getCreatedFrom() != null ? f.getCreatedFrom() : "") + ":" +
                     (f.getCreatedTo() != null ? f.getCreatedTo() : "") + ":" +
                     (f.getTrainId() != null ? f.getTrainId() : "") + ":" +
-                    (f.getChiefName() != null ? f.getChiefName() : "") + ":" +
+                    (f.getChiefId() != null ? f.getChiefId() : "") + ":" +
                     (f.getUploadedById() != null ? f.getUploadedById() : "") + ":" +
                     (f.getUploadedByName() != null ? f.getUploadedByName() : "") + ":" +
                     (f.getBranchId() != null ? f.getBranchId() : "") + ":" +

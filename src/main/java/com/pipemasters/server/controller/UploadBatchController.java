@@ -43,7 +43,7 @@ public class UploadBatchController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Instant createdTo,
 
             @RequestParam(required = false) Long trainId,
-            @RequestParam(required = false) String chief,
+            @RequestParam(required = false) Long chiefId,
             @RequestParam(required = false) Long uploadedById,
             @RequestParam(required = false) Long branchId,
 
@@ -62,7 +62,7 @@ public class UploadBatchController {
         filter.setCreatedTo(createdTo);
 
         filter.setTrainId(trainId);
-        filter.setChiefName(chief);
+        filter.setChiefId(chiefId);
 
         filter.setUploadedById(uploadedById);
 
