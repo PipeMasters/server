@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "train_schedule",
         indexes = {@Index(columnList = "train_number")})
-public class TrainSchedule {
+public class TrainSchedule extends BaseEntity {
     @Column(nullable = false, unique = true)
     private Long trainNumber;
 
