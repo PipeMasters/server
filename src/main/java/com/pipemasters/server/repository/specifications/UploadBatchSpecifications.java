@@ -40,7 +40,8 @@ public class UploadBatchSpecifications {
 
             if (f.getChiefId() != null) {
                 Join<Object, Object> train = root.join("train");
-                p.add(cb.equal(train.get("chief"), "%" + f.getChiefId() + "%"));
+                Join<Object, Object> chief = train.join("chief");
+                p.add(cb.equal(chief.get("id"), f.getChiefId()));
             }
 
             if (f.getUploadedById() != null) {
