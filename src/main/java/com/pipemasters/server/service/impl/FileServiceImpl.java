@@ -5,10 +5,7 @@ import com.pipemasters.server.entity.UploadBatch;
 import com.pipemasters.server.entity.MediaFile;
 import com.pipemasters.server.entity.enums.FileType;
 import com.pipemasters.server.entity.enums.MediaFileStatus;
-import com.pipemasters.server.exceptions.file.MediaFileNotFoundException;
-import com.pipemasters.server.exceptions.file.FileAlreadyExistsException;
-import com.pipemasters.server.exceptions.file.FileGenerationException;
-import com.pipemasters.server.exceptions.file.UploadBatchNotFoundException;
+import com.pipemasters.server.exceptions.file.*;
 import com.pipemasters.server.repository.MediaFileRepository;
 import com.pipemasters.server.repository.UploadBatchRepository;
 import com.pipemasters.server.service.FileService;
@@ -20,7 +17,6 @@ import software.amazon.awssdk.services.s3.model.Delete;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
-import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -86,7 +82,7 @@ public class FileServiceImpl implements FileService {
     @Transactional
     public String generatePresignedUploadUrlForAudio(String sourceKey) {
         if (sourceKey == null || !sourceKey.contains("/")) {
-            throw new IllegalArgumentException("Invalid sourceKey for audio upload: " + sourceKey);
+            throw new InvalidFileKeyException("Invalid sourceKey for audio upload: " + sourceKey + ". Expected format: 'directory/filename'.");
         }
 
         String[] parts = sourceKey.split("/", 2);

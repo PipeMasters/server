@@ -180,6 +180,14 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         );
     }
 
+    @ExceptionHandler(InvalidFileKeyException.class)
+    public ResponseEntity<Object> handleInvalidFileKeyException(
+            InvalidFileKeyException ex) {
+        log.error("InvalidFileKeyException: {}", ex.getMessage());
+        return new ResponseEntity<>(createErrorBody(
+                HttpStatus.BAD_REQUEST, "Bad Request", ex.getMessage()), HttpStatus.BAD_REQUEST);
+    }
+
     private Map<String, Object> createErrorBody(HttpStatus status, String error, String message) {
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("timestamp", LocalDateTime.now());
