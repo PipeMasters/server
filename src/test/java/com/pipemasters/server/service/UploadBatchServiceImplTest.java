@@ -9,6 +9,7 @@ import com.pipemasters.server.dto.response.UploadBatchResponseDto;
 import com.pipemasters.server.entity.*;
 import com.pipemasters.server.entity.enums.AbsenceCause;
 import com.pipemasters.server.entity.enums.FileType;
+import com.pipemasters.server.exceptions.file.UploadBatchNotFoundException;
 import com.pipemasters.server.repository.*;
 import com.pipemasters.server.service.impl.UploadBatchServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
@@ -161,7 +162,7 @@ class UploadBatchServiceImplTest {
     void getById_ShouldThrowExceptionWhenNotFound() {
         when(uploadBatchRepository.findById(1L)).thenReturn(Optional.empty());
 
-        assertThrows(IllegalArgumentException.class, () -> uploadBatchService.getById(1L));
+        assertThrows(UploadBatchNotFoundException.class, () -> uploadBatchService.getById(1L));
     }
 
     @Test
