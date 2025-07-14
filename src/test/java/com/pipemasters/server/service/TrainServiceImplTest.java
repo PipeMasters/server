@@ -6,6 +6,7 @@ import com.pipemasters.server.dto.response.UserResponseDto;
 import com.pipemasters.server.entity.Branch;
 import com.pipemasters.server.entity.Train;
 import com.pipemasters.server.entity.User;
+import com.pipemasters.server.entity.enums.Role;
 import com.pipemasters.server.exceptions.branch.BranchNotFoundException;
 import com.pipemasters.server.exceptions.train.TrainNotFoundException;
 import com.pipemasters.server.exceptions.user.UserNotFoundException;
@@ -24,6 +25,7 @@ import org.modelmapper.ModelMapper;
 import java.util.*;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -41,6 +43,8 @@ class TrainServiceImplTest {
 
     private User chief;
     private Branch branch;
+    private User anotherChief;
+    private Branch anotherBranch;
 
     @BeforeEach
     void setUp() {
@@ -173,7 +177,7 @@ class TrainServiceImplTest {
         Long trainId = 1L;
         Long branchId = 2L;
 
-        Train existingTrain = new Train(123L, "Initial Route", 1, chief, null); // Изначально без филиала
+        Train existingTrain = new Train(123L, "Initial Route", 1, chief, null);
         existingTrain.setId(trainId);
 
         Branch newBranch = new Branch("New Branch", null);
@@ -307,5 +311,95 @@ class TrainServiceImplTest {
         verify(trainRepository, times(1)).findById(trainId);
         verify(userRepository, times(1)).findById(newChiefId);
         verify(trainRepository, never()).save(any(Train.class));
+    }
+
+    @Test
+    void getTrainsByBranchId_ShouldReturnListOfTrains() {
+        Train train1 = new Train(101L, "Route 1", 10, chief, branch);
+        train1.setId(1L);
+        Train train2 = new Train(102L, "Route 2", 12, chief, branch);
+        train2.setId(2L);
+        List<Train> trainsForBranch = Arrays.asList(train1, train2);
+
+        TrainResponseDto dto1 = new TrainResponseDto(101L, "Route 1", 10, chief.getId(), branch.getId());
+        TrainResponseDto dto2 = new TrainResponseDto(102L, "Route 2", 12, chief.getId(), branch.getId());
+
+        when(branchRepository.existsById(branch.getId())).thenReturn(true);
+        when(trainRepository.findByBranchId(branch.getId())).thenReturn(trainsForBranch);
+        when(modelMapper.map(train1, TrainResponseDto.class)).thenReturn(dto1);
+        when(modelMapper.map(train2, TrainResponseDto.class)).thenReturn(dto2);
+
+        List<TrainResponseDto> result = trainService.getTrainsByBranchId(branch.getId());
+
+        assertThat(result).hasSize(2);
+        assertThat(result).containsExactlyInAnyOrder(dto1, dto2);
+        verify(branchRepository).existsById(branch.getId());
+        verify(trainRepository).findByBranchId(branch.getId());
+    }
+
+    @Test
+    void getTrainsByBranchId_ShouldReturnEmptyList_WhenNoTrainsFoundForBranch() {
+        when(branchRepository.existsById(branch.getId())).thenReturn(true);
+        when(trainRepository.findByBranchId(branch.getId())).thenReturn(Collections.emptyList());
+
+        List<TrainResponseDto> result = trainService.getTrainsByBranchId(branch.getId());
+
+        assertThat(result).isEmpty();
+        verify(branchRepository).existsById(branch.getId());
+        verify(trainRepository).findByBranchId(branch.getId());
+    }
+
+    @Test
+    void getTrainsByBranchId_ShouldThrowBranchNotFoundException_WhenBranchDoesNotExist() {
+        when(branchRepository.existsById(anyLong())).thenReturn(false);
+
+        assertThrows(BranchNotFoundException.class, () -> trainService.getTrainsByBranchId(99L));
+        verify(branchRepository).existsById(99L);
+        verify(trainRepository, never()).findByBranchId(anyLong());
+    }
+
+
+    @Test
+    void getChiefsByBranchId_ShouldReturnListOfChiefs() {
+        User chief1 = new User("Chief1", "L", "M", Set.of(Role.USER), branch); chief1.setId(1L);
+        User chief2 = new User("Chief2", "L", "M", Set.of(Role.USER), branch); chief2.setId(2L);
+        List<User> chiefsForBranch = Arrays.asList(chief1, chief2);
+
+        UserResponseDto dto1 = new UserResponseDto(); dto1.setId(1L); dto1.setName("Chief1");
+        UserResponseDto dto2 = new UserResponseDto(); dto2.setId(2L); dto2.setName("Chief2");
+        List<UserResponseDto> expectedDtos = Arrays.asList(dto1, dto2);
+
+        when(branchRepository.existsById(branch.getId())).thenReturn(true);
+        when(trainRepository.findDistinctChiefsByBranchId(branch.getId())).thenReturn(chiefsForBranch);
+        when(modelMapper.map(chief1, UserResponseDto.class)).thenReturn(dto1);
+        when(modelMapper.map(chief2, UserResponseDto.class)).thenReturn(dto2);
+
+        List<UserResponseDto> result = trainService.getChiefsByBranchId(branch.getId());
+
+        assertThat(result).hasSize(2);
+        assertThat(result).containsExactlyInAnyOrder(dto1, dto2);
+        verify(branchRepository).existsById(branch.getId());
+        verify(trainRepository).findDistinctChiefsByBranchId(branch.getId());
+    }
+
+    @Test
+    void getChiefsByBranchId_ShouldReturnEmptyList_WhenNoChiefsFoundForBranch() {
+        when(branchRepository.existsById(branch.getId())).thenReturn(true);
+        when(trainRepository.findDistinctChiefsByBranchId(branch.getId())).thenReturn(Collections.emptyList());
+
+        List<UserResponseDto> result = trainService.getChiefsByBranchId(branch.getId());
+
+        assertThat(result).isEmpty();
+        verify(branchRepository).existsById(branch.getId());
+        verify(trainRepository).findDistinctChiefsByBranchId(branch.getId());
+    }
+
+    @Test
+    void getChiefsByBranchId_ShouldThrowBranchNotFoundException_WhenBranchDoesNotExist() {
+        when(branchRepository.existsById(anyLong())).thenReturn(false);
+
+        assertThrows(BranchNotFoundException.class, () -> trainService.getChiefsByBranchId(99L));
+        verify(branchRepository).existsById(99L);
+        verify(trainRepository, never()).findDistinctChiefsByBranchId(anyLong());
     }
 }

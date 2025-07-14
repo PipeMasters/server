@@ -5,9 +5,13 @@ import com.pipemasters.server.dto.response.UserResponseDto;
 import com.pipemasters.server.dto.request.create.UserCreateDto;
 import com.pipemasters.server.dto.request.update.UserUpdateDto;
 import com.pipemasters.server.entity.enums.Role;
+import com.pipemasters.server.exceptions.branch.BranchNotFoundException;
 import com.pipemasters.server.service.UserService;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -16,20 +20,17 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.hibernate.validator.internal.util.Contracts.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 class UserControllerTest {
 
+    @InjectMocks
     private UserController userController;
-    private UserService userService;
 
-    @BeforeEach
-    void setUp() {
-        userService = mock(UserService.class);
-        userController = new UserController(userService);
-    }
+    @Mock
+    private UserService userService;
 
     @Test
     void createUserReturnsCreatedUser() {
@@ -158,5 +159,45 @@ class UserControllerTest {
         assertEquals(userId, response.getBody().getId());
         assertEquals(branchId, response.getBody().getBranchId());
         verify(userService, times(1)).assignUserToBranch(userId, branchId);
+    }
+
+    @Test
+    void getUsersByBranchId_ReturnsOkStatusAndListOfUsers() {
+        Long branchId = 1L;
+        UserResponseDto user1 = new UserResponseDto(); user1.setId(1L); user1.setBranchId(branchId);
+        UserResponseDto user2 = new UserResponseDto(); user2.setId(2L); user2.setBranchId(branchId);
+        List<UserResponseDto> expectedUsers = Arrays.asList(user1, user2);
+
+        when(userService.getUsersByBranchId(branchId)).thenReturn(expectedUsers);
+
+        ResponseEntity<List<UserResponseDto>> response = userController.getUsersByBranchId(branchId);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(2, response.getBody().size());
+        assertEquals(expectedUsers, response.getBody());
+        verify(userService).getUsersByBranchId(branchId);
+    }
+
+    @Test
+    void getUsersByBranchId_ReturnsEmptyListWhenNoUsersFound() {
+        Long branchId = 1L;
+        when(userService.getUsersByBranchId(branchId)).thenReturn(Collections.emptyList());
+
+        ResponseEntity<List<UserResponseDto>> response = userController.getUsersByBranchId(branchId);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertTrue(response.getBody().isEmpty());
+        verify(userService).getUsersByBranchId(branchId);
+    }
+
+    @Test
+    void getUsersByBranchId_HandlesBranchNotFoundException() {
+        Long branchId = 99L;
+        when(userService.getUsersByBranchId(branchId)).thenThrow(new BranchNotFoundException("Branch not found with id: " + branchId));
+
+        assertThrows(BranchNotFoundException.class, () -> userController.getUsersByBranchId(branchId));
+        verify(userService).getUsersByBranchId(branchId);
     }
 }

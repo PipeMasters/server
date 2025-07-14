@@ -14,13 +14,15 @@ import com.pipemasters.server.repository.UserRepository;
 import com.pipemasters.server.service.impl.UserServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 
 import java.util.*;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
@@ -29,18 +31,28 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
 class UserServiceImplTest {
+    @InjectMocks
     private UserServiceImpl userService;
+    @Mock
     private UserRepository userRepository;
+    @Mock
     private BranchRepository branchRepository;
+    @Mock
     private ModelMapper modelMapper;
+
+    private Branch mockBranch;
+    private Branch anotherMockBranch;
 
     @BeforeEach
     void setUp() {
-        userRepository = mock(UserRepository.class);
-        branchRepository = mock(BranchRepository.class);
-        modelMapper = mock(ModelMapper.class);
-        userService = new UserServiceImpl(userRepository, branchRepository, modelMapper);
+
+        mockBranch = new Branch("Main Branch", null);
+        mockBranch.setId(1L);
+
+        anotherMockBranch = new Branch("Another Branch", null);
+        anotherMockBranch.setId(2L);
     }
 
     @Test
@@ -310,5 +322,52 @@ class UserServiceImplTest {
         verify(userRepository, times(1)).findById(userId);
         verify(branchRepository, times(1)).findById(branchId);
         verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    void getUsersByBranchId_ShouldReturnListOfUsers() {
+        User user1 = new User("User1", "S1", "P1", Collections.singleton(Role.USER), mockBranch); user1.setId(1L);
+        User user2 = new User("User2", "S2", "P2", Collections.singleton(Role.USER), mockBranch); user2.setId(2L);
+        List<User> usersForBranch = Arrays.asList(user1, user2);
+
+        UserResponseDto dto1 = new UserResponseDto(); dto1.setId(1L); dto1.setName("User1"); dto1.setBranchId(mockBranch.getId());
+        UserResponseDto dto2 = new UserResponseDto(); dto2.setId(2L); dto2.setName("User2"); dto2.setBranchId(mockBranch.getId());
+        List<UserResponseDto> expectedDtos = Arrays.asList(dto1, dto2);
+
+        when(branchRepository.existsById(mockBranch.getId())).thenReturn(true);
+        when(userRepository.findByBranchId(mockBranch.getId())).thenReturn(usersForBranch);
+        when(modelMapper.map(user1, UserResponseDto.class)).thenReturn(dto1);
+        when(modelMapper.map(user2, UserResponseDto.class)).thenReturn(dto2);
+
+        List<UserResponseDto> result = userService.getUsersByBranchId(mockBranch.getId());
+
+        assertNotNull(result);
+        assertEquals(2, result.size());
+        assertTrue(result.containsAll(expectedDtos));
+        verify(branchRepository, times(1)).existsById(mockBranch.getId());
+        verify(userRepository, times(1)).findByBranchId(mockBranch.getId());
+    }
+
+    @Test
+    void getUsersByBranchId_ShouldReturnEmptyList_WhenNoUsersFoundForBranch() {
+        when(branchRepository.existsById(mockBranch.getId())).thenReturn(true);
+        when(userRepository.findByBranchId(mockBranch.getId())).thenReturn(Collections.emptyList());
+
+        List<UserResponseDto> result = userService.getUsersByBranchId(mockBranch.getId());
+
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+        verify(branchRepository, times(1)).existsById(mockBranch.getId());
+        verify(userRepository, times(1)).findByBranchId(mockBranch.getId());
+    }
+
+    @Test
+    void getUsersByBranchId_ShouldThrowBranchNotFoundException_WhenBranchDoesNotExist() {
+        when(branchRepository.existsById(anyLong())).thenReturn(false);
+
+        assertThrows(BranchNotFoundException.class, () -> userService.getUsersByBranchId(99L));
+
+        verify(branchRepository, times(1)).existsById(99L);
+        verify(userRepository, never()).findByBranchId(anyLong());
     }
 }
