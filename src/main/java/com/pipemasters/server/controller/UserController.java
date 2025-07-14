@@ -50,4 +50,10 @@ public class UserController {
         UserResponseDto updatedUser = userService.assignUserToBranch(userId, branchId);
         return ResponseEntity.ok(updatedUser);
     }
+
+    @GetMapping("/by-branch/{branchId}")
+    public ResponseEntity<List<UserResponseDto>> getUsersByBranchId(@PathVariable Long branchId) {
+        List<UserResponseDto> users = userService.getUsersByBranchId(branchId);
+        return new ResponseEntity<>(users, HttpStatus.OK);
+    }
 }

@@ -11,4 +11,7 @@ public interface TrainRepository extends GeneralRepository<Train, Long> {
     @Query("SELECT DISTINCT t.chief FROM Train t")
     List<User> findDistinctChiefs();
     boolean existsByTrainNumber(Long trainNumber);
+    List<Train> findByBranchId(Long branchId);
+    @Query("SELECT DISTINCT t.chief FROM Train t WHERE t.branch.id = :branchId AND t.chief IS NOT NULL")
+    List<User> findDistinctChiefsByBranchId(Long branchId);
 }

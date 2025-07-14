@@ -17,4 +17,6 @@ public interface TrainService {
     List<UserResponseDto> getChiefs();
     TrainResponseDto assignTrainToBranch(Long trainId, Long branchId);
     TrainResponseDto updateTrainChief(Long trainId, Long newChiefId);
+    List<TrainResponseDto> getTrainsByBranchId(Long branchId);
+    List<UserResponseDto> getChiefsByBranchId(Long branchId);
 }

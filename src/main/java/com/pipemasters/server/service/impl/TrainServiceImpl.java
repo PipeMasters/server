@@ -134,4 +134,26 @@ public class TrainServiceImpl implements TrainService {
         train.setChief(newChief);
         return modelMapper.map(trainRepository.save(train), TrainResponseDto.class);
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<TrainResponseDto> getTrainsByBranchId(Long branchId) {
+         if (!branchRepository.existsById(branchId)) {
+             throw new BranchNotFoundException("Branch not found with id: " + branchId);
+         }
+        return trainRepository.findByBranchId(branchId).stream()
+                .map(train -> modelMapper.map(train, TrainResponseDto.class))
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<UserResponseDto> getChiefsByBranchId(Long branchId) {
+         if (!branchRepository.existsById(branchId)) {
+             throw new BranchNotFoundException("Branch not found with id: " + branchId);
+         }
+        return trainRepository.findDistinctChiefsByBranchId(branchId).stream()
+                .map(user -> modelMapper.map(user, UserResponseDto.class))
+                .toList();
+    }
 }

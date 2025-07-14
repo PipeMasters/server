@@ -14,4 +14,5 @@ public interface UserService {
     UserResponseDto getUserById(Long userId);
     List<UserResponseDto> getUsers();
     UserResponseDto assignUserToBranch(Long userId, Long branchId);
+    List<UserResponseDto> getUsersByBranchId(Long branchId);
 }
