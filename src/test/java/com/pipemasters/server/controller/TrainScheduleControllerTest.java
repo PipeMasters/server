@@ -41,14 +41,14 @@ class TrainScheduleControllerTest {
                 "test data".getBytes()
         );
 
-        ParsingStatsDto expectedStats = ParsingStatsDto.builder()
-                .totalRecords(10)
-                .successfullyParsed(8)
-                .recordsWithError(2)
-                .existingRecordsInDb(0)
-                .updatedRecords(0)
-                .errorMessages(Collections.singletonList("Error in row 5: Some detail"))
-                .build();
+        ParsingStatsDto expectedStats = new ParsingStatsDto(
+                10,
+                8,
+                2,
+                0,
+                0,
+                Collections.singletonList("Error in row 5: Some detail")
+        );
 
         when(trainScheduleService.parseExcelFile(any(MultipartFile.class)))
                 .thenReturn(expectedStats);
@@ -65,6 +65,7 @@ class TrainScheduleControllerTest {
         assertEquals(2, response.getBody().getRecordsWithError());
         assertEquals("Error in row 5: Some detail", response.getBody().getErrorMessages().get(0));
     }
+
 
     @Test
     @DisplayName("Should return 400 BAD REQUEST if the uploaded file is empty")

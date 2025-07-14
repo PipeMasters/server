@@ -160,10 +160,14 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     public ResponseEntity<ParsingStatsDto> handleFileReadException(FileReadException ex) {
         log.error("FileReadException: {}", ex.getMessage());
         return new ResponseEntity<>(
-                ParsingStatsDto.builder()
-                        .recordsWithError(1)
-                        .errorMessages(Collections.singletonList(ex.getMessage()))
-                        .build(),
+                new ParsingStatsDto(
+                        0,
+                        0,
+                        1,
+                        0,
+                        0,
+                        Collections.singletonList(ex.getMessage())
+                ),
                 HttpStatus.INTERNAL_SERVER_ERROR
         );
     }
@@ -172,10 +176,14 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     public ResponseEntity<ParsingStatsDto> handleTrainParsingException(TrainParsingException ex) {
         log.error("TrainParsingException: {}", ex.getMessage());
         return new ResponseEntity<>(
-                ParsingStatsDto.builder()
-                        .recordsWithError(1)
-                        .errorMessages(Collections.singletonList("Data parsing error: " + ex.getMessage()))
-                        .build(),
+                new ParsingStatsDto(
+                        0,
+                        0,
+                        1,
+                        0,
+                        0,
+                        Collections.singletonList("Data parsing error: " + ex.getMessage())
+                ),
                 HttpStatus.BAD_REQUEST
         );
     }

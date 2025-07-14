@@ -1,9 +1,7 @@
 package com.pipemasters.server.dto;
 
-import lombok.Builder;
 import java.util.List;
 
-@Builder
 public class ParsingStatsDto {
     private int totalRecords;
     private int successfullyParsed;

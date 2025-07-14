@@ -202,14 +202,14 @@ public class TrainScheduleServiceImpl implements TrainScheduleService {
             log.info("No paired train numbers found in the Excel file to process.");
         }
 
-        ParsingStatsDto stats = ParsingStatsDto.builder()
-                .totalRecords(totalRecords)
-                .successfullyParsed(successfullyParsedNew)
-                .recordsWithError(recordsWithError)
-                .existingRecordsInDb(existingRecordsInDbFound)
-                .updatedRecords(updatedRecords)
-                .errorMessages(errorMessages)
-                .build();
+        ParsingStatsDto stats = new ParsingStatsDto(
+                totalRecords,
+                successfullyParsedNew,
+                recordsWithError,
+                existingRecordsInDbFound,
+                updatedRecords,
+                errorMessages
+        );
         log.info("Excel parsing finished. Stats: {}", stats);
         return stats;
     }

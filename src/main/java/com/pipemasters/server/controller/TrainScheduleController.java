@@ -7,6 +7,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Collections;
+
 @RestController
 @RequestMapping("/api/v1/train-schedules")
 public class TrainScheduleController {
@@ -21,9 +23,14 @@ public class TrainScheduleController {
     public ResponseEntity<ParsingStatsDto> uploadExcelFile(@RequestParam("file") MultipartFile file) throws Exception {
         if (file.isEmpty()) {
             return new ResponseEntity<>(
-                    ParsingStatsDto.builder()
-                            .errorMessages(java.util.Collections.singletonList("The file to download is missing or empty."))
-                            .build(),
+                    new ParsingStatsDto(
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            Collections.singletonList("The file to download is missing or empty.")
+                    ),
                     HttpStatus.BAD_REQUEST
             );
         }
