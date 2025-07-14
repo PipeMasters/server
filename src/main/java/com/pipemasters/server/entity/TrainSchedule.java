@@ -2,16 +2,16 @@ package com.pipemasters.server.entity;
 
 import jakarta.persistence.*;
 import java.time.Duration;
-import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 @Entity
 @Table(name = "train_schedule",
         indexes = {@Index(columnList = "train_number")})
 public class TrainSchedule extends BaseEntity {
-    @Column(nullable = false, unique = true)
-    private Long trainNumber;
+    @Column(nullable = false, unique = true, length = 128)
+    private String trainNumber;
 
-    @Column(nullable = false, length = 128)
+    @Column(nullable = false, length = 256)
     private String category;
 
     @Column(nullable = false, length = 128)
@@ -28,9 +28,9 @@ public class TrainSchedule extends BaseEntity {
 
     private Duration travelTime;
 
-    private LocalDateTime departureTime;
+    private LocalTime departureTime;
 
-    private LocalDateTime arrivalTime;
+    private LocalTime arrivalTime;
 
     private boolean isFirm;
 
@@ -44,14 +44,10 @@ public class TrainSchedule extends BaseEntity {
     @JoinColumn(name = "pair_train_id")
     private TrainSchedule pairTrain;
 
-    protected TrainSchedule() {
+    public TrainSchedule() {
     }
 
-    public TrainSchedule(Long trainNumber, String category, String departureStation, String arrivalStation,
-                         String customName, String railwayInfo, Duration travelTime,
-                         LocalDateTime departureTime, LocalDateTime arrivalTime,
-                         boolean isFirm, String periodicity, String seasonality,
-                         TrainSchedule pairTrain) {
+    public TrainSchedule(String trainNumber, String category, String departureStation, String arrivalStation, String customName, String railwayInfo, Duration travelTime, LocalTime departureTime, LocalTime arrivalTime, boolean isFirm, String periodicity, String seasonality, TrainSchedule pairTrain) {
         this.trainNumber = trainNumber;
         this.category = category;
         this.departureStation = departureStation;
@@ -67,11 +63,11 @@ public class TrainSchedule extends BaseEntity {
         this.pairTrain = pairTrain;
     }
 
-    public Long getTrainNumber() {
+    public String getTrainNumber() {
         return trainNumber;
     }
 
-    public void setTrainNumber(Long trainNumber) {
+    public void setTrainNumber(String trainNumber) {
         this.trainNumber = trainNumber;
     }
 
@@ -123,19 +119,19 @@ public class TrainSchedule extends BaseEntity {
         this.travelTime = travelTime;
     }
 
-    public LocalDateTime getDepartureTime() {
+    public LocalTime getDepartureTime() {
         return departureTime;
     }
 
-    public void setDepartureTime(LocalDateTime departureTime) {
+    public void setDepartureTime(LocalTime departureTime) {
         this.departureTime = departureTime;
     }
 
-    public LocalDateTime getArrivalTime() {
+    public LocalTime getArrivalTime() {
         return arrivalTime;
     }
 
-    public void setArrivalTime(LocalDateTime arrivalTime) {
+    public void setArrivalTime(LocalTime arrivalTime) {
         this.arrivalTime = arrivalTime;
     }
 

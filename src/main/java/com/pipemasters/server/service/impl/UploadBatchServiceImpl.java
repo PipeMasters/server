@@ -7,6 +7,7 @@ import com.pipemasters.server.dto.request.create.UploadBatchCreateDto;
 import com.pipemasters.server.dto.response.UploadBatchResponseDto;
 import com.pipemasters.server.entity.*;
 import com.pipemasters.server.exceptions.branch.BranchNotFoundException;
+import com.pipemasters.server.exceptions.file.UploadBatchNotFoundException;
 import com.pipemasters.server.exceptions.train.TrainNotFoundException;
 import com.pipemasters.server.exceptions.user.UserNotFoundException;
 import com.pipemasters.server.repository.*;
@@ -21,7 +22,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class UploadBatchServiceImpl implements UploadBatchService {
@@ -101,7 +101,7 @@ public class UploadBatchServiceImpl implements UploadBatchService {
     @Override
     @Transactional(readOnly = true)
     public UploadBatchResponseDto getById(Long id) {
-        var uploadBatch = uploadBatchRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("UploadBatch not found"));
+        var uploadBatch = uploadBatchRepository.findById(id).orElseThrow(() -> new UploadBatchNotFoundException("UploadBatch not found with ID: " + id));
         return modelMapper.map(uploadBatch, UploadBatchResponseDto.class);
     }
 
@@ -129,7 +129,7 @@ public class UploadBatchServiceImpl implements UploadBatchService {
     @Transactional
     public UploadBatchResponseDto update(Long uploadBatchId, UploadBatchRequestDto dto) {
         var uploadBatchOrigin = uploadBatchRepository.findById(uploadBatchId)
-                .orElseThrow(() -> new RuntimeException("UploadBatch not found with ID: " + uploadBatchId));
+                .orElseThrow(() -> new UploadBatchNotFoundException("UploadBatch not found with ID: " + uploadBatchId));
         var uploadBatch = modelMapper.map(dto, UploadBatch.class);
         uploadBatch.setId(uploadBatchOrigin.getId());
 
