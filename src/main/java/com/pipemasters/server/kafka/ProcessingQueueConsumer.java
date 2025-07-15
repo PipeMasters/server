@@ -10,7 +10,7 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-@Service
+//@Service
 public class ProcessingQueueConsumer {
     private final Logger log = LoggerFactory.getLogger(ProcessingQueueConsumer.class);
     private final MediaFileRepository mediaFileRepository;
@@ -25,8 +25,8 @@ public class ProcessingQueueConsumer {
         this.producerService = producerService;
     }
 
-    @KafkaListener(topics = "processing-queue")
-    @Transactional
+//    @KafkaListener(topics = "processing-queue")
+//    @Transactional
     public void process(String message) {
         Long id = Long.valueOf(message);
         MediaFile file = mediaFileRepository.findById(id)
