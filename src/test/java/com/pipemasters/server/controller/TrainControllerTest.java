@@ -3,6 +3,7 @@ package com.pipemasters.server.controller;
 import com.pipemasters.server.dto.request.TrainRequestDto;
 import com.pipemasters.server.dto.response.TrainResponseDto;
 import com.pipemasters.server.dto.response.UserResponseDto;
+import com.pipemasters.server.exceptions.branch.BranchNotFoundException;
 import com.pipemasters.server.service.TrainService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -150,5 +151,85 @@ class TrainControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(updatedDto, response.getBody());
         verify(trainService).updateTrainChief(trainId, newChiefId);
+    }
+
+    @Test
+    void getTrainsByBranchId_ReturnsOkStatusAndListOfTrains() {
+        Long branchId = 1L;
+        TrainResponseDto train1 = new TrainResponseDto(); train1.setId(1L); train1.setBranchId(branchId);
+        TrainResponseDto train2 = new TrainResponseDto(); train2.setId(2L); train2.setBranchId(branchId);
+        List<TrainResponseDto> expectedTrains = Arrays.asList(train1, train2);
+
+        when(trainService.getTrainsByBranchId(branchId)).thenReturn(expectedTrains);
+
+        ResponseEntity<List<TrainResponseDto>> response = trainController.getTrainsByBranchId(branchId);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(2, response.getBody().size());
+        assertEquals(expectedTrains, response.getBody());
+        verify(trainService).getTrainsByBranchId(branchId);
+    }
+
+    @Test
+    void getTrainsByBranchId_ReturnsEmptyListWhenNoTrainsFound() {
+        Long branchId = 1L;
+        when(trainService.getTrainsByBranchId(branchId)).thenReturn(Collections.emptyList());
+
+        ResponseEntity<List<TrainResponseDto>> response = trainController.getTrainsByBranchId(branchId);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertTrue(response.getBody().isEmpty());
+        verify(trainService).getTrainsByBranchId(branchId);
+    }
+
+    @Test
+    void getTrainsByBranchId_HandlesBranchNotFoundException() {
+        Long branchId = 99L;
+        when(trainService.getTrainsByBranchId(branchId)).thenThrow(new BranchNotFoundException("Branch not found with id: " + branchId));
+
+        assertThrows(BranchNotFoundException.class, () -> trainController.getTrainsByBranchId(branchId));
+        verify(trainService).getTrainsByBranchId(branchId);
+    }
+
+    @Test
+    void getChiefsByBranchId_ReturnsOkStatusAndListOfChiefs() {
+        Long branchId = 1L;
+        UserResponseDto chief1 = new UserResponseDto(); chief1.setId(1L); chief1.setName("Chief1");
+        UserResponseDto chief2 = new UserResponseDto(); chief2.setId(2L); chief2.setName("Chief2");
+        List<UserResponseDto> expectedChiefs = Arrays.asList(chief1, chief2);
+
+        when(trainService.getChiefsByBranchId(branchId)).thenReturn(expectedChiefs);
+
+        ResponseEntity<List<UserResponseDto>> response = trainController.getChiefsByBranchId(branchId);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(2, response.getBody().size());
+        assertEquals(expectedChiefs, response.getBody());
+        verify(trainService).getChiefsByBranchId(branchId);
+    }
+
+    @Test
+    void getChiefsByBranchId_ReturnsEmptyListWhenNoChiefsFound() {
+        Long branchId = 1L;
+        when(trainService.getChiefsByBranchId(branchId)).thenReturn(Collections.emptyList());
+
+        ResponseEntity<List<UserResponseDto>> response = trainController.getChiefsByBranchId(branchId);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertTrue(response.getBody().isEmpty());
+        verify(trainService).getChiefsByBranchId(branchId);
+    }
+
+    @Test
+    void getChiefsByBranchId_HandlesBranchNotFoundException() {
+        Long branchId = 99L;
+        when(trainService.getChiefsByBranchId(branchId)).thenThrow(new BranchNotFoundException("Branch not found with id: " + branchId));
+
+        assertThrows(BranchNotFoundException.class, () -> trainController.getChiefsByBranchId(branchId));
+        verify(trainService).getChiefsByBranchId(branchId);
     }
 }

@@ -106,4 +106,15 @@ public class UserServiceImpl implements UserService {
         user.setBranch(branch);
         return modelMapper.map(userRepository.save(user), UserResponseDto.class);
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<UserResponseDto> getUsersByBranchId(Long branchId) {
+         if (!branchRepository.existsById(branchId)) {
+             throw new BranchNotFoundException("Branch not found with id: " + branchId);
+         }
+        return userRepository.findByBranchId(branchId).stream()
+                .map(user -> modelMapper.map(user, UserResponseDto.class))
+                .toList();
+    }
 }
