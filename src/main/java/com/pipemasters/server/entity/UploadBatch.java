@@ -1,5 +1,6 @@
 package com.pipemasters.server.entity;
 
+import com.pipemasters.server.entity.enums.FileType;
 import jakarta.persistence.*;
 
 import java.time.Instant;
@@ -27,6 +28,10 @@ public class UploadBatch extends BaseEntity {
     @Column(nullable = false)
     private LocalDate trainDeparted;
 
+    /* дата прибытия поезда (без времени) */
+    @Column(nullable = false)
+    private LocalDate trainArrived;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "train_id")
     private Train train;
@@ -46,8 +51,10 @@ public class UploadBatch extends BaseEntity {
     private Branch branch;
 
     /* сроки хранения */
+    @Column(nullable = false)
+    private boolean archived = false;
     private Instant deletedAt;
-    private boolean deleted;
+    private boolean deleted = false;
 
     /* файлы, каскад + orphanRemoval */
     @OneToMany(mappedBy = "uploadBatch", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -60,7 +67,7 @@ public class UploadBatch extends BaseEntity {
     private VideoAbsence absence;
 
 
-    public UploadBatch(UUID directory, User uploadedBy, Instant createdAt, LocalDate trainDeparted, Train train, String comment, Set<String> keywords, Branch branch, Instant deletedAt, boolean deleted, List<MediaFile> files) {
+    public UploadBatch(UUID directory, User uploadedBy, Instant createdAt, LocalDate trainDeparted, Train train, String comment, Set<String> keywords, Branch branch, boolean archived, Instant deletedAt, boolean deleted, List<MediaFile> files) {
         this.directory = directory;
         this.uploadedBy = uploadedBy;
         this.createdAt = createdAt;
@@ -69,9 +76,20 @@ public class UploadBatch extends BaseEntity {
         this.comment = comment;
         this.keywords = keywords;
         this.branch = branch;
+        this.archived = archived;
         this.deletedAt = deletedAt;
         this.deleted = deleted;
         this.files = files;
+    }
+
+    public UploadBatch(User uploadedBy, LocalDate trainDeparted, LocalDate trainArrived, Train train, String comment, Branch branch) {
+        this.directory = UUID.randomUUID();
+        this.uploadedBy = uploadedBy;
+        this.trainDeparted = trainDeparted;
+        this.trainArrived = trainArrived;
+        this.train = train;
+        this.comment = comment;
+        this.branch = branch;
     }
 
     public UploadBatch() {
@@ -141,6 +159,14 @@ public class UploadBatch extends BaseEntity {
         this.branch = branch;
     }
 
+    public boolean isArchived() {
+        return archived;
+    }
+
+    public void setArchived(boolean archived) {
+        this.archived = archived;
+    }
+
     public Instant getDeletedAt() {
         return deletedAt;
     }
@@ -171,5 +197,39 @@ public class UploadBatch extends BaseEntity {
 
     public void setAbsence(VideoAbsence absence) {
         this.absence = absence;
+    }
+
+    public LocalDate getTrainArrived() {
+        return trainArrived;
+    }
+
+    public void setTrainArrived(LocalDate trainArrived) {
+        this.trainArrived = trainArrived;
+    }
+
+    public List<MediaFile> getChainedFiles() {
+        return files.stream()
+                .filter(file -> file.getFileType() == FileType.VIDEO)
+                .filter(file -> {
+                    String filename = file.getFilename();
+                    int underscoreIndex = filename.lastIndexOf('_');
+                    int dotIndex = filename.lastIndexOf('.');
+                    if (underscoreIndex == -1 || dotIndex == -1 || underscoreIndex >= dotIndex) return false;
+                    String postfix = filename.substring(underscoreIndex + 1, dotIndex);
+                    try {
+                        Integer.parseInt(postfix);
+                        return true;
+                    } catch (NumberFormatException e) {
+                        return false;
+                    }
+                })
+                .sorted(Comparator.comparing(file -> {
+                    String filename = file.getFilename();
+                    int underscoreIndex = filename.lastIndexOf('_');
+                    int dotIndex = filename.lastIndexOf('.');
+                    String postfix = filename.substring(underscoreIndex + 1, dotIndex);
+                    return Integer.parseInt(postfix);
+                }))
+                .toList();
     }
 }

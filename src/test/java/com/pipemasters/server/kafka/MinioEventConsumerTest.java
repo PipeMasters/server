@@ -1,67 +1,92 @@
 package com.pipemasters.server.kafka;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.pipemasters.server.entity.MediaFile;
-import com.pipemasters.server.entity.enums.FileType;
-import com.pipemasters.server.entity.enums.MediaFileStatus;
-import com.pipemasters.server.kafka.KafkaProducerService;
-import com.pipemasters.server.kafka.MinioEventConsumer;
-import com.pipemasters.server.repository.MediaFileRepository;
+import com.pipemasters.server.kafka.event.MinioEvent;
+import com.pipemasters.server.kafka.handler.MinioEventHandler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
-import java.util.Optional;
+import java.util.List;
 import java.util.UUID;
 
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class MinioEventConsumerTest {
 
-    private MediaFileRepository mediaFileRepository;
-    private KafkaProducerService producerService;
+    private MinioEventHandler handler1;
+    private MinioEventHandler handler2;
     private MinioEventConsumer consumer;
 
     @BeforeEach
     void setUp() {
-        mediaFileRepository = mock(MediaFileRepository.class);
-        producerService = mock(KafkaProducerService.class);
-        consumer = new MinioEventConsumer(mediaFileRepository, producerService);
+        handler1 = mock(MinioEventHandler.class);
+        handler2 = mock(MinioEventHandler.class);
+        consumer = new MinioEventConsumer(List.of(handler1, handler2));
     }
 
     @Test
-    void handle_shouldUpdateStatusAndSendToProcessingQueue_whenVideoUploaded() throws Exception {
-        UUID batchId = UUID.randomUUID();
-        String filename = "video.mp4";
+    void handle_dispatchesToSupportedHandlers() throws Exception {
+        String batchId = UUID.randomUUID().toString();
+        String filename = "file.mp4";
+        String eventName = "s3:ObjectCreated:Put";
         String key = batchId + "/" + filename;
-        String message = "{ \"Records\": [ { \"eventName\": \"s3:ObjectCreated:Put\", \"s3\": { \"object\": { \"key\": \"" + key + "\" } } } ] }";
+        String message = "{ \"Records\": [ { \"eventName\": \"" + eventName + "\", \"s3\": { \"object\": { \"key\": \"" + key + "\" } } } ] }";
 
-        MediaFile file = new MediaFile();
-        file.setId(42L);
-        file.setFilename(filename);
-        file.setFileType(FileType.VIDEO);
-
-        when(mediaFileRepository.findByFilenameAndUploadBatchDirectory(filename, batchId)).thenReturn(Optional.of(file));
+        when(handler1.supports(eventName)).thenReturn(true);
+        when(handler2.supports(eventName)).thenReturn(false);
 
         consumer.handle(message);
 
-        verify(mediaFileRepository).save(file);
-        verify(producerService).send("processing-queue", "42");
-        assertEquals(MediaFileStatus.UPLOADED, file.getStatus());
+        ArgumentCaptor<MinioEvent> captor = ArgumentCaptor.forClass(MinioEvent.class);
+        verify(handler1).handle(captor.capture());
+        assertEquals(eventName, captor.getValue().eventName());
+        assertEquals(UUID.fromString(batchId), captor.getValue().batchId());
+        assertEquals(filename, captor.getValue().filename());
+        verify(handler2, never()).handle(any());
     }
 
     @Test
-    void handle_shouldNotThrow_whenNoMatchingFile() throws Exception {
-        UUID batchId = UUID.randomUUID();
-        String filename = "notfound.mp4";
-        String key = batchId + "/" + filename;
-        String message = "{ \"Records\": [ { \"eventName\": \"s3:ObjectCreated:Put\", \"s3\": { \"object\": { \"key\": \"" + key + "\" } } } ] }";
+    void handle_skipsRecordsWithInvalidKeyFormat() throws Exception {
+        String message = "{ \"Records\": [ { \"eventName\": \"s3:ObjectCreated:Put\", \"s3\": { \"object\": { \"key\": \"not-a-uuid-and-no-slash\" } } } ] }";
+        consumer.handle(message);
+        verify(handler1, never()).handle(any());
+        verify(handler2, never()).handle(any());
+    }
 
-        when(mediaFileRepository.findByFilenameAndUploadBatchDirectory(filename, batchId)).thenReturn(Optional.empty());
+    @Test
+    void handle_skipsRecordsWithInvalidUUID() throws Exception {
+        String message = "{ \"Records\": [ { \"eventName\": \"s3:ObjectCreated:Put\", \"s3\": { \"object\": { \"key\": \"notauuid/file.mp4\" } } } ] }";
+        consumer.handle(message);
+        verify(handler1, never()).handle(any());
+        verify(handler2, never()).handle(any());
+    }
+
+    @Test
+    void handle_noRecordsArray_doesNothing() throws Exception {
+        String message = "{ \"foo\": \"bar\" }";
+        consumer.handle(message);
+        verify(handler1, never()).handle(any());
+        verify(handler2, never()).handle(any());
+    }
+
+    @Test
+    void handle_multipleRecords_dispatchesEach() throws Exception {
+        String batchId1 = UUID.randomUUID().toString();
+        String batchId2 = UUID.randomUUID().toString();
+        String eventName = "s3:ObjectCreated:Put";
+        String key1 = batchId1 + "/file1.mp4";
+        String key2 = batchId2 + "/file2.mp4";
+        String message = "{ \"Records\": [ " +
+                "{ \"eventName\": \"" + eventName + "\", \"s3\": { \"object\": { \"key\": \"" + key1 + "\" } } }," +
+                "{ \"eventName\": \"" + eventName + "\", \"s3\": { \"object\": { \"key\": \"" + key2 + "\" } } }" +
+                " ] }";
+
+        when(handler1.supports(eventName)).thenReturn(true);
 
         consumer.handle(message);
 
-        verify(mediaFileRepository, never()).save(any());
-        verify(producerService, never()).send(anyString(), anyString());
+        verify(handler1, times(2)).handle(any(MinioEvent.class));
     }
 }

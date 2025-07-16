@@ -1,29 +1,27 @@
-package com.pipemasters.server.dto;
+package com.pipemasters.server.dto.request.update;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.pipemasters.server.entity.enums.Role;
 
 import java.util.Set;
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
-public class UserDto extends BaseDto{
-    //    private String adSid;
+public class UserUpdateDto {
+    // private String adSid;
 
     private String name;
     private String surname;
     private String patronymic;
     private Set<Role> roles;
-    private BranchDto branch;
+    private Long branchId;
 
-    public UserDto() {
+    public UserUpdateDto() {
     }
 
-    public UserDto( String name, String surname, String patronymic, Set<Role> roles, BranchDto branch) {
+    public UserUpdateDto(String name, String surname, String patronymic, Set<Role> roles, Long branchId) {
         this.name = name;
         this.surname = surname;
         this.patronymic = patronymic;
         this.roles = roles;
-        this.branch = branch;
+        this.branchId = branchId;
     }
 
     public String getName() {
@@ -58,11 +56,11 @@ public class UserDto extends BaseDto{
         this.roles = roles;
     }
 
-    public BranchDto getBranch() {
-        return branch;
+    public Long getBranchId() {
+        return branchId;
     }
 
-    public void setBranch(BranchDto branch) {
-        this.branch = branch;
+    public void setBranchId(Long branchId) {
+        this.branchId = branchId;
     }
 }

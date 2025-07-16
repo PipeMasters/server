@@ -1,13 +1,17 @@
 package com.pipemasters.server.service.impl;
 
-import com.pipemasters.server.dto.DelegationDto;
+import com.pipemasters.server.dto.request.DelegationRequestDto;
+import com.pipemasters.server.dto.response.DelegationResponseDto;
 import com.pipemasters.server.entity.Delegation;
 import com.pipemasters.server.entity.User;
+import com.pipemasters.server.exceptions.delegation.DelegationDateValidationException;
+import com.pipemasters.server.exceptions.user.UserNotFoundException;
 import com.pipemasters.server.repository.DelegationRepository;
 import com.pipemasters.server.repository.UserRepository;
 import com.pipemasters.server.service.DelegationService;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class DelegationServiceImpl implements DelegationService {
@@ -22,20 +26,21 @@ public class DelegationServiceImpl implements DelegationService {
     }
 
     @Override
-    public DelegationDto delegate(DelegationDto delegationDTO) {
-        if (delegationDTO.getFromDate() == null || delegationDTO.getToDate() == null) {
-            throw new IllegalArgumentException("Start date or/and end date cannot be null");
+    @Transactional
+    public DelegationResponseDto delegate(DelegationRequestDto delegationRequestDTO) {
+        if (delegationRequestDTO.getFromDate() == null || delegationRequestDTO.getToDate() == null) {
+            throw new DelegationDateValidationException("Start date or/and end date cannot be null");
         }
-        if (delegationDTO.getFromDate().isAfter(delegationDTO.getToDate())) {
-            throw new IllegalArgumentException("Start date cannot be after end date");
+        if (delegationRequestDTO.getFromDate().isAfter(delegationRequestDTO.getToDate())) {
+            throw new DelegationDateValidationException("Start date cannot be after end date");
         }
-        User delegator = userRepository.findById(delegationDTO.getDelegatorId())
-                .orElseThrow(() -> new IllegalArgumentException("Delegator not found"));
-        User substitute = userRepository.findById(delegationDTO.getSubstituteId())
-                .orElseThrow(() -> new IllegalArgumentException("Substitute not found"));
-        Delegation delegation = new Delegation(delegator, substitute, delegationDTO.getFromDate(), delegationDTO.getToDate());
+        User delegator = userRepository.findById(delegationRequestDTO.getDelegatorId())
+                .orElseThrow(() -> new UserNotFoundException("Delegator not found"));
+        User substitute = userRepository.findById(delegationRequestDTO.getSubstituteId())
+                .orElseThrow(() -> new UserNotFoundException("Substitute not found"));
+        Delegation delegation = new Delegation(delegator, substitute, delegationRequestDTO.getFromDate(), delegationRequestDTO.getToDate());
         delegationRepository.save(delegation);
 
-        return modelMapper.map(delegation, DelegationDto.class);
+        return modelMapper.map(delegation, DelegationResponseDto.class);
     }
 }

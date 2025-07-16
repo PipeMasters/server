@@ -1,9 +1,11 @@
 package com.pipemasters.server.service.impl;
 
-import com.pipemasters.server.dto.FileUploadRequestDto;
+import com.pipemasters.server.dto.request.FileUploadRequestDto;
 import com.pipemasters.server.entity.MediaFile;
-import com.pipemasters.server.entity.UploadBatch;
 import com.pipemasters.server.entity.enums.FileType;
+import com.pipemasters.server.exceptions.audio.AudioExtractionException;
+import com.pipemasters.server.exceptions.file.MediaFileNotFoundException;
+import com.pipemasters.server.exceptions.file.FileDownloadException;
 import com.pipemasters.server.repository.MediaFileRepository;
 import com.pipemasters.server.repository.UploadBatchRepository;
 import com.pipemasters.server.service.AudioService;
@@ -47,13 +49,13 @@ public class AudioServiceImpl implements AudioService {
 
     @Override
     @Async("ffmpegExecutor")
-    @Transactional
+    @Transactional(readOnly = true)
     public CompletableFuture<String> extractAudio(Long mediaFileId) {
 
         return CompletableFuture.supplyAsync(() -> {
 
             MediaFile source = mediaFileRepository.findById(mediaFileId)
-                    .orElseThrow(() -> new IllegalArgumentException("Media file not found: " + mediaFileId));
+                    .orElseThrow(() -> new MediaFileNotFoundException("Media file not found: " + mediaFileId));
 
             Path videoFile = null;
             Path audioFile = null;
@@ -70,6 +72,9 @@ public class AudioServiceImpl implements AudioService {
                 try (InputStream in = httpClient.send(downloadRequest, HttpResponse.BodyHandlers.ofInputStream())
                         .body()) {
                     Files.copy(in, videoFile, StandardCopyOption.REPLACE_EXISTING);
+                } catch (IOException | InterruptedException e) {
+                    log.error("Failed to download video file for mediaFile={}", mediaFileId, e);
+                    throw new FileDownloadException("Failed to download video file for mediaFile: " + mediaFileId, e);
                 }
                 log.debug("Video file downloaded to: {}", videoFile);
                 audioFile = Files.createTempFile(prefix + "aud", ".mp3");
@@ -85,17 +90,16 @@ public class AudioServiceImpl implements AudioService {
                 }
                 int exit = ffmpeg.waitFor();
                 if (exit != 0) {
-                    throw new IllegalStateException("FFmpeg exited with status " + exit);
+                    throw new AudioExtractionException("FFmpeg exited with status " + exit + " for mediaFile: " + mediaFileId);
                 }
 
                 String sourceFileName = source.getFilename().substring(0, source.getFilename().lastIndexOf('.'));
 
                 String targetName = sourceFileName + "_audio.mp3";
 
-                FileUploadRequestDto uploadDto = new FileUploadRequestDto(
-                        source.getUploadBatch().getId(), targetName, FileType.AUDIO, mediaFileId);
+                String sourceKey = source.getUploadBatch().getDirectory() + "/" + source.getFilename();
 
-                String presignedPut = fileService.generatePresignedUploadUrl(uploadDto);
+                String presignedPut = fileService.generatePresignedUploadUrlForAudio(sourceKey);
 
                 HttpRequest uploadRequest = HttpRequest.newBuilder()
                         .uri(URI.create(presignedPut))
@@ -109,8 +113,7 @@ public class AudioServiceImpl implements AudioService {
 
             } catch (IOException | InterruptedException e) {
                 log.error("Audio extraction failed for mediaFile={}", mediaFileId, e);
-                throw new RuntimeException("Failed to extract audio", e);
-
+                throw new AudioExtractionException("Failed to extract audio for mediaFile: " + mediaFileId, e);
             } finally {
                 safeDelete(videoFile);
                 safeDelete(audioFile);
@@ -119,10 +122,10 @@ public class AudioServiceImpl implements AudioService {
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public void processUploadedVideo(String uuid, String filename) {
         MediaFile mediaFile = mediaFileRepository.findByFilenameAndUploadBatchDirectory(filename, UUID.fromString(uuid))
-                .orElseThrow(() -> new IllegalArgumentException("Media file not found: " + filename + " in batch " + uuid));
+                .orElseThrow(() -> new MediaFileNotFoundException("Media file not found: " + filename + " in batch " + uuid));
         extractAudio(mediaFile.getId());
 
 //        UploadBatch uploadBatch = uploadBatchRepository.findByDirectory(UUID.fromString(uuid))

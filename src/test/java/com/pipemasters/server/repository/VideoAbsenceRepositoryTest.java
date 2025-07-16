@@ -36,27 +36,55 @@ public class VideoAbsenceRepositoryTest {
     private User user;
     private Train train;
 
-    @BeforeEach
-    void setup() {
-        branch = branchRepository.save(new Branch("Test Branch", null));
-        user = userRepository.save(new User("John", "Doe", "Middle", Set.of(Role.USER), branch));
-        train = trainRepository.save(new Train(123L, "Moscow - Sochi", 1, "Ivanov I.I."));
+//    @BeforeEach
+//    void setup() {
+//        branch = branchRepository.save(new Branch("Test Branch", null));
+//        user = userRepository.save(new User("John", "Doe", "Middle", Set.of(Role.USER), branch));
+//        train = trainRepository.save(new Train(123L, "Moscow - Sochi", 1, "Ivanov I.I."));
+//    }
+
+    private static int branchCounter = 0;
+
+    private Branch createBranch() {
+        branchCounter++;
+        return branchRepository.save(new Branch("Test Branch " + branchCounter, null));
+    }
+
+    private User createUser(Branch branch) {
+        return userRepository.save(new User("Ivan", "Ivanov", "Ivanovich", Set.of(Role.USER), branch));
+    }
+
+    private User createChief(Branch branch) {
+        return userRepository.save(new User("Petr", "Petrov", "Petrovich", Set.of(Role.USER), branch));
+    }
+
+    private Train createTrain(Branch branch) {
+        User chief = createChief(branch);
+        return trainRepository.save(new Train(123L, "Москва — Сочи", 1, chief, branch));
     }
 
     private UploadBatch createUploadBatch() {
-        return uploadBatchRepository.save(new UploadBatch(
+        Branch branch = createBranch();
+        User user = createUser(branch);
+        Train train = createTrain(branch);
+        LocalDate departed = LocalDate.now();
+        LocalDate arrived = departed.plusDays(1);
+        UploadBatch batch = new UploadBatch(
                 UUID.randomUUID(),
                 user,
                 Instant.now(),
-                LocalDate.now(),
+                departed,
                 train,
-                "Test comment",
-                Set.of("keyword1", "keyword2"),
+                "Комментарий",
+                Set.of("ключевое", "слово"),
                 branch,
+                false,
                 null,
                 false,
                 new ArrayList<>()
-        ));
+        );
+        batch.setTrainArrived(arrived);
+        return uploadBatchRepository.save(batch);
     }
 
     @Test
