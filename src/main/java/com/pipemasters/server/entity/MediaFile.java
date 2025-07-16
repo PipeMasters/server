@@ -8,7 +8,7 @@ import java.time.Instant;
 
 @Entity
 @Table(name = "media_files",
-        indexes = {@Index(columnList = "upload_batch_id")})
+        indexes = {@Index(columnList = "upload_batch_id"), @Index(columnList = "filename")})
 public class MediaFile extends BaseEntity {
 
     @Column(nullable = false, length = 512)

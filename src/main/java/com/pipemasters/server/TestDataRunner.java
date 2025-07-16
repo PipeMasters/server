@@ -6,8 +6,11 @@ import com.pipemasters.server.entity.enums.FileType;
 import com.pipemasters.server.entity.enums.MediaFileStatus;
 import com.pipemasters.server.entity.enums.Role;
 import com.pipemasters.server.repository.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -38,6 +41,7 @@ public class TestDataRunner implements CommandLineRunner {
     }
 
     @Override
+    @Transactional(readOnly = false)
     public void run(String... args) {
         if (branchRepository.count() > 0) return;
 
