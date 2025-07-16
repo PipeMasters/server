@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 //@Service
+@Deprecated
 public class ProcessingQueueConsumer {
     private final Logger log = LoggerFactory.getLogger(ProcessingQueueConsumer.class);
     private final MediaFileRepository mediaFileRepository;
