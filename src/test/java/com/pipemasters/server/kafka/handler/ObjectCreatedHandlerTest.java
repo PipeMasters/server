@@ -1,5 +1,6 @@
 package com.pipemasters.server.kafka.handler;
 
+import com.pipemasters.server.entity.UploadBatch;
 import com.pipemasters.server.entity.enums.FileType;
 import com.pipemasters.server.entity.enums.MediaFileStatus;
 import com.pipemasters.server.kafka.KafkaProducerService;
@@ -45,6 +46,11 @@ class ObjectCreatedHandlerTest {
         MediaFile file = new MediaFile();
         file.setId(1L);
         file.setFileType(FileType.VIDEO);
+        file.setFilename("audio.mp3");
+
+        UploadBatch uploadBatch = new UploadBatch();
+        uploadBatch.setDirectory(batchId);
+        file.setUploadBatch(uploadBatch);
 
         when(repository.findByFilenameAndUploadBatchDirectory(filename, batchId)).thenReturn(Optional.of(file));
 
@@ -52,7 +58,7 @@ class ObjectCreatedHandlerTest {
 
         assertEquals(MediaFileStatus.UPLOADED, file.getStatus());
         verify(repository).save(file);
-        verify(producer).send("processing-queue", file.getId().toString());
+        verify(producer).send("audio-extraction", batchId + "/" + "audio.mp3");
     }
 
     @Test

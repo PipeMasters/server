@@ -36,7 +36,7 @@ public class ObjectCreatedHandler implements MinioEventHandler {
                     log.debug("Status of file {} set to {}", file.getId(), file.getStatus());
                     if (file.getFileType() == FileType.VIDEO) {
                         log.debug("Video file queued for processing: {}", file.getFilename());
-                        producer.send("processing-queue", file.getId().toString());
+                        producer.send("audio-extraction", file.getUploadBatch().getDirectory() + "/" + file.getFilename());
                     }
                 }, () -> log.warn("MediaFile not found for key {}", event.decodedKey()));
     }

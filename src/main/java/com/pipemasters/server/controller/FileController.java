@@ -27,9 +27,25 @@ public class FileController {
         return ResponseEntity.ok(url);
     }
 
+
     @GetMapping("/download-url")
-    public ResponseEntity<String> getPresignedDownloadUrl(@RequestParam Long mediaFileId) {
-        String url = fileService.generatePresignedDownloadUrl(mediaFileId);
+    public ResponseEntity<String> getPresignedDownloadUrl(
+            @RequestParam(required = false) Long mediaFileId,
+            @RequestParam(required = false) String sourceKey) {
+        String url;
+        boolean mediaFileIdIsPresent = mediaFileId != null;
+        boolean sourceKeyIsPresent = sourceKey != null && !sourceKey.isBlank();
+        if (!mediaFileIdIsPresent && !sourceKeyIsPresent) {
+            throw new IllegalArgumentException("MediaFileId or SourceKey must be specified");
+        }
+        if (mediaFileIdIsPresent && sourceKeyIsPresent) {
+            throw new IllegalArgumentException("Only one of MediaFileId or SourceKey should be specified");
+        }
+        if (mediaFileIdIsPresent) {
+            url = fileService.generatePresignedDownloadUrl(mediaFileId);
+        } else {
+            url = fileService.getDownloadUrl(sourceKey);
+        }
         return ResponseEntity.ok(url);
     }
 }

@@ -17,6 +17,7 @@ import software.amazon.awssdk.services.s3.model.Delete;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -75,7 +76,7 @@ public class FileServiceImpl implements FileService {
             mediaFile.setStatus(MediaFileStatus.PENDING);
             mediaFileRepository.save(mediaFile);
         }
-        return generatePresignedPutUrl(fullPath);
+        return getUploadUrl(fullPath);
     }
 
     @Override
@@ -95,7 +96,9 @@ public class FileServiceImpl implements FileService {
 
         UploadBatch uploadBatch = sourceMediaFile.getUploadBatch();
 
-        String audioFilename = (sourceFilename.lastIndexOf(".") != -1) ? sourceFilename.substring(0, sourceFilename.lastIndexOf(".")) : sourceFilename;
+        String audioFilename = (sourceFilename.lastIndexOf(".") != -1)
+                ? sourceFilename.substring(0, sourceFilename.lastIndexOf(".")) + "_audio.mp3"
+                : sourceFilename + "_audio.mp3";
 
         Optional<MediaFile> existingAudioFile = mediaFileRepository
                 .findByFilenameAndUploadBatchDirectory(audioFilename, uploadBatch.getDirectory());
@@ -117,26 +120,7 @@ public class FileServiceImpl implements FileService {
         }
         String fullPath = uploadBatch.getDirectory() + "/" + audioFilename;
 
-        return generatePresignedPutUrl(fullPath);
-    }
-
-    private String generatePresignedPutUrl(String s3Key) {
-        try {
-            PutObjectRequest request = PutObjectRequest.builder()
-                    .bucket(minioBucketName)
-                    .key(s3Key)
-                    .build();
-
-            PutObjectPresignRequest presign = PutObjectPresignRequest.builder()
-                    .signatureDuration(Duration.ofMinutes(5))
-                    .putObjectRequest(request)
-                    .build();
-
-            return s3Presigner.presignPutObject(presign).url().toString();
-        } catch (Exception e) {
-            logger.error("Failed to generate upload URL for key: {}", s3Key, e);
-            throw new FileGenerationException("Could not generate upload URL for: " + s3Key, e);
-        }
+        return getUploadUrl(fullPath);
     }
 
 
@@ -150,18 +134,7 @@ public class FileServiceImpl implements FileService {
         logger.debug("Generated S3 key for downloadUrl: {}", s3Key);
 
         try {
-            GetObjectRequest getObjectRequest = GetObjectRequest.builder()
-                    .bucket(minioBucketName)
-                    .key(s3Key)
-                    .build();
-
-            GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
-                    .signatureDuration(Duration.ofMinutes(10))
-                    .getObjectRequest(getObjectRequest)
-                    .build();
-
-            PresignedGetObjectRequest presignedRequest = s3Presigner.presignGetObject(presignRequest);
-            return presignedRequest.url().toString();
+            return getDownloadUrl(s3Key);
         } catch (Exception e) {
             logger.error("Failed to generate presigned download URL for mediaFileId: {}", mediaFileId, e);
             throw new FileGenerationException("Failed to generate presigned download URL for mediaFileId: " + mediaFileId, e);
@@ -201,6 +174,48 @@ public class FileServiceImpl implements FileService {
         } catch (Exception e) {
             logger.error("Failed to delete directory {} from MinIO. Error: {}", directoryUuid, e.getMessage(), e);
             throw new FileGenerationException("Failed to delete directory from MinIO: " + directoryUuid, e);
+        }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public String getDownloadUrl(String s3Key){
+        try {
+            GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+                    .bucket(minioBucketName)
+                    .key(s3Key)
+                    .build();
+
+            GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
+                    .signatureDuration(Duration.ofMinutes(10))
+                    .getObjectRequest(getObjectRequest)
+                    .build();
+
+            PresignedGetObjectRequest presignedRequest = s3Presigner.presignGetObject(presignRequest);
+            return presignedRequest.url().toString();
+        } catch (Exception e) {
+            logger.error("Failed to generate download URL for key: {}", s3Key, e);
+            throw new FileGenerationException("Could not generate download URL for: " + s3Key, e);
+        }
+    }
+
+    private String getUploadUrl (String s3Key){
+        try {
+            PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+                    .bucket(minioBucketName)
+                    .key(s3Key)
+                    .build();
+
+            PutObjectPresignRequest presignRequest = PutObjectPresignRequest.builder()
+                    .signatureDuration(Duration.ofMinutes(5))
+                    .putObjectRequest(putObjectRequest)
+                    .build();
+
+            PresignedPutObjectRequest presignedRequest = s3Presigner.presignPutObject(presignRequest);
+            return presignedRequest.url().toString();
+        } catch (Exception e) {
+            logger.error("Failed to generate upload URL for key: {}", s3Key, e);
+            throw new FileGenerationException("Could not generate upload URL for: " + s3Key, e);
         }
     }
 }
