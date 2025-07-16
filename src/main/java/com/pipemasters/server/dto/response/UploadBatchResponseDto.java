@@ -2,18 +2,22 @@ package com.pipemasters.server.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.pipemasters.server.dto.BaseDto;
+import com.pipemasters.server.dto.VideoAbsenceDto;
 
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class UploadBatchResponseDto extends BaseDto {
     private String directory;
-    private Long uploadedId;
+    private UserResponseDto uploadedBy;
+    private UserResponseDto chief;
     private Instant createdAt;
     private LocalDate trainDeparted;
+    private LocalDate trainArrived;
     private Long trainId;
     private String comment;
     private Set<String> keywords = new HashSet<>();
@@ -22,16 +26,21 @@ public class UploadBatchResponseDto extends BaseDto {
     private Instant deletedAt;
     private boolean deleted;
     private MediaFileResponseDto file;
-    private Long absenceId;
+    private List<MediaFileResponseDto> files;
+    private VideoAbsenceDto absence;
 
-    public UploadBatchResponseDto() {
-    }
-
-    public UploadBatchResponseDto(String directory, Long uploadedId, Instant createdAt, LocalDate trainDeparted, Long trainId, String comment, Set<String> keywords, Long branchId, boolean archived, Instant deletedAt, boolean deleted, MediaFileResponseDto file, Long absenceId) {
+    public UploadBatchResponseDto(String directory, UserResponseDto uploadedBy, UserResponseDto chief,
+                                  Instant createdAt, LocalDate trainDeparted, LocalDate trainArrived,
+                                  Long trainId, String comment, Set<String> keywords, Long branchId,
+                                  boolean archived, Instant deletedAt, boolean deleted,
+                                  MediaFileResponseDto file, List<MediaFileResponseDto> files,
+                                  VideoAbsenceDto absence) {
         this.directory = directory;
-        this.uploadedId = uploadedId;
+        this.uploadedBy = uploadedBy;
+        this.chief = chief;
         this.createdAt = createdAt;
         this.trainDeparted = trainDeparted;
+        this.trainArrived = trainArrived;
         this.trainId = trainId;
         this.comment = comment;
         this.keywords = keywords;
@@ -40,7 +49,75 @@ public class UploadBatchResponseDto extends BaseDto {
         this.deletedAt = deletedAt;
         this.deleted = deleted;
         this.file = file;
-        this.absenceId = absenceId;
+        this.files = files;
+        this.absence = absence;
+    }
+
+    public UploadBatchResponseDto() {
+    }
+
+    public VideoAbsenceDto getAbsence() {
+        return absence;
+    }
+
+    public void setAbsence(VideoAbsenceDto absence) {
+        this.absence = absence;
+    }
+
+    public boolean isArchived() {
+        return archived;
+    }
+
+    public void setArchived(boolean archived) {
+        this.archived = archived;
+    }
+
+    public Long getBranchId() {
+        return branchId;
+    }
+
+    public void setBranchId(Long branchId) {
+        this.branchId = branchId;
+    }
+
+    public UserResponseDto getChief() {
+        return chief;
+    }
+
+    public void setChief(UserResponseDto chief) {
+        this.chief = chief;
+    }
+
+    public String getComment() {
+        return comment;
+    }
+
+    public void setComment(String comment) {
+        this.comment = comment;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Instant createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public boolean isDeleted() {
+        return deleted;
+    }
+
+    public void setDeleted(boolean deleted) {
+        this.deleted = deleted;
+    }
+
+    public Instant getDeletedAt() {
+        return deletedAt;
+    }
+
+    public void setDeletedAt(Instant deletedAt) {
+        this.deletedAt = deletedAt;
     }
 
     public String getDirectory() {
@@ -51,20 +128,36 @@ public class UploadBatchResponseDto extends BaseDto {
         this.directory = directory;
     }
 
-    public Long getUploadedId() {
-        return uploadedId;
+    public MediaFileResponseDto getFile() {
+        return file;
     }
 
-    public void setUploadedId(Long uploadedId) {
-        this.uploadedId = uploadedId;
+    public void setFile(MediaFileResponseDto file) {
+        this.file = file;
     }
 
-    public Instant getCreatedAt() {
-        return createdAt;
+    public List<MediaFileResponseDto> getFiles() {
+        return files;
     }
 
-    public void setCreatedAt(Instant createdAt) {
-        this.createdAt = createdAt;
+    public void setFiles(List<MediaFileResponseDto> files) {
+        this.files = files;
+    }
+
+    public Set<String> getKeywords() {
+        return keywords;
+    }
+
+    public void setKeywords(Set<String> keywords) {
+        this.keywords = keywords;
+    }
+
+    public LocalDate getTrainArrived() {
+        return trainArrived;
+    }
+
+    public void setTrainArrived(LocalDate trainArrived) {
+        this.trainArrived = trainArrived;
     }
 
     public LocalDate getTrainDeparted() {
@@ -83,67 +176,12 @@ public class UploadBatchResponseDto extends BaseDto {
         this.trainId = trainId;
     }
 
-    public String getComment() {
-        return comment;
+    public UserResponseDto getUploadedBy() {
+        return uploadedBy;
     }
 
-    public void setComment(String comment) {
-        this.comment = comment;
-    }
-
-    public Set<String> getKeywords() {
-        return keywords;
-    }
-
-    public void setKeywords(Set<String> keywords) {
-        this.keywords = keywords;
-    }
-
-    public Long getBranchId() {
-        return branchId;
-    }
-
-    public void setBranchId(Long branchId) {
-        this.branchId = branchId;
-    }
-
-    public boolean isArchived() {
-        return archived;
-    }
-
-    public void setArchived(boolean archived) {
-        this.archived = archived;
-    }
-
-    public Instant getDeletedAt() {
-        return deletedAt;
-    }
-
-    public void setDeletedAt(Instant deletedAt) {
-        this.deletedAt = deletedAt;
-    }
-
-    public boolean isDeleted() {
-        return deleted;
-    }
-
-    public void setDeleted(boolean deleted) {
-        this.deleted = deleted;
-    }
-
-    public MediaFileResponseDto getFile() {
-        return file;
-    }
-
-    public void setFile(MediaFileResponseDto file) {
-        this.file = file;
-    }
-
-    public Long getAbsenceId() {
-        return absenceId;
-    }
-
-    public void setAbsenceId(Long absenceId) {
-        this.absenceId = absenceId;
+    public void setUploadedBy(UserResponseDto uploadedBy) {
+        this.uploadedBy = uploadedBy;
     }
 }
+

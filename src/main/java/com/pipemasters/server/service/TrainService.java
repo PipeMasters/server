@@ -2,6 +2,9 @@ package com.pipemasters.server.service;
 
 import com.pipemasters.server.dto.request.TrainRequestDto;
 import com.pipemasters.server.dto.response.TrainResponseDto;
+import com.pipemasters.server.dto.response.UserResponseDto;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -11,5 +14,9 @@ public interface TrainService {
     List<TrainResponseDto> getAll();
     TrainResponseDto update(Long id, TrainRequestDto trainRequestDto);
     void delete(Long id);
-    List<String> getUniqueChiefs();
+    List<UserResponseDto> getChiefs();
+    TrainResponseDto assignTrainToBranch(Long trainId, Long branchId);
+    TrainResponseDto updateTrainChief(Long trainId, Long newChiefId);
+    List<TrainResponseDto> getTrainsByBranchId(Long branchId);
+    List<UserResponseDto> getChiefsByBranchId(Long branchId);
 }

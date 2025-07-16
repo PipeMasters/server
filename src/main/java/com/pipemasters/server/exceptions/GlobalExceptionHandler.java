@@ -1,12 +1,17 @@
 package com.pipemasters.server.exceptions;
 
+import com.pipemasters.server.dto.ParsingStatsDto;
 import com.pipemasters.server.exceptions.audio.AudioExtractionException;
 import com.pipemasters.server.exceptions.branch.InvalidBranchHierarchyException;
+import com.pipemasters.server.exceptions.branch.InvalidBranchLevelException;
 import com.pipemasters.server.exceptions.file.MediaFileNotFoundException;
 import com.pipemasters.server.exceptions.delegation.DelegationDateValidationException;
 import com.pipemasters.server.exceptions.file.*;
 import com.pipemasters.server.exceptions.train.TrainNotFoundException;
 import com.pipemasters.server.exceptions.branch.BranchNotFoundException;
+import com.pipemasters.server.exceptions.train.TrainNumberExistsException;
+import com.pipemasters.server.exceptions.trainSchedule.FileReadException;
+import com.pipemasters.server.exceptions.trainSchedule.TrainParsingException;
 import com.pipemasters.server.exceptions.user.UserNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,10 +19,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -131,6 +136,62 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     public ResponseEntity<Object> handleInvalidBranchHierarchyException(
             InvalidBranchHierarchyException ex) {
         log.error("InvalidBranchHierarchyException: {}", ex.getMessage());
+        return new ResponseEntity<>(createErrorBody(
+                HttpStatus.BAD_REQUEST, "Bad Request", ex.getMessage()), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(InvalidBranchLevelException.class)
+    public ResponseEntity<Object> handleInvalidBranchLevelException(
+            InvalidBranchLevelException ex) {
+        log.error("InvalidBranchLevelException: {}", ex.getMessage());
+        return new ResponseEntity<>(createErrorBody(
+                HttpStatus.BAD_REQUEST, "Bad Request", ex.getMessage()), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(TrainNumberExistsException.class)
+    public ResponseEntity<Object> handleTrainNumberExistsException(
+            TrainNumberExistsException ex) {
+        log.error("TrainNumberExistsException: {}", ex.getMessage());
+        return new ResponseEntity<>(createErrorBody(
+                HttpStatus.BAD_REQUEST, "Bad Request", ex.getMessage()), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(FileReadException.class)
+    public ResponseEntity<ParsingStatsDto> handleFileReadException(FileReadException ex) {
+        log.error("FileReadException: {}", ex.getMessage());
+        return new ResponseEntity<>(
+                new ParsingStatsDto(
+                        0,
+                        0,
+                        1,
+                        0,
+                        0,
+                        Collections.singletonList(ex.getMessage())
+                ),
+                HttpStatus.INTERNAL_SERVER_ERROR
+        );
+    }
+
+    @ExceptionHandler(TrainParsingException.class)
+    public ResponseEntity<ParsingStatsDto> handleTrainParsingException(TrainParsingException ex) {
+        log.error("TrainParsingException: {}", ex.getMessage());
+        return new ResponseEntity<>(
+                new ParsingStatsDto(
+                        0,
+                        0,
+                        1,
+                        0,
+                        0,
+                        Collections.singletonList("Data parsing error: " + ex.getMessage())
+                ),
+                HttpStatus.BAD_REQUEST
+        );
+    }
+
+    @ExceptionHandler(InvalidFileKeyException.class)
+    public ResponseEntity<Object> handleInvalidFileKeyException(
+            InvalidFileKeyException ex) {
+        log.error("InvalidFileKeyException: {}", ex.getMessage());
         return new ResponseEntity<>(createErrorBody(
                 HttpStatus.BAD_REQUEST, "Bad Request", ex.getMessage()), HttpStatus.BAD_REQUEST);
     }

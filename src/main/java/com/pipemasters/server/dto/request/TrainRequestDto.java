@@ -12,14 +12,17 @@ public class TrainRequestDto extends BaseDto {
     private String routeMessage;
     @Min(value = 1, message = "Consist count must be at least 1")
     private Integer consistCount;
-    @NotBlank(message = "Chief name cannot be blank")
-    private String chief;
+    @NotNull(message = "Chief name cannot be null")
+    private Long chiefId;
+    @NotNull(message = "Branch ID cannot be null")
+    private Long branchId;
 
-    public TrainRequestDto(Long trainNumber, String routeMessage, Integer consistCount, String chief) {
+    public TrainRequestDto(Long trainNumber, String routeMessage, Integer consistCount, Long chiefId, Long branchId) {
         this.trainNumber = trainNumber;
         this.routeMessage = routeMessage;
         this.consistCount = consistCount;
-        this.chief = chief;
+        this.chiefId = chiefId;
+        this.branchId = branchId;
     }
 
     public TrainRequestDto() {
@@ -49,21 +52,19 @@ public class TrainRequestDto extends BaseDto {
         this.consistCount = consistCount;
     }
 
-    public String getChief() {
-        return chief;
+    public Long getChiefId() {
+        return chiefId;
     }
 
-    public void setChief(String chief) {
-        this.chief = chief;
+    public void setChiefId(Long chiefId) {
+        this.chiefId = chiefId;
     }
 
-    @Override
-    public String toString() {
-        return "TrainDTO{" +
-                "trainNumber=" + trainNumber +
-                ", routeMessage='" + routeMessage +
-                ", consistCount=" + consistCount +
-                ", chief='" + chief +
-                '}';
+    public Long getBranchId() {
+        return branchId;
+    }
+
+    public void setBranchId(Long branchId) {
+        this.branchId = branchId;
     }
 }

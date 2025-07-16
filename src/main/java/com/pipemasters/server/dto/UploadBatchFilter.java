@@ -1,31 +1,64 @@
 package com.pipemasters.server.dto;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.Set;
 
 public class UploadBatchFilter {
-    private LocalDate dateFrom;
-    private LocalDate dateTo;
+    private LocalDate departureDateFrom;
+    private LocalDate departureDateTo;
+
+    private LocalDate arrivalDateFrom;
+    private LocalDate arrivalDateTo;
+
     private LocalDate specificDate;
-    private String trainNumber;
-    private String chiefName;
+
+    private Long trainId;
+
+    private Long chiefId;
+
+    private Instant  createdFrom;
+
+    private Instant createdTo;
+
+    private Long uploadedById;
+
+    private Long branchId;
+
     private String uploadedByName;
+
     private Set<String> keywords;
 
-    public LocalDate getDateFrom() {
-        return dateFrom;
+    public LocalDate getDepartureDateFrom() {
+        return departureDateFrom;
     }
 
-    public void setDateFrom(LocalDate dateFrom) {
-        this.dateFrom = dateFrom;
+    public void setDepartureDateFrom(LocalDate departureDateFrom) {
+        this.departureDateFrom = departureDateFrom;
     }
 
-    public LocalDate getDateTo() {
-        return dateTo;
+    public LocalDate getDepartureDateTo() {
+        return departureDateTo;
     }
 
-    public void setDateTo(LocalDate dateTo) {
-        this.dateTo = dateTo;
+    public void setDepartureDateTo(LocalDate departureDateTo) {
+        this.departureDateTo = departureDateTo;
+    }
+
+    public LocalDate getArrivalDateFrom() {
+        return arrivalDateFrom;
+    }
+
+    public void setArrivalDateFrom(LocalDate arrivalDateFrom) {
+        this.arrivalDateFrom = arrivalDateFrom;
+    }
+
+    public LocalDate getArrivalDateTo() {
+        return arrivalDateTo;
+    }
+
+    public void setArrivalDateTo(LocalDate arrivalDateTo) {
+        this.arrivalDateTo = arrivalDateTo;
     }
 
     public LocalDate getSpecificDate() {
@@ -36,20 +69,52 @@ public class UploadBatchFilter {
         this.specificDate = specificDate;
     }
 
-    public String getTrainNumber() {
-        return trainNumber;
+    public Long getTrainId() {
+        return trainId;
     }
 
-    public void setTrainNumber(String trainNumber) {
-        this.trainNumber = trainNumber;
+    public void setTrainId(Long trainId) {
+        this.trainId = trainId;
     }
 
-    public String getChiefName() {
-        return chiefName;
+    public Long getChiefId() {
+        return chiefId;
     }
 
-    public void setChiefName(String chiefName) {
-        this.chiefName = chiefName;
+    public void setChiefId(Long chiefId) {
+        this.chiefId = chiefId;
+    }
+
+    public Instant getCreatedFrom() {
+        return createdFrom;
+    }
+
+    public void setCreatedFrom(Instant createdFrom) {
+        this.createdFrom = createdFrom;
+    }
+
+    public Instant getCreatedTo() {
+        return createdTo;
+    }
+
+    public void setCreatedTo(Instant createdTo) {
+        this.createdTo = createdTo;
+    }
+
+    public Long getUploadedById() {
+        return uploadedById;
+    }
+
+    public void setUploadedById(Long uploadedById) {
+        this.uploadedById = uploadedById;
+    }
+
+    public Long getBranchId() {
+        return branchId;
+    }
+
+    public void setBranchId(Long branchId) {
+        this.branchId = branchId;
     }
 
     public String getUploadedByName() {

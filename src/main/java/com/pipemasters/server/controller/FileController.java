@@ -15,9 +15,15 @@ public class FileController {
         this.fileService = fileService;
     }
 
-    @PostMapping("/upload-url")
-    public ResponseEntity<String> getPresignedUploadUrl(@RequestBody FileUploadRequestDto request) {
-        String url = fileService.generatePresignedUploadUrl(request);
+    @PostMapping("/upload-url-video")
+    public ResponseEntity<String> getPresignedUploadUrlForVideo(@RequestBody FileUploadRequestDto request) {
+        String url = fileService.generatePresignedUploadUrlForVideo(request);
+        return ResponseEntity.ok(url);
+    }
+
+    @PostMapping("/upload-url-audio")
+    public ResponseEntity<String> getPresignedUploadUrlForAudio(@RequestParam String sourceKey) {
+        String url = fileService.generatePresignedUploadUrlForAudio(sourceKey);
         return ResponseEntity.ok(url);
     }
 

@@ -22,7 +22,6 @@ public class MediaFile extends BaseEntity {
     @Column(nullable = false, length = 16)
     private MediaFileStatus status = MediaFileStatus.PENDING;
 
-
     @Column(nullable = false, updatable = false)
     private Instant uploadedAt = Instant.now();
 

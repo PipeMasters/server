@@ -4,6 +4,7 @@ import com.pipemasters.server.dto.request.BranchRequestDto;
 import com.pipemasters.server.dto.response.BranchResponseDto;
 import com.pipemasters.server.entity.Branch;
 import com.pipemasters.server.exceptions.branch.BranchNotFoundException;
+import com.pipemasters.server.exceptions.branch.InvalidBranchLevelException;
 import com.pipemasters.server.repository.BranchRepository;
 import com.pipemasters.server.service.impl.BranchServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,11 +20,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static org.hibernate.validator.internal.util.Contracts.assertNotNull;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class BranchServiceImplTest {
@@ -39,32 +38,55 @@ class BranchServiceImplTest {
 
     private Branch mockBranch1;
     private Branch mockBranch2;
+    private Branch mockBranch3;
+    private Branch mockBranch4;
+
     private BranchResponseDto mockBranchResponseDto1;
     private BranchResponseDto mockBranchResponseDto2;
+    private BranchResponseDto mockBranchResponseDto3;
+    private BranchResponseDto mockBranchResponseDto4;
 
     @BeforeEach
     void setUp() {
-        mockBranch1 = new Branch("Root Branch", null);
+        mockBranch1 = new Branch("Root Branch 1", null);
         mockBranch1.setId(1L);
 
-        mockBranch2 = new Branch("Child Branch", mockBranch1);
+        mockBranch3 = new Branch("Root Branch 2", null);
+        mockBranch3.setId(3L);
+
+        mockBranch2 = new Branch("Child Branch 1-1", mockBranch1);
         mockBranch2.setId(2L);
+
+        mockBranch4 = new Branch("Grandchild Branch 1-1-1", mockBranch2);
+        mockBranch4.setId(4L);
+
 
         mockBranchResponseDto1 = new BranchResponseDto();
         mockBranchResponseDto1.setId(1L);
-        mockBranchResponseDto1.setName("Root Branch");
+        mockBranchResponseDto1.setName("Root Branch 1");
+        mockBranchResponseDto1.setParentId(null);
+
+        mockBranchResponseDto3 = new BranchResponseDto();
+        mockBranchResponseDto3.setId(3L);
+        mockBranchResponseDto3.setName("Root Branch 2");
+        mockBranchResponseDto3.setParentId(null);
 
         mockBranchResponseDto2 = new BranchResponseDto();
         mockBranchResponseDto2.setId(2L);
-        mockBranchResponseDto2.setName("Child Branch");
+        mockBranchResponseDto2.setName("Child Branch 1-1");
         mockBranchResponseDto2.setParentId(mockBranchResponseDto1.getId());
+
+        mockBranchResponseDto4 = new BranchResponseDto();
+        mockBranchResponseDto4.setId(4L);
+        mockBranchResponseDto4.setName("Grandchild Branch 1-1-1");
+        mockBranchResponseDto4.setParentId(mockBranchResponseDto2.getId());
     }
 
     @Test
     void createBranch_withParent() {
         BranchRequestDto inputDto = new BranchRequestDto();
         inputDto.setName("Child");
-        BranchRequestDto parentDto = new BranchRequestDto(); // Assuming parentDto is just a placeholder here
+        BranchRequestDto parentDto = new BranchRequestDto();
         parentDto.setId(1L);
         inputDto.setParentId(parentDto.getId());
 
@@ -80,14 +102,14 @@ class BranchServiceImplTest {
         expectedResponseDto.setParentId(1L);
 
         when(branchRepository.findById(1L)).thenReturn(Optional.of(parent));
-        when(branchRepository.save(any(Branch.class))).thenReturn(child); // Ensure to save Branch entity
-        when(modelMapper.map(any(Branch.class), eq(BranchResponseDto.class))).thenReturn(expectedResponseDto); // Map Branch to BranchResponseDto
+        when(branchRepository.save(any(Branch.class))).thenReturn(child);
+        when(modelMapper.map(any(Branch.class), eq(BranchResponseDto.class))).thenReturn(expectedResponseDto);
 
         BranchResponseDto result = branchService.createBranch(inputDto);
 
         assertEquals("Child", result.getName());
-        assertEquals(expectedResponseDto, result); // Compare with the full DTO
-        verify(branchRepository).save(any(Branch.class)); // Verify saving Branch entity
+        assertEquals(expectedResponseDto, result);
+        verify(branchRepository).save(any(Branch.class));
     }
 
 
@@ -127,7 +149,7 @@ class BranchServiceImplTest {
         BranchResponseDto resultDto = new BranchResponseDto();
         resultDto.setId(2L);
         resultDto.setName("Child");
-        resultDto.setParentId(1L); // Updated parent ID
+        resultDto.setParentId(1L);
 
         when(branchRepository.findById(2L)).thenReturn(Optional.of(child));
         when(branchRepository.findById(1L)).thenReturn(Optional.of(newParent));
@@ -355,5 +377,76 @@ class BranchServiceImplTest {
 
         assertNotNull(result);
         assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void getBranchesByLevel_shouldReturnCorrectBranchesForLevel0() {
+        List<Branch> level0Branches = Arrays.asList(mockBranch1, mockBranch3);
+        when(branchRepository.findByLevel(0)).thenReturn(level0Branches);
+
+        when(modelMapper.map(mockBranch1, BranchResponseDto.class)).thenReturn(mockBranchResponseDto1);
+        when(modelMapper.map(mockBranch3, BranchResponseDto.class)).thenReturn(mockBranchResponseDto3);
+
+        List<BranchResponseDto> result = branchService.getBranchesByLevel(0);
+
+        assertNotNull(result);
+        assertEquals(2, result.size());
+        assertTrue(result.contains(mockBranchResponseDto1));
+        assertTrue(result.contains(mockBranchResponseDto3));
+        verify(branchRepository).findByLevel(0);
+        verify(modelMapper, times(2)).map(any(Branch.class), eq(BranchResponseDto.class));
+    }
+
+    @Test
+    void getBranchesByLevel_shouldReturnCorrectBranchesForLevel1() {
+        List<Branch> level1Branches = Arrays.asList(mockBranch2);
+        when(branchRepository.findByLevel(1)).thenReturn(level1Branches);
+
+        when(modelMapper.map(mockBranch2, BranchResponseDto.class)).thenReturn(mockBranchResponseDto2);
+
+        List<BranchResponseDto> result = branchService.getBranchesByLevel(1);
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertTrue(result.contains(mockBranchResponseDto2));
+        verify(branchRepository).findByLevel(1);
+        verify(modelMapper).map(any(Branch.class), eq(BranchResponseDto.class));
+    }
+
+    @Test
+    void getBranchesByLevel_shouldReturnCorrectBranchesForLevel2() {
+        List<Branch> level2Branches = Arrays.asList(mockBranch4);
+        when(branchRepository.findByLevel(2)).thenReturn(level2Branches);
+
+        when(modelMapper.map(mockBranch4, BranchResponseDto.class)).thenReturn(mockBranchResponseDto4);
+
+        List<BranchResponseDto> result = branchService.getBranchesByLevel(2);
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertTrue(result.contains(mockBranchResponseDto4));
+        verify(branchRepository).findByLevel(2);
+        verify(modelMapper).map(any(Branch.class), eq(BranchResponseDto.class));
+    }
+
+    @Test
+    void getBranchesByLevel_shouldReturnEmptyListForNonExistentLevel() {
+        when(branchRepository.findByLevel(99)).thenReturn(Collections.emptyList());
+
+        List<BranchResponseDto> result = branchService.getBranchesByLevel(99);
+
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+        verify(branchRepository).findByLevel(99);
+        verify(modelMapper, never()).map(any(Branch.class), any());
+    }
+
+    @Test
+    void getBranchesByLevel_shouldThrowInvalidBranchLevelExceptionForNegativeLevel() {
+        assertThrows(InvalidBranchLevelException.class, () ->
+                branchService.getBranchesByLevel(-1)
+        );
+        verify(branchRepository, never()).findByLevel(anyInt());
+        verify(modelMapper, never()).map(any(Branch.class), any());
     }
 }

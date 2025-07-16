@@ -42,19 +42,25 @@ public class MediaFileRepositoryTest {
         return userRepository.save(new User("Ivan", "Ivanov", "Ivanovich", Set.of(Role.USER), branch));
     }
 
-    private Train createTrain() {
-        return trainRepository.save(new Train(123L, "Москва — Сочи", 1, "Петров П.П."));
+    private User createChief(Branch branch) {
+        return userRepository.save(new User("Petr", "Petrov", "Petrovich", Set.of(Role.USER), branch));
     }
 
+    private Train createTrain(Branch branch) {
+        User chief = createChief(branch);
+        return trainRepository.save(new Train(123L, "Москва — Сочи", 1, chief, branch));
+    }
     private UploadBatch createUploadBatch() {
         Branch branch = createBranch();
         User user = createUser(branch);
-        Train train = createTrain();
-        return uploadBatchRepository.save(new UploadBatch(
+        Train train = createTrain(branch);
+        LocalDate departed = LocalDate.now();
+        LocalDate arrived = departed.plusDays(1);
+        UploadBatch batch = new UploadBatch(
                 UUID.randomUUID(),
                 user,
                 Instant.now(),
-                LocalDate.now(),
+                departed,
                 train,
                 "Комментарий",
                 Set.of("ключевое", "слово"),
@@ -63,7 +69,9 @@ public class MediaFileRepositoryTest {
                 null,
                 false,
                 new ArrayList<>()
-        ));
+        );
+        batch.setTrainArrived(arrived);
+        return uploadBatchRepository.save(batch);
     }
 
     @Test

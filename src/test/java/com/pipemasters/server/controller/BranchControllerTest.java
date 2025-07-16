@@ -3,6 +3,7 @@ package com.pipemasters.server.controller;
 import com.pipemasters.server.dto.request.BranchRequestDto;
 import com.pipemasters.server.dto.response.BranchResponseDto;
 import com.pipemasters.server.exceptions.branch.BranchNotFoundException;
+import com.pipemasters.server.exceptions.branch.InvalidBranchLevelException;
 import com.pipemasters.server.service.BranchService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,8 +17,6 @@ import org.springframework.http.ResponseEntity;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-
-import static org.hibernate.validator.internal.util.Contracts.assertNotNull;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -34,17 +33,30 @@ class BranchControllerTest {
 
     private BranchResponseDto mockBranchResponseDto1;
     private BranchResponseDto mockBranchResponseDto2;
+    private BranchResponseDto mockBranchResponseDto3;
+    private BranchResponseDto mockBranchResponseDto4;
 
     @BeforeEach
     void setUp() {
         mockBranchResponseDto1 = new BranchResponseDto();
         mockBranchResponseDto1.setId(1L);
-        mockBranchResponseDto1.setName("Test Branch 1");
+        mockBranchResponseDto1.setName("Root Branch 1");
+        mockBranchResponseDto1.setParentId(null);
+
+        mockBranchResponseDto3 = new BranchResponseDto();
+        mockBranchResponseDto3.setId(3L);
+        mockBranchResponseDto3.setName("Root Branch 2");
+        mockBranchResponseDto3.setParentId(null);
 
         mockBranchResponseDto2 = new BranchResponseDto();
         mockBranchResponseDto2.setId(2L);
-        mockBranchResponseDto2.setName("Test Branch 2");
+        mockBranchResponseDto2.setName("Child Branch 1-1");
         mockBranchResponseDto2.setParentId(mockBranchResponseDto1.getId());
+
+        mockBranchResponseDto4 = new BranchResponseDto();
+        mockBranchResponseDto4.setId(4L);
+        mockBranchResponseDto4.setName("Grandchild Branch 1-1-1");
+        mockBranchResponseDto4.setParentId(mockBranchResponseDto2.getId());
     }
 
     @Test
@@ -287,5 +299,71 @@ class BranchControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertTrue(response.getBody().isEmpty());
+    }
+
+    @Test
+    void getBranchesByLevel_ReturnsOkStatusAndListOfDtosForLevel0() {
+        List<BranchResponseDto> level0Branches = Arrays.asList(mockBranchResponseDto1, mockBranchResponseDto3);
+        when(branchService.getBranchesByLevel(0)).thenReturn(level0Branches);
+
+        ResponseEntity<List<BranchResponseDto>> response = branchController.getBranchesByLevel(0);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(2, response.getBody().size());
+        assertTrue(response.getBody().contains(mockBranchResponseDto1));
+        assertTrue(response.getBody().contains(mockBranchResponseDto3));
+        assertNull(response.getBody().get(0).getParentId());
+        assertNull(response.getBody().get(1).getParentId());
+    }
+
+    @Test
+    void getBranchesByLevel_ReturnsOkStatusAndListOfDtosForLevel1() {
+        List<BranchResponseDto> level1Branches = Arrays.asList(mockBranchResponseDto2);
+        when(branchService.getBranchesByLevel(1)).thenReturn(level1Branches);
+
+        ResponseEntity<List<BranchResponseDto>> response = branchController.getBranchesByLevel(1);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(1, response.getBody().size());
+        assertTrue(response.getBody().contains(mockBranchResponseDto2));
+        assertNotNull(response.getBody().get(0).getParentId());
+        assertEquals(mockBranchResponseDto1.getId(), response.getBody().get(0).getParentId());
+    }
+
+    @Test
+    void getBranchesByLevel_ReturnsOkStatusAndListOfDtosForLevel2() {
+        List<BranchResponseDto> level2Branches = Arrays.asList(mockBranchResponseDto4);
+        when(branchService.getBranchesByLevel(2)).thenReturn(level2Branches);
+
+        ResponseEntity<List<BranchResponseDto>> response = branchController.getBranchesByLevel(2);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(1, response.getBody().size());
+        assertTrue(response.getBody().contains(mockBranchResponseDto4));
+        assertNotNull(response.getBody().get(0).getParentId());
+        assertEquals(mockBranchResponseDto2.getId(), response.getBody().get(0).getParentId());
+    }
+
+    @Test
+    void getBranchesByLevel_ReturnsEmptyListWhenNoBranchesAtGivenLevel() {
+        when(branchService.getBranchesByLevel(99)).thenReturn(Collections.emptyList());
+
+        ResponseEntity<List<BranchResponseDto>> response = branchController.getBranchesByLevel(99);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertTrue(response.getBody().isEmpty());
+    }
+
+    @Test
+    void getBranchesByLevel_ThrowsInvalidBranchLevelExceptionForNegativeLevel() {
+        when(branchService.getBranchesByLevel(anyInt())).thenThrow(new InvalidBranchLevelException("Level cannot be negative"));
+
+        assertThrows(InvalidBranchLevelException.class, () ->
+                branchController.getBranchesByLevel(-1)
+        );
     }
 }
