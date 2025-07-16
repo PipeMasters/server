@@ -27,6 +27,12 @@ public class FileController {
         return ResponseEntity.ok(url);
     }
 
+    @PostMapping("/download-url-video")
+    public ResponseEntity<String> getPresignedDownloadUrlForVideo(@RequestParam String sourceKey) {
+        String url = fileService.getDownloadUrl(sourceKey);
+        return ResponseEntity.ok(url);
+    }
+
     @GetMapping("/download-url")
     public ResponseEntity<String> getPresignedDownloadUrl(@RequestParam Long mediaFileId) {
         String url = fileService.generatePresignedDownloadUrl(mediaFileId);

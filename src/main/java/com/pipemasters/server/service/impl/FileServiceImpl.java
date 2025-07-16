@@ -76,7 +76,7 @@ public class FileServiceImpl implements FileService {
             mediaFile.setStatus(MediaFileStatus.PENDING);
             mediaFileRepository.save(mediaFile);
         }
-        return generatePresignedPutUrl(fullPath);
+        return getUploadUrl(fullPath);
     }
 
     @Override
@@ -96,7 +96,9 @@ public class FileServiceImpl implements FileService {
 
         UploadBatch uploadBatch = sourceMediaFile.getUploadBatch();
 
-        String audioFilename = (sourceFilename.lastIndexOf(".") != -1) ? sourceFilename.substring(0, sourceFilename.lastIndexOf(".")) : sourceFilename;
+        String audioFilename = (sourceFilename.lastIndexOf(".") != -1)
+                ? sourceFilename.substring(0, sourceFilename.lastIndexOf(".")) + "_audio.mp3"
+                : sourceFilename + "_audio.mp3";
 
         Optional<MediaFile> existingAudioFile = mediaFileRepository
                 .findByFilenameAndUploadBatchDirectory(audioFilename, uploadBatch.getDirectory());
@@ -118,16 +120,7 @@ public class FileServiceImpl implements FileService {
         }
         String fullPath = uploadBatch.getDirectory() + "/" + audioFilename;
 
-        return generatePresignedPutUrl(fullPath);
-    }
-
-    private String generatePresignedPutUrl(String s3Key) {
-        try {
-            return getUploadUrl(s3Key);
-        } catch (Exception e) {
-            logger.error("Failed to generate upload URL for key: {}", s3Key, e);
-            throw new FileGenerationException("Could not generate upload URL for: " + s3Key, e);
-        }
+        return getUploadUrl(fullPath);
     }
 
 
@@ -184,33 +177,45 @@ public class FileServiceImpl implements FileService {
         }
     }
 
-    private String getDownloadUrl(String s3Key){
-        GetObjectRequest getObjectRequest = GetObjectRequest.builder()
-                .bucket(minioBucketName)
-                .key(s3Key)
-                .build();
+    @Override
+    @Transactional(readOnly = true)
+    public String getDownloadUrl(String s3Key){
+        try {
+            GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+                    .bucket(minioBucketName)
+                    .key(s3Key)
+                    .build();
 
-        GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
-                .signatureDuration(Duration.ofMinutes(10))
-                .getObjectRequest(getObjectRequest)
-                .build();
+            GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
+                    .signatureDuration(Duration.ofMinutes(10))
+                    .getObjectRequest(getObjectRequest)
+                    .build();
 
-        PresignedGetObjectRequest presignedRequest = s3Presigner.presignGetObject(presignRequest);
-        return presignedRequest.url().toString();
+            PresignedGetObjectRequest presignedRequest = s3Presigner.presignGetObject(presignRequest);
+            return presignedRequest.url().toString();
+        } catch (Exception e) {
+            logger.error("Failed to generate download URL for key: {}", s3Key, e);
+            throw new FileGenerationException("Could not generate download URL for: " + s3Key, e);
+        }
     }
 
     private String getUploadUrl (String s3Key){
-        PutObjectRequest putObjectRequest = PutObjectRequest.builder()
-                .bucket(minioBucketName)
-                .key(s3Key)
-                .build();
+        try {
+            PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+                    .bucket(minioBucketName)
+                    .key(s3Key)
+                    .build();
 
-        PutObjectPresignRequest presignRequest = PutObjectPresignRequest.builder()
-                .signatureDuration(Duration.ofMinutes(5))
-                .putObjectRequest(putObjectRequest)
-                .build();
+            PutObjectPresignRequest presignRequest = PutObjectPresignRequest.builder()
+                    .signatureDuration(Duration.ofMinutes(5))
+                    .putObjectRequest(putObjectRequest)
+                    .build();
 
-        PresignedPutObjectRequest presignedRequest = s3Presigner.presignPutObject(presignRequest);
-        return presignedRequest.url().toString();
+            PresignedPutObjectRequest presignedRequest = s3Presigner.presignPutObject(presignRequest);
+            return presignedRequest.url().toString();
+        } catch (Exception e) {
+            logger.error("Failed to generate upload URL for key: {}", s3Key, e);
+            throw new FileGenerationException("Could not generate upload URL for: " + s3Key, e);
+        }
     }
 }
