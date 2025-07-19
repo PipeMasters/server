@@ -28,7 +28,7 @@ import java.time.Instant;
         /* video -> audio; ссылка на исходный файл-«родителя» */
         @ManyToOne(fetch = FetchType.LAZY)
         @JoinColumn(name = "source_id")
-        private com.pipemasters.server.entity.MediaFile source;
+        private MediaFile source;
 
         @ManyToOne(fetch = FetchType.LAZY, optional = false)
         @JoinColumn(name = "upload_batch_id")
