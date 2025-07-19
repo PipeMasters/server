@@ -7,32 +7,34 @@ import jakarta.persistence.*;
 import java.time.Instant;
 
 @Entity
-@Table(name = "media_files",
-        indexes = {@Index(columnList = "upload_batch_id"), @Index(columnList = "filename")})
-public class MediaFile extends BaseEntity {
+    @Table(name = "media_files",
+            indexes = {@Index(columnList = "upload_batch_id"), @Index(columnList = "filename")})
+    public class MediaFile extends BaseEntity {
 
-    @Column(nullable = false, length = 512)
-    private String filename;               // ключ в S3
+        @Column(nullable = false, length = 512)
+        private String filename;               // ключ в S3
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 16)
-    private FileType fileType;
+        @Enumerated(EnumType.STRING)
+        @Column(nullable = false, length = 16)
+        private FileType fileType;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 16)
-    private MediaFileStatus status = MediaFileStatus.PENDING;
+        @Enumerated(EnumType.STRING)
+        @Column(nullable = false, length = 16)
+        private MediaFileStatus status = MediaFileStatus.PENDING;
 
-    @Column(nullable = false, updatable = false)
-    private Instant uploadedAt = Instant.now();
+        @Column(nullable = false, updatable = false)
+        private Instant uploadedAt = Instant.now();
 
-    /* video -> audio; ссылка на исходный файл-«родителя» */
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "source_id")
-    private MediaFile source;
+        /* video -> audio; ссылка на исходный файл-«родителя» */
+        @ManyToOne(fetch = FetchType.LAZY)
+        @JoinColumn(name = "source_id")
+        private com.pipemasters.server.entity.MediaFile source;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "upload_batch_id")
-    private UploadBatch uploadBatch;
+        @ManyToOne(fetch = FetchType.LAZY, optional = false)
+        @JoinColumn(name = "upload_batch_id")
+        private UploadBatch uploadBatch;
+
+        private String imotioId;
 
     public MediaFile(String filename, FileType fileType, UploadBatch uploadBatch) {
         this.filename = filename;
@@ -97,5 +99,13 @@ public class MediaFile extends BaseEntity {
 
     public void setStatus(MediaFileStatus status) {
         this.status = status;
+    }
+
+    public String getImotioId() {
+        return imotioId;
+    }
+
+    public void setImotioId(String imotioId) {
+        this.imotioId = imotioId;
     }
 }

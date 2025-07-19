@@ -1,18 +1,26 @@
 package com.pipemasters.server.controller;
 
 import com.pipemasters.server.dto.request.FileUploadRequestDto;
+import com.pipemasters.server.exceptions.file.MediaFileNotFoundException;
 import com.pipemasters.server.service.FileService;
+import com.pipemasters.server.service.ImotioService;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/files")
 public class FileController {
 
     private final FileService fileService;
+    private final ImotioService imotioService;
 
-    public FileController(FileService fileService) {
+    public FileController(FileService fileService, ImotioService imotioService) {
         this.fileService = fileService;
+        this.imotioService = imotioService;
     }
 
     @PostMapping("/upload-url-video")
@@ -31,5 +39,11 @@ public class FileController {
     public ResponseEntity<String> getPresignedDownloadUrl(@RequestParam Long mediaFileId) {
         String url = fileService.generatePresignedDownloadUrl(mediaFileId);
         return ResponseEntity.ok(url);
+    }
+
+    // временно для тестов
+    @GetMapping("/test/{mediaFileId}")
+    public String test(@PathVariable Long mediaFileId) {
+        return imotioService.processImotioFileUpload(mediaFileId);
     }
 }
