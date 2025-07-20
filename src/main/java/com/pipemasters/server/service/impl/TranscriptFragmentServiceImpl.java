@@ -16,6 +16,11 @@ import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,21 +42,24 @@ public class TranscriptFragmentServiceImpl implements TranscriptFragmentService 
     private final HttpClient httpClient = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(30))
             .build();
+    private final CacheManager cacheManager;
     @Value("${imotio.api.token}")
     private final String token;
     private final Logger log = LoggerFactory.getLogger(TranscriptFragmentServiceImpl.class);
     private final ModelMapper modelMapper;
 
     public TranscriptFragmentServiceImpl(TranscriptFragmentRepository repository,
-                                         MediaFileRepository mediaFileRepository, String token, ModelMapper modelMapper) {
+                                         MediaFileRepository mediaFileRepository, CacheManager cacheManager, String token, ModelMapper modelMapper) {
         this.repository = repository;
         this.mediaFileRepository = mediaFileRepository;
+        this.cacheManager = cacheManager;
         this.token = token;
         this.modelMapper = modelMapper;
     }
 
 
     @Override
+    @Cacheable("transcript_search")
     @Transactional(readOnly = true)
     public List<SttFragmentDto> search(String query) {
         log.debug("Searching transcript fragments with query: {}", query);
@@ -64,6 +72,7 @@ public class TranscriptFragmentServiceImpl implements TranscriptFragmentService 
     }
 
     @Override
+    @Cacheable("transcript_media_file")
     @Transactional(readOnly = true)
     public List<SttFragmentDto> getByMediaFile(Long mediaFileId) {
         log.debug("Fetching transcript fragments for media file ID: {}", mediaFileId);
@@ -79,6 +88,11 @@ public class TranscriptFragmentServiceImpl implements TranscriptFragmentService 
     }
 
     @Override
+    @Caching(evict = {
+            @CacheEvict(value = "transcript_media_file", allEntries = true),
+            @CacheEvict(value = "transcript_search", allEntries = true),
+            @CacheEvict(value = "upload_batch_search", allEntries = true)
+    })
     @Transactional
     public void fetchFromExternal(Long mediaFileId, String callId) {
         MediaFile mediaFile = mediaFileRepository.findById(mediaFileId)
@@ -109,12 +123,18 @@ public class TranscriptFragmentServiceImpl implements TranscriptFragmentService 
                     .toList();
 
             repository.saveAll(newFragments);
+
+            Cache cache = cacheManager.getCache("searchByUploadBatch");
+            if (cache != null && mediaFile.getUploadBatch() != null) {
+                cache.evict(mediaFile.getUploadBatch().getId());
+            }
         } catch (IOException | InterruptedException e) {
             throw new ServiceUnavailableException("Failed to fetch transcript", e);
         }
     }
 
     @Override
+    @Cacheable("upload_batch_search")
     @Transactional(readOnly = true)
     public List<UploadBatchSearchDto> searchUploadBatches(String query) {
         var batches = repository.searchUploadBatches(query);
@@ -141,6 +161,7 @@ public class TranscriptFragmentServiceImpl implements TranscriptFragmentService 
     }
 
     @Override
+    @Cacheable(cacheNames = "searchByUploadBatch", key = "#uploadBatchId")
     @Transactional(readOnly = true)
     public List<MediaFileFragmentsDto> searchByUploadBatch(Long uploadBatchId, String query) {
         var fragments = repository.findFragmentsByUploadBatch(uploadBatchId, query);

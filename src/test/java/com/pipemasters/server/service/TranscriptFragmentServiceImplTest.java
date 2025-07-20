@@ -14,6 +14,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
+import org.springframework.cache.CacheManager;
 
 import java.util.List;
 import java.util.Optional;
@@ -31,12 +32,14 @@ class TranscriptFragmentServiceImplTest {
     private MediaFileRepository mediaFileRepository;
     @Mock
     private ModelMapper modelMapper;
+    @Mock
+    private CacheManager cacheManager;
 
     private TranscriptFragmentServiceImpl service;
 
     @BeforeEach
     void setUp() {
-        service = new TranscriptFragmentServiceImpl(repository, mediaFileRepository, "token", modelMapper);
+        service = new TranscriptFragmentServiceImpl(repository, mediaFileRepository, cacheManager, "token", modelMapper);
     }
 
     @Test
