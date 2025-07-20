@@ -9,11 +9,11 @@ import org.springframework.test.context.ContextConfiguration;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
-@SpringBootTest
-@ContextConfiguration(initializers = TestEnvInitializer.class)
+//@SpringBootTest
+//@ContextConfiguration(initializers = TestEnvInitializer.class)
 public class ModelMapperConfigTest {
 
-    @Autowired
+//    @Autowired
     private ModelMapper modelMapper;
 
 //    @Test

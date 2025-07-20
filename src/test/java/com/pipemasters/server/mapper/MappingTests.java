@@ -1,12 +1,14 @@
 package com.pipemasters.server.mapper;
 
 import com.pipemasters.server.TestEnvInitializer;
+import com.pipemasters.server.config.ModelMapperConfig;
 import com.pipemasters.server.dto.request.MediaFileRequestDto;
 import com.pipemasters.server.dto.request.UploadBatchRequestDto;
 import com.pipemasters.server.dto.VideoAbsenceDto;
 import com.pipemasters.server.entity.*;
 import com.pipemasters.server.entity.enums.AbsenceCause;
 import com.pipemasters.server.entity.enums.FileType;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,11 +25,16 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-@SpringBootTest
-@ContextConfiguration(initializers = TestEnvInitializer.class)
+//@SpringBootTest
+//@ContextConfiguration(initializers = TestEnvInitializer.class)
 public class MappingTests {
-    @Autowired
+//    @Autowired
     private ModelMapper modelMapper;
+
+    @BeforeEach
+    public void setup() {
+        modelMapper = new ModelMapperConfig().modelMapper();
+    }
 
     private UploadBatch createTestUploadBatch() {
         UUID directory = UUID.randomUUID();
