@@ -5,6 +5,8 @@ import com.pipemasters.server.entity.enums.MediaFileStatus;
 import jakarta.persistence.*;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "media_files",
@@ -33,6 +35,9 @@ public class MediaFile extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "upload_batch_id")
     private UploadBatch uploadBatch;
+
+    @OneToMany(mappedBy = "mediaFile", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TranscriptFragment> transcriptFragments;
 
     public MediaFile(String filename, FileType fileType, UploadBatch uploadBatch) {
         this.filename = filename;
@@ -97,5 +102,13 @@ public class MediaFile extends BaseEntity {
 
     public void setStatus(MediaFileStatus status) {
         this.status = status;
+    }
+
+    public List<TranscriptFragment> getTranscriptFragments() {
+        return transcriptFragments;
+    }
+
+    public void setTranscriptFragments(List<TranscriptFragment> transcriptFragments) {
+        this.transcriptFragments = transcriptFragments;
     }
 }

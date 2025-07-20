@@ -9,6 +9,7 @@ import com.pipemasters.server.dto.request.UploadBatchRequestDto;
 import com.pipemasters.server.dto.request.update.UserUpdateDto;
 import com.pipemasters.server.dto.response.TrainResponseDto;
 import com.pipemasters.server.dto.response.UploadBatchResponseDto;
+import com.pipemasters.server.dto.response.UploadBatchSearchDto;
 import com.pipemasters.server.entity.*;
 import org.modelmapper.Conditions;
 import org.modelmapper.ModelMapper;
@@ -104,6 +105,13 @@ public class ModelMapperConfig {
                     mapper.map(UploadBatch::getTrainDeparted, UploadBatchDtoSmallResponse::setDateDeparted);
                     mapper.map(UploadBatch::getTrainArrived, UploadBatchDtoSmallResponse::setDateArrived);
                     mapper.map(chf -> chf.getTrain().getChief().getFullName(), UploadBatchDtoSmallResponse::setChiefName);
+                });
+        modelMapper.typeMap(UploadBatch.class, UploadBatchSearchDto.class)
+                .addMappings(mapper -> {
+                    mapper.map(tn -> tn.getTrain().getTrainNumber(), UploadBatchSearchDto::setTrainNumber);
+                    mapper.map(UploadBatch::getTrainDeparted, UploadBatchSearchDto::setDateDeparted);
+                    mapper.map(UploadBatch::getTrainArrived, UploadBatchSearchDto::setDateArrived);
+                    mapper.map(chf -> chf.getTrain().getChief().getFullName(), UploadBatchSearchDto::setChiefName);
                 });
     }
 }
