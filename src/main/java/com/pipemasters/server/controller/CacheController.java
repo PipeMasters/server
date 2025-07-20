@@ -1,6 +1,5 @@
 package com.pipemasters.server.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -12,7 +11,6 @@ public class CacheController {
 
     private final CacheManager cacheManager;
 
-    @Autowired
     public CacheController(CacheManager cacheManager) {
         this.cacheManager = cacheManager;
     }
