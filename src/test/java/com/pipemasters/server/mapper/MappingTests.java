@@ -25,10 +25,7 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-//@SpringBootTest
-//@ContextConfiguration(initializers = TestEnvInitializer.class)
 public class MappingTests {
-//    @Autowired
     private ModelMapper modelMapper;
 
     @BeforeEach

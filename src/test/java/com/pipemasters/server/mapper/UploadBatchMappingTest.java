@@ -23,11 +23,8 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.*;
 
-//@SpringBootTest
-//@ContextConfiguration(initializers = TestEnvInitializer.class)
 public class UploadBatchMappingTest {
 
-//    @Autowired
     private ModelMapper modelMapper;
 
     @BeforeEach

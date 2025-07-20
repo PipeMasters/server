@@ -1,22 +1,25 @@
 package com.pipemasters.server.mapper;
 
-import com.pipemasters.server.TestEnvInitializer;
+import com.pipemasters.server.config.ModelMapperConfig;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ContextConfiguration;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
-//@SpringBootTest
-//@ContextConfiguration(initializers = TestEnvInitializer.class)
+
 public class ModelMapperConfigTest {
 
-//    @Autowired
     private ModelMapper modelMapper;
 
-//    @Test
+    @BeforeEach
+    public void setup() {
+        modelMapper = new ModelMapperConfig().modelMapper();
+    }
+
+    @Test
+    @Disabled
     public void whenModelMapperConfigured_thenNoConfigurationErrors() {
         assertDoesNotThrow(() -> modelMapper.validate());
     }
