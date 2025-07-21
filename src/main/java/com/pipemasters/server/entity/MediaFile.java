@@ -40,12 +40,14 @@ public class MediaFile extends BaseEntity {
 
     @Column
     private Long size;
+    
     @Column
     private String hash;
 
     @OneToMany(mappedBy = "mediaFile", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TranscriptFragment> transcriptFragments;
 
+    @Column
     private String imotioId;
 
     public MediaFile(String filename, FileType fileType, UploadBatch uploadBatch) {
