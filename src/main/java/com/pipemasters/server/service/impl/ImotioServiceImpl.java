@@ -7,7 +7,7 @@ import com.pipemasters.server.exceptions.file.MediaFileProcessingException;
 import com.pipemasters.server.exceptions.imotio.ImotioApiCallException;
 import com.pipemasters.server.exceptions.imotio.ImotioProcessingException;
 import com.pipemasters.server.exceptions.imotio.ImotioResponseParseException;
-import com.pipemasters.server.service.ImotioPollingSchedulerService;
+import com.pipemasters.server.service.TranscriptFragmentService;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,7 +42,7 @@ public class ImotioServiceImpl implements ImotioService {
     private final ObjectMapper objectMapper;
     private final MediaFileRepository mediaFileRepository;
     private final FileService fileService;
-    private final ImotioPollingSchedulerService imotioPollingSchedulerService;
+    private final TranscriptFragmentService transcriptFragmentService;
 
     @Value("${imotio.api.url}")
     private String imotioApiUrl;
@@ -54,12 +54,12 @@ public class ImotioServiceImpl implements ImotioService {
     private final WebClient.Builder webClientBuilder;
 
     public ImotioServiceImpl(WebClient.Builder webClientBuilder, ObjectMapper objectMapper,
-                             MediaFileRepository mediaFileRepository, FileService fileService, ImotioPollingSchedulerServiceImpl imotioPollingSchedulerService) {
+                             MediaFileRepository mediaFileRepository, FileService fileService, TranscriptFragmentService transcriptFragmentService) {
         this.webClientBuilder = webClientBuilder;
         this.objectMapper = objectMapper;
         this.mediaFileRepository = mediaFileRepository;
         this.fileService = fileService;
-        this.imotioPollingSchedulerService = imotioPollingSchedulerService;
+        this.transcriptFragmentService = transcriptFragmentService;
     }
 
     @PostConstruct
@@ -122,7 +122,6 @@ public class ImotioServiceImpl implements ImotioService {
             mediaFile.setImotioId(imotioUniqueId);
             mediaFile.setStatus(MediaFileStatus.PROCESSED);
             mediaFileRepository.save(mediaFile);
-            imotioPollingSchedulerService.addTaskToPoll(imotioUniqueId, mediaFileId);
 
         } catch (ImotioProcessingException | MediaFileProcessingException e) {
             log.error("Imotio processing failed for MediaFile ID {}: {}", mediaFileId, e.getMessage(), e);
@@ -137,6 +136,21 @@ public class ImotioServiceImpl implements ImotioService {
                 mediaFileRepository.save(mediaFile);
             }
         }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public void handleImotioWebhook(String callId) {
+        if (callId == null || callId.isEmpty()) {
+            log.warn("Received empty or null callId from Imotio webhook.");
+            return;
+        }
+        Optional<MediaFile> mediaFileOptional = mediaFileRepository.findByImotioId(callId);
+        if (mediaFileOptional.isEmpty()) {
+            throw new MediaFileNotFoundException("MediaFile not found with imotioId: " + callId);
+        }
+        MediaFile mediaFile = mediaFileOptional.get();
+        transcriptFragmentService.fetchFromExternal(mediaFile.getId(), callId);
     }
 
     private String performImotioUpload(String stereoUrl,
@@ -206,4 +220,7 @@ public class ImotioServiceImpl implements ImotioService {
         return mediaFile.getFileType() == FileType.AUDIO &&
                 (fileExtension.equals("mp3") || fileExtension.equals("wav"));
     }
+
+
+
 }
