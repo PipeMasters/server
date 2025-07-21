@@ -25,10 +25,10 @@ public class FileController {
 
     @PostMapping("/upload-url-audio")
     public ResponseEntity<String> getPresignedUploadUrlForAudio(@RequestParam String sourceKey,
-                                                                @RequestParam Duration duration,
+                                                                @RequestParam Integer duration,
                                                                 @RequestParam Long size,
                                                                 @RequestParam String hash) {
-        String url = fileService.generatePresignedUploadUrlForAudio(sourceKey,duration,size,hash);
+        String url = fileService.generatePresignedUploadUrlForAudio(sourceKey,Duration.ofMillis(duration),size,hash);
         return ResponseEntity.ok(url);
     }
 
