@@ -7,6 +7,9 @@ import com.pipemasters.server.exceptions.branch.InvalidBranchLevelException;
 import com.pipemasters.server.exceptions.file.MediaFileNotFoundException;
 import com.pipemasters.server.exceptions.delegation.DelegationDateValidationException;
 import com.pipemasters.server.exceptions.file.*;
+import com.pipemasters.server.exceptions.imotio.ImotioApiCallException;
+import com.pipemasters.server.exceptions.imotio.ImotioProcessingException;
+import com.pipemasters.server.exceptions.imotio.ImotioResponseParseException;
 import com.pipemasters.server.exceptions.train.TrainNotFoundException;
 import com.pipemasters.server.exceptions.branch.BranchNotFoundException;
 import com.pipemasters.server.exceptions.train.TrainNumberExistsException;
@@ -19,6 +22,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import java.time.LocalDateTime;
@@ -194,6 +198,32 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         log.error("InvalidFileKeyException: {}", ex.getMessage());
         return new ResponseEntity<>(createErrorBody(
                 HttpStatus.BAD_REQUEST, "Bad Request", ex.getMessage()), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(ImotioApiCallException.class)
+    public ResponseEntity<Object> handleImotioApiCallException(ImotioApiCallException ex) {
+        log.error("ImotioApiCallException: {}. Status Code: {}. Response Body: {}",
+                ex.getMessage(), ex.getStatusCode(), ex.getResponseBody(), ex);
+        return new ResponseEntity<>(createErrorBody(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "External Service Error",
+                "Failed to communicate with Imotio API: " + ex.getMessage() + ". Imotio Status: " + ex.getStatusCode()),
+                HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(ImotioResponseParseException.class)
+    public ResponseEntity<Object> handleImotioResponseParseException(ImotioResponseParseException ex) {
+        log.error("ImotioResponseParseException: {}", ex.getMessage(), ex);
+        return new ResponseEntity<>(createErrorBody(
+                HttpStatus.INTERNAL_SERVER_ERROR, "External Service Response Error",
+                "Failed to parse Imotio API response: " + ex.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(ImotioProcessingException.class)
+    public ResponseEntity<Object> handleImotioProcessingException(ImotioProcessingException ex) {
+        log.error("ImotioProcessingException: {}", ex.getMessage(), ex);
+        return new ResponseEntity<>(createErrorBody(
+                HttpStatus.INTERNAL_SERVER_ERROR, "Imotio Processing Error", ex.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     private Map<String, Object> createErrorBody(HttpStatus status, String error, String message) {

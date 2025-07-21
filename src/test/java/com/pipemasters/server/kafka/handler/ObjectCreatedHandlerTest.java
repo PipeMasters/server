@@ -1,5 +1,6 @@
 package com.pipemasters.server.kafka.handler;
 
+import com.pipemasters.server.entity.MediaFile;
 import com.pipemasters.server.entity.UploadBatch;
 import com.pipemasters.server.entity.enums.FileType;
 import com.pipemasters.server.entity.enums.MediaFileStatus;
@@ -7,7 +8,7 @@ import com.pipemasters.server.kafka.KafkaProducerService;
 import com.pipemasters.server.kafka.event.MinioEvent;
 import com.pipemasters.server.kafka.handler.impl.ObjectCreatedHandler;
 import com.pipemasters.server.repository.MediaFileRepository;
-import com.pipemasters.server.entity.MediaFile;
+import com.pipemasters.server.service.ImotioService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -15,19 +16,24 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 class ObjectCreatedHandlerTest {
 
     private MediaFileRepository repository;
     private KafkaProducerService producer;
+    private ImotioService imotioService;
     private ObjectCreatedHandler handler;
 
     @BeforeEach
     void setUp() {
         repository = mock(MediaFileRepository.class);
         producer = mock(KafkaProducerService.class);
-        handler = new ObjectCreatedHandler(repository, producer);
+        imotioService = mock(ImotioService.class);
+        handler = new ObjectCreatedHandler(repository, producer, imotioService);
     }
 
     @Test
@@ -92,6 +98,60 @@ class ObjectCreatedHandlerTest {
         handler.handle(event);
 
         verify(repository, never()).save(any());
+        verify(producer, never()).send(anyString(), anyString());
+    }
+
+    @Test
+    void handle_updatesFileStatusAndCallsImotioServiceForAudioWhenEnabled() {
+        UUID batchId = UUID.randomUUID();
+        String filename = "audio.mp3";
+        String rawKey = batchId + "/" + filename;
+        MinioEvent event = new MinioEvent("s3:ObjectCreated:Put", batchId, filename, rawKey, null);
+        MediaFile file = new MediaFile();
+        file.setId(3L);
+        file.setFileType(FileType.AUDIO);
+        file.setFilename(filename);
+
+        UploadBatch uploadBatch = new UploadBatch();
+        uploadBatch.setDirectory(batchId);
+        file.setUploadBatch(uploadBatch);
+
+        when(repository.findByFilenameAndUploadBatchDirectory(filename, batchId)).thenReturn(Optional.of(file));
+        when(imotioService.isImotioIntegrationEnabled()).thenReturn(true);
+
+        handler.handle(event);
+
+        assertEquals(MediaFileStatus.UPLOADED, file.getStatus());
+        verify(repository).save(file);
+        verify(imotioService).isImotioIntegrationEnabled();
+        verify(imotioService).processImotioFileUpload(file.getId());
+        verify(producer, never()).send(anyString(), anyString());
+    }
+
+    @Test
+    void handle_updatesFileStatusAndDoesNotCallImotioServiceForAudioWhenDisabled() {
+        UUID batchId = UUID.randomUUID();
+        String filename = "audio.wav";
+        String rawKey = batchId + "/" + filename;
+        MinioEvent event = new MinioEvent("s3:ObjectCreated:Put", batchId, filename, rawKey, null);
+        MediaFile file = new MediaFile();
+        file.setId(4L);
+        file.setFileType(FileType.AUDIO);
+        file.setFilename(filename);
+
+        UploadBatch uploadBatch = new UploadBatch();
+        uploadBatch.setDirectory(batchId);
+        file.setUploadBatch(uploadBatch);
+
+        when(repository.findByFilenameAndUploadBatchDirectory(filename, batchId)).thenReturn(Optional.of(file));
+        when(imotioService.isImotioIntegrationEnabled()).thenReturn(false);
+
+        handler.handle(event);
+
+        assertEquals(MediaFileStatus.UPLOADED, file.getStatus());
+        verify(repository).save(file);
+        verify(imotioService).isImotioIntegrationEnabled();
+        verify(imotioService, never()).processImotioFileUpload(anyLong());
         verify(producer, never()).send(anyString(), anyString());
     }
 }

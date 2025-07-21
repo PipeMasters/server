@@ -35,18 +35,20 @@ public class MediaFile extends BaseEntity {
     @JoinColumn(name = "upload_batch_id")
     private UploadBatch uploadBatch;
 
-
     @Column
     private Long duration;
 
     @Column
     private Long size;
+    
     @Column
     private String hash;
 
     @OneToMany(mappedBy = "mediaFile", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TranscriptFragment> transcriptFragments;
 
+    @Column
+    private String imotioId;
 
     public MediaFile(String filename, FileType fileType, UploadBatch uploadBatch) {
         this.filename = filename;
@@ -154,6 +156,13 @@ public class MediaFile extends BaseEntity {
 
     public void setTranscriptFragments(List<TranscriptFragment> transcriptFragments) {
         this.transcriptFragments = transcriptFragments;
+    }
 
+    public String getImotioId() {
+        return imotioId;
+    }
+
+    public void setImotioId(String imotioId) {
+        this.imotioId = imotioId;
     }
 }

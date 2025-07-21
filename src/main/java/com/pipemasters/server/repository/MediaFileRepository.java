@@ -15,4 +15,5 @@ public interface MediaFileRepository extends GeneralRepository<MediaFile, Long> 
     boolean existsByFilenameAndUploadBatchDirectory(String filename, UUID uploadBatchDirectory);
     @Query("select m from MediaFile m where m.uploadBatch.id = :uploadBatchId")
     List<MediaFile> findByUploadBatchId(Long uploadBatchId);
+    Optional<MediaFile> findByImotioId(String imotioId);
 }

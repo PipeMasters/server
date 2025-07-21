@@ -44,6 +44,5 @@ jobs:
 
       - name: Unit tests (Surefire)
         run: |
-          mvn -B --no-transfer-progress \
-              test-compile             \
-              surefire:test
+          mvn clean -B --no-transfer-progress \
+              test-compile surefire:test
