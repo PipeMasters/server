@@ -44,7 +44,8 @@ public class ObjectCreatedHandler implements MinioEventHandler {
                         imotioService.processImotioFileUpload(file.getId());
                     }
                     else if (file.getFileType() == FileType.VIDEO) {
-                        producer.send("processing-queue", file.getId().toString());
+                        log.debug("Video file queued for processing: {}", file.getFilename());
+                        producer.send("audio-extraction", file.getUploadBatch().getDirectory() + "/" + file.getFilename());
                     }
                 }, () -> log.warn("MediaFile not found for key {}", event.decodedKey()));
     }

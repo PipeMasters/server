@@ -12,4 +12,6 @@ public interface FileService {
     String generatePresignedDownloadUrl(Long mediaFileId);
 
     void deleteUploadBatchDirectory(UUID directoryUuid);
+
+    String getDownloadUrl(String s3Key);
 }

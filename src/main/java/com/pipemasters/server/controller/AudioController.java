@@ -1,5 +1,6 @@
 package com.pipemasters.server.controller;
 
+import com.pipemasters.server.kafka.KafkaProducerService;
 import com.pipemasters.server.service.AudioService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,8 +18,10 @@ import java.util.Map;
 public class AudioController {
     private final AudioService audioService;
     private final Logger log = LoggerFactory.getLogger(AudioController.class);
-    public AudioController(AudioService audioService) {
+    private final KafkaProducerService kafkaProducerService;
+    public AudioController(AudioService audioService, KafkaProducerService kafkaProducerService) {
         this.audioService = audioService;
+        this.kafkaProducerService = kafkaProducerService;
     }
 
     @GetMapping("/process/{mediaFileId}")
@@ -27,6 +30,15 @@ public class AudioController {
         return ResponseEntity.ok("Audio processing started for media file ID: " + mediaFileId);
 
     }
+
+    @GetMapping("/processtest")
+    public ResponseEntity<String> processAudioTest(@RequestParam String path) {
+        kafkaProducerService.send("audio-extraction", path);
+        return ResponseEntity.ok("Message sent to Kafka: " + path);
+    }
+
+
+
 
 //    @PostMapping("/minio-event")
     public ResponseEntity<Void> handleMinioEvent(
