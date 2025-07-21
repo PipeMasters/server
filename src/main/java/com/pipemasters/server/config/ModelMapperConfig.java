@@ -7,6 +7,7 @@ import com.pipemasters.server.dto.request.DelegationRequestDto;
 import com.pipemasters.server.dto.request.MediaFileRequestDto;
 import com.pipemasters.server.dto.request.UploadBatchRequestDto;
 import com.pipemasters.server.dto.request.update.UserUpdateDto;
+import com.pipemasters.server.dto.response.SttFragmentDto;
 import com.pipemasters.server.dto.response.TrainResponseDto;
 import com.pipemasters.server.dto.response.UploadBatchResponseDto;
 import com.pipemasters.server.dto.response.UploadBatchSearchDto;
@@ -42,6 +43,8 @@ public class ModelMapperConfig {
 
         configureUserMapping(modelMapper);
         modelMapper.getConfiguration().setSkipNullEnabled(true);
+
+        configureFragmentMapping(modelMapper);
 //        configureMediaFileMapping(modelMapper);
 //        configureUploadBatchMapping(modelMapper);
 //        configureVideoAbsenceDtoMapping(modelMapper);
@@ -112,6 +115,17 @@ public class ModelMapperConfig {
                     mapper.map(UploadBatch::getTrainDeparted, UploadBatchSearchDto::setDateDeparted);
                     mapper.map(UploadBatch::getTrainArrived, UploadBatchSearchDto::setDateArrived);
                     mapper.map(chf -> chf.getTrain().getChief().getFullName(), UploadBatchSearchDto::setChiefName);
+                });
+    }
+
+    private void configureFragmentMapping(ModelMapper modelMapper) {
+        modelMapper.typeMap(TranscriptFragment.class, SttFragmentDto.class)
+                .addMappings(mapper -> {
+                    mapper.map(TranscriptFragment::getBeginTime, SttFragmentDto::setBegin);
+                    mapper.map(TranscriptFragment::getEndTime, SttFragmentDto::setEnd);
+                    mapper.skip(SttFragmentDto::setDirection);
+                    mapper.map(TranscriptFragment::getText, SttFragmentDto::setText);
+                    mapper.map(TranscriptFragment::getId, SttFragmentDto::setFragment_id);
                 });
     }
 }
