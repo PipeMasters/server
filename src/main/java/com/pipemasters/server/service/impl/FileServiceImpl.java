@@ -75,7 +75,7 @@ public class FileServiceImpl implements FileService {
             mediaFile.setFileType(fileUploadRequestDTO.getFileType());
             mediaFile.setUploadBatch(uploadBatch);
             mediaFile.setStatus(MediaFileStatus.PENDING);
-            mediaFile.setDuration(fileUploadRequestDTO.getDuration());
+            mediaFile.setDuration(Duration.ofMillis(fileUploadRequestDTO.getDuration()));
             mediaFile.setSize(fileUploadRequestDTO.getSize());
             mediaFile.setHash(fileUploadRequestDTO.getHash());
             mediaFileRepository.save(mediaFile);
