@@ -19,14 +19,22 @@ public class MediaFileRequestDto extends BaseDto {
     private Long sourceId;
     @NotNull(message = "ToDate cannot be empty")
     private Long uploadBatchId;
-//    @NotNull(message = "duration cannot be empty")
+    @NotNull(message = "duration cannot be empty")
     private Duration duration;
-//    @NotNull(message = "size cannot be empty")
+    @NotNull(message = "size cannot be empty")
     private Long size;
-//    @NotNull(message = "hash cannot be empty")
+    @NotNull(message = "hash cannot be empty")
     private String hash;
 
     public MediaFileRequestDto() {
+    }
+
+    public MediaFileRequestDto(String filename, FileType fileType, Instant uploadedAt, Long sourceId, Long uploadBatchId) {
+        this.filename = filename;
+        this.fileType = fileType;
+        this.uploadedAt = uploadedAt;
+        this.sourceId = sourceId;
+        this.uploadBatchId = uploadBatchId;
     }
 
     public MediaFileRequestDto(String filename, FileType fileType, Instant uploadedAt, Long sourceId, Long uploadBatchId, Duration duration, Long size, String hash) {
@@ -94,5 +102,13 @@ public class MediaFileRequestDto extends BaseDto {
 
     public void setSize(Long size) {
         this.size = size;
+    }
+
+    public String getHash() {
+        return hash;
+    }
+
+    public void setHash(String hash) {
+        this.hash = hash;
     }
 }

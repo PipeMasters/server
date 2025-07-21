@@ -114,9 +114,7 @@ public class TestDataRunner implements CommandLineRunner {
                         FileType.AUDIO,
                         Instant.now(),
                         video,
-                        batch,
-                        Duration.ofMillis(10000L),
-                        1024L);
+                        batch);
                 audio.setStatus(MediaFileStatus.PROCESSED);
                 batch.getFiles().addAll(List.of(video, audio));
             } else {

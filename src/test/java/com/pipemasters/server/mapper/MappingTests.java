@@ -77,9 +77,7 @@ public class MappingTests {
                 FileType.VIDEO,
                 Instant.now(),
                 null,
-                uploadBatch,
-                Duration.ofMillis(10000L),
-                1024L
+                uploadBatch
         );
         sourceFile.setId(123L);
         MediaFile file = new MediaFile(
@@ -87,9 +85,7 @@ public class MappingTests {
                 FileType.VIDEO,
                 Instant.now(),
                 sourceFile,
-                uploadBatch,
-                Duration.ofMillis(10000L),
-                1024L
+                uploadBatch
         );
         file.setId(456L);
 
@@ -114,9 +110,7 @@ public class MappingTests {
                 FileType.VIDEO,
                 Instant.now(),
                 null,
-                uploadBatchRequestDto.getId(),
-                Duration.ofMillis(10000L),
-                1024L
+                uploadBatchRequestDto.getId()
         );
         sourceDto.setId(sourceId);
         MediaFileRequestDto dto = new MediaFileRequestDto(
@@ -124,9 +118,7 @@ public class MappingTests {
                 FileType.VIDEO,
                 Instant.now(),
                 sourceDto.getId(),
-                uploadBatchRequestDto.getId(),
-                Duration.ofMillis(10000L),
-                1024L
+                uploadBatchRequestDto.getId()
         );
 
         MediaFile entity = modelMapper.map(dto, MediaFile.class);

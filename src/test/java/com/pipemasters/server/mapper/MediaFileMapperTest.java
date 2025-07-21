@@ -70,9 +70,7 @@ public class MediaFileMapperTest {
                 FileType.VIDEO,
                 Instant.parse("2024-01-01T10:00:00Z"),
                 null,
-                uploadBatchRequestDto.getId(),
-                Duration.ofMillis(10000L),
-                1024L
+                uploadBatchRequestDto.getId()
         );
         sourceDto.setId(200L);
 
@@ -81,9 +79,7 @@ public class MediaFileMapperTest {
                 FileType.AUDIO,
                 Instant.parse("2024-01-01T12:00:00Z"),
                 sourceDto.getId(),
-                uploadBatchRequestDto.getId(),
-                Duration.ofMillis(10000L),
-                1024L
+                uploadBatchRequestDto.getId()
         );
 
         // Act

@@ -170,9 +170,7 @@ public class MediaFileRepositoryTest {
                 FileType.VIDEO,
                 customInstant,
                 null,
-                batch,
-                Duration.ofMillis(10000L),
-                1024L);
+                batch);
         MediaFile saved = mediaFileRepository.save(file);
         assertEquals(customInstant, saved.getUploadedAt());
     }

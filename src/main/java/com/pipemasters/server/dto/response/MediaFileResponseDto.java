@@ -16,17 +16,19 @@ public class MediaFileResponseDto extends BaseDto {
     private MediaFileResponseDto source;
     private Duration duration;
     private Long size;
+    private String hash;
 
     public MediaFileResponseDto() {
     }
 
-    public MediaFileResponseDto(String filename, FileType fileType, Instant uploadedAt, MediaFileResponseDto source, Duration duration, Long size) {
+    public MediaFileResponseDto(String filename, FileType fileType, Instant uploadedAt, MediaFileResponseDto source, Duration duration, Long size, String hash) {
         this.filename = filename;
         this.fileType = fileType;
         this.uploadedAt = uploadedAt;
         this.source = source;
         this.duration = duration;
         this.size = size;
+        this.hash = hash;
     }
 
     public String getFilename() {
@@ -75,5 +77,13 @@ public class MediaFileResponseDto extends BaseDto {
 
     public void setSize(Long size) {
         this.size = size;
+    }
+
+    public String getHash() {
+        return hash;
+    }
+
+    public void setHash(String hash) {
+        this.hash = hash;
     }
 }

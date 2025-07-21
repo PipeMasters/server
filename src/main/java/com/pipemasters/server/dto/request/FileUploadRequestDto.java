@@ -1,8 +1,11 @@
 package com.pipemasters.server.dto.request;
 
 import com.pipemasters.server.entity.enums.FileType;
+import jakarta.persistence.Column;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+
+import java.time.Duration;
 
 public class FileUploadRequestDto {
     @NotNull(message = "Upload batch ID cannot be empty")
@@ -12,6 +15,12 @@ public class FileUploadRequestDto {
     @NotNull(message = "File type cannot be empty")
     private FileType fileType;
     private Long sourceId; // Optional, for audio extraction
+    @NotNull(message = "duration cannot be empty")
+    private Duration duration;
+    @NotNull(message = "size cannot be empty")
+    private Long size;
+    @NotNull(message = "hash cannot be empty")
+    private String hash;
 
     public FileUploadRequestDto() {
     }
@@ -22,11 +31,21 @@ public class FileUploadRequestDto {
         this.fileType = fileType;
     }
 
-    public FileUploadRequestDto(Long uploadBatchId, String filename, FileType fileType, Long sourceId) {
+//    public FileUploadRequestDto(Long uploadBatchId, String filename, FileType fileType, Long sourceId) {
+//        this.uploadBatchId = uploadBatchId;
+//        this.filename = filename;
+//        this.fileType = fileType;
+//        this.sourceId = sourceId;
+//    }
+
+    public FileUploadRequestDto(Long uploadBatchId, String filename, FileType fileType, Long sourceId, Duration duration, Long size, String hash) {
         this.uploadBatchId = uploadBatchId;
         this.filename = filename;
         this.fileType = fileType;
         this.sourceId = sourceId;
+        this.duration = duration;
+        this.size = size;
+        this.hash = hash;
     }
 
     public Long getUploadBatchId() {
@@ -59,6 +78,30 @@ public class FileUploadRequestDto {
 
     public void setSourceId(Long sourceId) {
         this.sourceId = sourceId;
+    }
+
+    public Duration getDuration() {
+        return duration;
+    }
+
+    public void setDuration(Duration duration) {
+        this.duration = duration;
+    }
+
+    public Long getSize() {
+        return size;
+    }
+
+    public void setSize(Long size) {
+        this.size = size;
+    }
+
+    public String getHash() {
+        return hash;
+    }
+
+    public void setHash(String hash) {
+        this.hash = hash;
     }
 
     @Override
