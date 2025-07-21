@@ -2,6 +2,11 @@ package com.pipemasters.server.service.impl;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.pipemasters.server.entity.enums.MediaFileStatus;
+import com.pipemasters.server.exceptions.file.MediaFileProcessingException;
+import com.pipemasters.server.exceptions.imotio.ImotioApiCallException;
+import com.pipemasters.server.exceptions.imotio.ImotioProcessingException;
+import com.pipemasters.server.exceptions.imotio.ImotioResponseParseException;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,6 +35,7 @@ import java.util.Optional;
 
 @Service
 public class ImotioServiceImpl implements ImotioService {
+
     private final static Logger log = LoggerFactory.getLogger(ImotioServiceImpl.class);
 
     private final ObjectMapper objectMapper;
@@ -60,60 +66,48 @@ public class ImotioServiceImpl implements ImotioService {
                 .build();
     }
 
-
-    // TODO: подумать что делать со статусами медиафайла, как их правильно менять и надо ли вообще это делать.
-    //  мб логирования тут сделать поменьше, а то прям спам. Надо сделать кастомные ошибки сюда.
-    //  надо подумать, что возвращать при ошибках, сейчас это return null, но это не информативно как то, не знаю можно ли лучше.
-    //  мб еще как то можно оптимизировать код, тоже надо подумать.
-    //  надо написать тесты на этот сервис
     @Override
     @Transactional
     public String processImotioFileUpload(Long mediaFileId) {
-        log.info("Starting Imotio file upload processing for MediaFile with ID: {}.", mediaFileId);
+        log.info("Attempting to process Imotio file upload for MediaFile ID: {}.", mediaFileId);
+        MediaFile mediaFile = null;
 
-        Optional<MediaFile> mediaFileOptional = mediaFileRepository.findById(mediaFileId);
-        if (mediaFileOptional.isEmpty()) {
-            log.warn("MediaFile with ID {} not found in the database. Skipping Imotio upload.", mediaFileId);
-            return null;
-        }
-        MediaFile mediaFile = mediaFileOptional.get();
-
-        if (!isAudioFileSuitableForImotio(mediaFile)) {
-            log.info("MediaFile {} (type: {}) is not an audio file suitable for Imotio. Skipping.",
-                    mediaFile.getId(), mediaFile.getFileType());
-            return null;
-        }
-
-        UploadBatch uploadBatch = mediaFile.getUploadBatch();
-        if (uploadBatch == null) {
-            log.error("MediaFile {} has no associated UploadBatch. Cannot proceed with Imotio upload.", mediaFile.getId());
-            return null;
-        }
-        User uploadedBy = uploadBatch.getUploadedBy();
-        if (uploadedBy == null) {
-            log.error("UploadBatch {} has no associated User. Cannot proceed with Imotio upload for MediaFile {}.", uploadBatch.getId(), mediaFile.getId());
-            return null;
-        }
-
-        String stereoUrl;
         try {
-            stereoUrl = fileService.generatePresignedDownloadUrl(mediaFileId);
-            if (stereoUrl == null || stereoUrl.isEmpty()) {
-                log.error("Generated presigned URL for MediaFile {} is empty or null.", mediaFile.getId());
-                return null;
+            Optional<MediaFile> mediaFileOptional = mediaFileRepository.findById(mediaFileId);
+            if (mediaFileOptional.isEmpty()) {
+                throw new MediaFileNotFoundException("MediaFile with ID " + mediaFileId + " not found.");
             }
-            log.debug("Successfully generated presigned URL for MediaFile {}: {}", mediaFile.getId(), stereoUrl);
-        } catch (MediaFileNotFoundException e) {
-            log.error("MediaFile content not found for URL generation for MediaFile {}. Error: {}", mediaFile.getId(), e.getMessage());
-            return null;
-        } catch (Exception e) {
-            log.error("Error generating presigned URL for MediaFile {}. Error: {}", mediaFile.getId(), e.getMessage(), e);
-            return null;
-        }
+            mediaFile = mediaFileOptional.get();
 
-        String imotioUniqueId;
-        try {
-            imotioUniqueId = performImotioUpload(
+            mediaFile.setStatus(MediaFileStatus.PROCESSING);
+            mediaFileRepository.save(mediaFile);
+
+            if (!isAudioFileSuitableForImotio(mediaFile)) {
+                throw new MediaFileProcessingException("MediaFile " + mediaFile.getId() + " is not a suitable audio file for Imotio.");
+            }
+
+            UploadBatch uploadBatch = mediaFile.getUploadBatch();
+            if (uploadBatch == null) {
+                throw new MediaFileProcessingException("MediaFile " + mediaFile.getId() + " has no associated UploadBatch.");
+            }
+            User uploadedBy = uploadBatch.getUploadedBy();
+            if (uploadedBy == null) {
+                throw new MediaFileProcessingException("UploadBatch " + uploadBatch.getId() + " has no associated User.");
+            }
+
+            String stereoUrl = "";
+            try {
+                stereoUrl = fileService.generatePresignedDownloadUrl(mediaFileId);
+                if (stereoUrl == null || stereoUrl.isEmpty()) {
+                    throw new MediaFileProcessingException("Generated presigned URL for MediaFile " + mediaFile.getId() + " is empty or null.");
+                }
+            } catch (MediaFileNotFoundException e) {
+                throw new MediaFileProcessingException("MediaFile content not found for URL generation for MediaFile " + mediaFile.getId(), e);
+            } catch (Exception e) {
+                throw new MediaFileProcessingException("Error generating presigned URL for MediaFile " + mediaFile.getId(), e);
+            }
+
+            String imotioUniqueId = performImotioUpload(
                     stereoUrl,
                     uploadedBy.getId(),
                     uploadBatch.getBranch() != null ? uploadBatch.getBranch().getId() : null,
@@ -123,85 +117,80 @@ public class ImotioServiceImpl implements ImotioService {
             );
 
             mediaFile.setImotioId(imotioUniqueId);
+            mediaFile.setStatus(MediaFileStatus.PROCESSED);
             mediaFileRepository.save(mediaFile);
-            log.info("File {} successfully uploaded to Imotio, assigned imotioId: {}.",
-                    mediaFile.getId(), imotioUniqueId);
+            return imotioUniqueId;
 
+        } catch (ImotioProcessingException | MediaFileProcessingException e) {
+            log.error("Imotio processing failed for MediaFile ID {}: {}", mediaFileId, e.getMessage(), e);
+            if (mediaFile != null) {
+                mediaFile.setStatus(MediaFileStatus.FAILED);
+                mediaFileRepository.save(mediaFile);
+            }
+            return null;
         } catch (Exception e) {
-            log.error("Failed to upload audio file {} to Imotio: {}", mediaFile.getFilename(), e.getMessage(), e);
+            log.error("An unexpected error occurred during Imotio processing for MediaFile ID {}: {}", mediaFileId, e.getMessage(), e);
+            if (mediaFile != null) {
+                mediaFile.setStatus(MediaFileStatus.FAILED);
+                mediaFileRepository.save(mediaFile);
+            }
             return null;
         }
-        return imotioUniqueId;
     }
 
     private String performImotioUpload(String stereoUrl,
                                        Long employeeId, Long unitId, Long mediaFileId, Long uploadBatchId,
                                        Instant uploadBatchCreatedAt) {
+        MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
+
+        formData.add("stereo_url", stereoUrl);
+        formData.add("ID сотрудника", String.valueOf(employeeId));
+        formData.add("ID подразделения", String.valueOf(unitId));
+        formData.add("ID файла", String.valueOf(mediaFileId));
+        formData.add("ID uploadBatch", String.valueOf(uploadBatchId));
+
+        if (uploadBatchCreatedAt != null) {
+            formData.add("call_time", String.valueOf(uploadBatchCreatedAt.getEpochSecond()));
+        } else {
+            formData.add("call_time", String.valueOf(Instant.now().getEpochSecond()));
+        }
+
         try {
-            MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
-
-            formData.add("stereo_url", stereoUrl);
-            formData.add("ID сотрудника", String.valueOf(employeeId));
-            formData.add("ID подразделения", String.valueOf(unitId));
-            formData.add("ID файла", String.valueOf(mediaFileId));
-            formData.add("ID uploadBatch", String.valueOf(uploadBatchId));
-
-            if (uploadBatchCreatedAt != null) {
-                formData.add("call_time", String.valueOf(uploadBatchCreatedAt.getEpochSecond()));
-            } else {
-                log.warn("UploadBatch createdAt is null for MediaFile ID {}. Using current timestamp for call_time.", mediaFileId);
-                formData.add("call_time", String.valueOf(Instant.now().getEpochSecond()));
-            }
-
-            log.info("Attempting to send request to Imotio API at endpoint: /process_call");
-
-            Mono<String> responseMono = webClient.post()
+            String responseBody = webClient.post()
                     .uri("/process_call")
                     .header("X-Auth-Token", imotioAuthToken)
                     .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                     .body(BodyInserters.fromFormData(formData))
                     .retrieve()
-                    .onStatus(HttpStatusCode::isError, clientResponse -> {
-                        log.error("Imotio API returned an error status: {}", clientResponse.statusCode());
-                        return clientResponse.bodyToMono(String.class)
-                                .flatMap(errorBody -> {
-                                    log.error("Imotio API error response body: {}", errorBody);
-                                    return Mono.error(new RuntimeException("Imotio API error: " + clientResponse.statusCode() + " - " + errorBody));
-                                });
-                    })
-                    .bodyToMono(String.class);
+                    .onStatus(HttpStatusCode::isError, clientResponse ->
+                            clientResponse.bodyToMono(String.class)
+                                    .flatMap(errorBody -> Mono.error(new ImotioApiCallException("Imotio API error", clientResponse.statusCode(), errorBody)))
+                    )
+                    .bodyToMono(String.class)
+                    .block();
 
-            String responseBody = responseMono.block();
-
-            if (responseBody != null && !responseBody.trim().isEmpty()) {
-                log.debug("Raw Imotio API response: {}", responseBody);
-                try {
-                    JsonNode rootNode = objectMapper.readTree(responseBody);
-                    JsonNode callIdNode = rootNode.get("call_id");
-
-                    if (callIdNode != null && callIdNode.isTextual()) {
-                        String imotioUniqueId = callIdNode.asText();
-                        log.debug("Successfully extracted 'call_id' from Imotio API response: {}", imotioUniqueId);
-                        return imotioUniqueId;
-                    } else {
-                        log.error("Imotio API response did not contain a valid 'call_id' field: {}", responseBody);
-                        throw new RuntimeException("Imotio API response missing 'call_id'.");
-                    }
-                } catch (Exception e) {
-                    log.error("Error parsing Imotio API response JSON: {}", e.getMessage(), e);
-                    throw new RuntimeException("Failed to parse Imotio API response: " + e.getMessage(), e);
-                }
-            } else {
-                log.error("Imotio API returned an empty or null response body.");
-                throw new RuntimeException("Imotio API returned an empty or null response.");
+            if (responseBody == null || responseBody.trim().isEmpty()) {
+                throw new ImotioResponseParseException("Imotio API returned an empty or null response.");
             }
 
+            try {
+                JsonNode rootNode = objectMapper.readTree(responseBody);
+                JsonNode callIdNode = rootNode.get("call_id");
+
+                if (callIdNode != null && callIdNode.isTextual()) {
+                    return callIdNode.asText();
+                } else {
+                    throw new ImotioResponseParseException("Imotio API response missing valid 'call_id'. Response: " + responseBody);
+                }
+            } catch (Exception e) {
+                throw new ImotioResponseParseException("Failed to parse Imotio API response", e);
+            }
         } catch (WebClientResponseException e) {
-            log.error("WebClient error during Imotio file upload: {}. Response body: {}", e.getMessage(), e.getResponseBodyAsString(), e);
-            throw new RuntimeException("Failed to upload audio to Imotio due to WebClient error: " + e.getMessage(), e);
+            throw new ImotioApiCallException("Failed to upload audio to Imotio due to WebClient error", e, e.getStatusCode(), e.getResponseBodyAsString());
+        } catch (ImotioProcessingException e) {
+            throw e;
         } catch (Exception e) {
-            log.error("Failed to upload audio to Imotio: {}", e.getMessage(), e);
-            throw new RuntimeException("Failed to upload audio to Imotio: " + e.getMessage(), e);
+            throw new ImotioProcessingException("An unexpected error occurred during Imotio upload.", e);
         }
     }
 

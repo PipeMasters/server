@@ -40,10 +40,4 @@ public class FileController {
         String url = fileService.generatePresignedDownloadUrl(mediaFileId);
         return ResponseEntity.ok(url);
     }
-
-    // временно для тестов
-    @GetMapping("/test/{mediaFileId}")
-    public String test(@PathVariable Long mediaFileId) {
-        return imotioService.processImotioFileUpload(mediaFileId);
-    }
 }
