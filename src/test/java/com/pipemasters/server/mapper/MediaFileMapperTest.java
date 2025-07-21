@@ -9,6 +9,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.modelmapper.ModelMapper;
 
+import javax.xml.datatype.DatatypeFactory;
+import java.time.Duration;
 import java.time.Instant;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -68,7 +70,9 @@ public class MediaFileMapperTest {
                 FileType.VIDEO,
                 Instant.parse("2024-01-01T10:00:00Z"),
                 null,
-                uploadBatchRequestDto.getId()
+                uploadBatchRequestDto.getId(),
+                Duration.ofMillis(10000L),
+                1024L
         );
         sourceDto.setId(200L);
 
@@ -77,7 +81,9 @@ public class MediaFileMapperTest {
                 FileType.AUDIO,
                 Instant.parse("2024-01-01T12:00:00Z"),
                 sourceDto.getId(),
-                uploadBatchRequestDto.getId()
+                uploadBatchRequestDto.getId(),
+                Duration.ofMillis(10000L),
+                1024L
         );
 
         // Act

@@ -4,6 +4,7 @@ import com.pipemasters.server.entity.enums.FileType;
 import com.pipemasters.server.entity.enums.MediaFileStatus;
 import jakarta.persistence.*;
 
+import java.time.Duration;
 import java.time.Instant;
 
 @Entity
@@ -34,6 +35,14 @@ public class MediaFile extends BaseEntity {
     @JoinColumn(name = "upload_batch_id")
     private UploadBatch uploadBatch;
 
+    @Column
+    private Duration duration;
+
+    @Column
+    private Long size;
+    @Column
+    private String hash;
+
     public MediaFile(String filename, FileType fileType, UploadBatch uploadBatch) {
         this.filename = filename;
         this.fileType = fileType;
@@ -49,6 +58,18 @@ public class MediaFile extends BaseEntity {
     }
 
     public MediaFile() {
+    }
+
+    public MediaFile(String filename, FileType fileType, MediaFileStatus status, Instant uploadedAt, MediaFile source, UploadBatch uploadBatch, Duration duration, Long size, String hash) {
+        this.filename = filename;
+        this.fileType = fileType;
+        this.status = status;
+        this.uploadedAt = uploadedAt;
+        this.source = source;
+        this.uploadBatch = uploadBatch;
+        this.duration = duration;
+        this.size = size;
+        this.hash = hash;
     }
 
     public String getFilename() {
@@ -97,5 +118,29 @@ public class MediaFile extends BaseEntity {
 
     public void setStatus(MediaFileStatus status) {
         this.status = status;
+    }
+
+    public Duration getDuration() {
+        return duration;
+    }
+
+    public void setDuration(Duration duration) {
+        this.duration = duration;
+    }
+
+    public Long getSize() {
+        return size;
+    }
+
+    public void setSize(Long size) {
+        this.size = size;
+    }
+
+    public String getHash() {
+        return hash;
+    }
+
+    public void setHash(String hash) {
+        this.hash = hash;
     }
 }

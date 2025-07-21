@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.*;
@@ -164,7 +165,14 @@ public class MediaFileRepositoryTest {
     void saveMediaFileWithCustomUploadedAtPersistsCorrectly() {
         UploadBatch batch = createUploadBatch();
         Instant customInstant = Instant.parse("2023-01-01T10:00:00Z");
-        MediaFile file = new MediaFile("custom.mp4", FileType.VIDEO, customInstant, null, batch);
+        MediaFile file = new MediaFile(
+                "custom.mp4",
+                FileType.VIDEO,
+                customInstant,
+                null,
+                batch,
+                Duration.ofMillis(10000L),
+                1024L);
         MediaFile saved = mediaFileRepository.save(file);
         assertEquals(customInstant, saved.getUploadedAt());
     }
