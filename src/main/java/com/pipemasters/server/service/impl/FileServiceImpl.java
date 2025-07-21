@@ -11,6 +11,7 @@ import com.pipemasters.server.repository.UploadBatchRepository;
 import com.pipemasters.server.service.FileService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.web.bind.annotation.RequestParam;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;
 import software.amazon.awssdk.services.s3.model.Delete;
@@ -74,6 +75,9 @@ public class FileServiceImpl implements FileService {
             mediaFile.setFileType(fileUploadRequestDTO.getFileType());
             mediaFile.setUploadBatch(uploadBatch);
             mediaFile.setStatus(MediaFileStatus.PENDING);
+            mediaFile.setDuration(Duration.ofMillis(fileUploadRequestDTO.getDuration()));
+            mediaFile.setSize(fileUploadRequestDTO.getSize());
+            mediaFile.setHash(fileUploadRequestDTO.getHash());
             mediaFileRepository.save(mediaFile);
         }
         return getUploadUrl(fullPath);
@@ -81,7 +85,7 @@ public class FileServiceImpl implements FileService {
 
     @Override
     @Transactional
-    public String generatePresignedUploadUrlForAudio(String sourceKey) {
+    public String generatePresignedUploadUrlForAudio(String sourceKey, Duration duration, Long size, String hash) {
         if (sourceKey == null || !sourceKey.contains("/")) {
             throw new InvalidFileKeyException("Invalid sourceKey for audio upload: " + sourceKey + ". Expected format: 'directory/filename'.");
         }
@@ -116,6 +120,9 @@ public class FileServiceImpl implements FileService {
             mediaFile.setUploadBatch(uploadBatch);
             mediaFile.setSource(sourceMediaFile);
             mediaFile.setStatus(MediaFileStatus.PENDING);
+            mediaFile.setDuration(duration);
+            mediaFile.setSize(size);
+            mediaFile.setHash(hash);
             mediaFileRepository.save(mediaFile);
         }
         String fullPath = uploadBatch.getDirectory() + "/" + audioFilename;

@@ -9,6 +9,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.modelmapper.ModelMapper;
 
+import javax.xml.datatype.DatatypeFactory;
+import java.time.Duration;
 import java.time.Instant;
 
 import static org.junit.jupiter.api.Assertions.*;

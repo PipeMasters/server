@@ -10,6 +10,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import java.time.Duration;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -43,14 +44,14 @@ class FileControllerTest {
     @Test
     void getPresignedUploadUrlForAudio_ReturnsUrl() {
         String expectedUrl = "http://example.com/audio";
-        when(fileService.generatePresignedUploadUrlForAudio("dir/file.mp4"))
+        when(fileService.generatePresignedUploadUrlForAudio("dir/file.mp4", Duration.ofMillis(9000L),9000L,"null"))
                 .thenReturn(expectedUrl);
 
-        ResponseEntity<String> response = fileController.getPresignedUploadUrlForAudio("dir/file.mp4");
+        ResponseEntity<String> response = fileController.getPresignedUploadUrlForAudio("dir/file.mp4",9000L,9000L,"null");
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(expectedUrl, response.getBody());
-        verify(fileService).generatePresignedUploadUrlForAudio("dir/file.mp4");
+        verify(fileService).generatePresignedUploadUrlForAudio("dir/file.mp4",Duration.ofMillis(9000L),9000L,"null");
     }
 
     @Test
