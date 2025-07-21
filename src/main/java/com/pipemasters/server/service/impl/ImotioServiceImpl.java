@@ -7,6 +7,7 @@ import com.pipemasters.server.exceptions.file.MediaFileProcessingException;
 import com.pipemasters.server.exceptions.imotio.ImotioApiCallException;
 import com.pipemasters.server.exceptions.imotio.ImotioProcessingException;
 import com.pipemasters.server.exceptions.imotio.ImotioResponseParseException;
+import com.pipemasters.server.service.ImotioPollingSchedulerService;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,22 +42,24 @@ public class ImotioServiceImpl implements ImotioService {
     private final ObjectMapper objectMapper;
     private final MediaFileRepository mediaFileRepository;
     private final FileService fileService;
+    private final ImotioPollingSchedulerService imotioPollingSchedulerService;
 
     @Value("${imotio.api.url}")
     private String imotioApiUrl;
 
-    @Value("${imotio.auth.token}")
+    @Value("${imotio.api.token}")
     private String imotioAuthToken;
 
     private WebClient webClient;
     private final WebClient.Builder webClientBuilder;
 
     public ImotioServiceImpl(WebClient.Builder webClientBuilder, ObjectMapper objectMapper,
-                             MediaFileRepository mediaFileRepository, FileService fileService) {
+                             MediaFileRepository mediaFileRepository, FileService fileService, ImotioPollingSchedulerServiceImpl imotioPollingSchedulerService) {
         this.webClientBuilder = webClientBuilder;
         this.objectMapper = objectMapper;
         this.mediaFileRepository = mediaFileRepository;
         this.fileService = fileService;
+        this.imotioPollingSchedulerService = imotioPollingSchedulerService;
     }
 
     @PostConstruct
@@ -68,7 +71,7 @@ public class ImotioServiceImpl implements ImotioService {
 
     @Override
     @Transactional
-    public String processImotioFileUpload(Long mediaFileId) {
+    public void processImotioFileUpload(Long mediaFileId) {
         log.info("Attempting to process Imotio file upload for MediaFile ID: {}.", mediaFileId);
         MediaFile mediaFile = null;
 
@@ -95,7 +98,7 @@ public class ImotioServiceImpl implements ImotioService {
                 throw new MediaFileProcessingException("UploadBatch " + uploadBatch.getId() + " has no associated User.");
             }
 
-            String stereoUrl = "";
+            String stereoUrl;
             try {
                 stereoUrl = fileService.generatePresignedDownloadUrl(mediaFileId);
                 if (stereoUrl == null || stereoUrl.isEmpty()) {
@@ -119,7 +122,7 @@ public class ImotioServiceImpl implements ImotioService {
             mediaFile.setImotioId(imotioUniqueId);
             mediaFile.setStatus(MediaFileStatus.PROCESSED);
             mediaFileRepository.save(mediaFile);
-            return imotioUniqueId;
+            imotioPollingSchedulerService.addTaskToPoll(imotioUniqueId, mediaFileId);
 
         } catch (ImotioProcessingException | MediaFileProcessingException e) {
             log.error("Imotio processing failed for MediaFile ID {}: {}", mediaFileId, e.getMessage(), e);
@@ -127,14 +130,12 @@ public class ImotioServiceImpl implements ImotioService {
                 mediaFile.setStatus(MediaFileStatus.FAILED);
                 mediaFileRepository.save(mediaFile);
             }
-            return null;
         } catch (Exception e) {
             log.error("An unexpected error occurred during Imotio processing for MediaFile ID {}: {}", mediaFileId, e.getMessage(), e);
             if (mediaFile != null) {
                 mediaFile.setStatus(MediaFileStatus.FAILED);
                 mediaFileRepository.save(mediaFile);
             }
-            return null;
         }
     }
 

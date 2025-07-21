@@ -8,6 +8,7 @@ import com.pipemasters.server.kafka.event.MinioEvent;
 import com.pipemasters.server.kafka.handler.impl.ObjectCreatedHandler;
 import com.pipemasters.server.repository.MediaFileRepository;
 import com.pipemasters.server.entity.MediaFile;
+import com.pipemasters.server.service.ImotioService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -22,12 +23,13 @@ class ObjectCreatedHandlerTest {
     private MediaFileRepository repository;
     private KafkaProducerService producer;
     private ObjectCreatedHandler handler;
+    private ImotioService imotioService;
 
     @BeforeEach
     void setUp() {
         repository = mock(MediaFileRepository.class);
         producer = mock(KafkaProducerService.class);
-        handler = new ObjectCreatedHandler(repository, producer);
+        handler = new ObjectCreatedHandler(repository, producer, imotioService);
     }
 
     @Test

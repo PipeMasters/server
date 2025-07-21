@@ -3,6 +3,7 @@ package com.pipemasters.server.controller;
 import com.pipemasters.server.dto.request.FileUploadRequestDto;
 import com.pipemasters.server.exceptions.file.MediaFileNotFoundException;
 import com.pipemasters.server.service.FileService;
+import com.pipemasters.server.service.ImotioPollingSchedulerService;
 import com.pipemasters.server.service.ImotioService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -16,11 +17,11 @@ import java.util.UUID;
 public class FileController {
 
     private final FileService fileService;
-    private final ImotioService imotioService;
 
-    public FileController(FileService fileService, ImotioService imotioService) {
+    public FileController(FileService fileService, ImotioService imotioService, ImotioPollingSchedulerService imotioPollingSchedulerService) {
         this.fileService = fileService;
         this.imotioService = imotioService;
+        this.imotioPollingSchedulerService = imotioPollingSchedulerService;
     }
 
     @PostMapping("/upload-url-video")
@@ -55,5 +56,19 @@ public class FileController {
             url = fileService.getDownloadUrl(sourceKey);
         }
         return ResponseEntity.ok(url);
+    }
+
+    // временно для тестов
+    private final ImotioService imotioService;
+    private final ImotioPollingSchedulerService imotioPollingSchedulerService;
+    @GetMapping("/test/{mediaFileId}")
+    public void test(@PathVariable Long mediaFileId) {
+        imotioService.processImotioFileUpload(mediaFileId);
+    }
+
+    @GetMapping("/test2/{mediaFileId}")
+    public void test2(@PathVariable Long mediaFileId) {
+        imotioPollingSchedulerService.addTaskToPoll("687d9d476eeb411aa7daedf9", mediaFileId);
+        imotioService.processImotioFileUpload(mediaFileId);
     }
 }
