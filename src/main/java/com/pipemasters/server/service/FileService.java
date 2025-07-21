@@ -8,7 +8,7 @@ import java.util.UUID;
 public interface FileService {
     String generatePresignedUploadUrlForVideo(FileUploadRequestDto fileUploadRequestDTO);
 
-    String generatePresignedUploadUrlForAudio(String sourceKey, Long duration, Long size, String hash);
+    String generatePresignedUploadUrlForAudio(String sourceKey, Long duration, String hash);
 
     String generatePresignedDownloadUrl(Long mediaFileId);
 

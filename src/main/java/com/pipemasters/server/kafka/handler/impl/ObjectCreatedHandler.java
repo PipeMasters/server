@@ -31,14 +31,18 @@ public class ObjectCreatedHandler implements MinioEventHandler {
     public void handle(MinioEvent event) {
         repository.findByFilenameAndUploadBatchDirectory(event.filename(), event.batchId())
                 .ifPresentOrElse(file -> {
+
                     file.setStatus(MediaFileStatus.UPLOADED);
                     file.setSize(event.size());
                     repository.save(file);
+
                     log.debug("Status of file {} set to {}", file.getId(), file.getStatus());
+
                     if (file.getFileType() == FileType.VIDEO) {
                         log.debug("Video file queued for processing: {}", file.getFilename());
                         producer.send("audio-extraction", file.getUploadBatch().getDirectory() + "/" + file.getFilename());
                     }
+
                 }, () -> log.warn("MediaFile not found for key {}", event.decodedKey()));
     }
 }
