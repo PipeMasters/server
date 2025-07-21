@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class SttFragmentDto {
+    private Long id;
     private Long begin;
     private Long end;
     private String direction;
@@ -13,11 +14,12 @@ public class SttFragmentDto {
     public SttFragmentDto() {
     }
 
-    public SttFragmentDto(Long begin, String direction, Long end, String fragment_id, String text) {
+    public SttFragmentDto(Long begin, String direction, Long end, String fragment_id, Long id, String text) {
         this.begin = begin;
         this.direction = direction;
         this.end = end;
         this.fragment_id = fragment_id;
+        this.id = id;
         this.text = text;
     }
 
@@ -59,6 +61,14 @@ public class SttFragmentDto {
 
     public void setText(String text) {
         this.text = text;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 }
 

@@ -125,7 +125,8 @@ public class ModelMapperConfig {
                     mapper.map(TranscriptFragment::getEndTime, SttFragmentDto::setEnd);
                     mapper.skip(SttFragmentDto::setDirection);
                     mapper.map(TranscriptFragment::getText, SttFragmentDto::setText);
-                    mapper.map(TranscriptFragment::getId, SttFragmentDto::setFragment_id);
+                    mapper.map(TranscriptFragment::getId, SttFragmentDto::setId);
+                    mapper.map(TranscriptFragment::getFragmentId, SttFragmentDto::setFragment_id);
                 });
     }
 }
