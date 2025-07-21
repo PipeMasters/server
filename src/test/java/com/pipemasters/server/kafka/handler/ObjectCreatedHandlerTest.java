@@ -48,7 +48,7 @@ class ObjectCreatedHandlerTest {
         UUID batchId = UUID.randomUUID();
         String filename = "video.mp4";
         String rawKey = batchId + "/" + filename;
-        MinioEvent event = new MinioEvent("s3:ObjectCreated:Put", batchId, filename, rawKey);
+        MinioEvent event = new MinioEvent("s3:ObjectCreated:Put", batchId, filename, rawKey, null);
         MediaFile file = new MediaFile();
         file.setId(1L);
         file.setFileType(FileType.VIDEO);
@@ -72,7 +72,7 @@ class ObjectCreatedHandlerTest {
         UUID batchId = UUID.randomUUID();
         String filename = "image.jpg";
         String rawKey = batchId + "/" + filename;
-        MinioEvent event = new MinioEvent("s3:ObjectCreated:Put", batchId, filename, rawKey);
+        MinioEvent event = new MinioEvent("s3:ObjectCreated:Put", batchId, filename, rawKey, null);
         MediaFile file = new MediaFile();
         file.setId(2L);
         file.setFileType(FileType.IMAGE);
@@ -91,7 +91,7 @@ class ObjectCreatedHandlerTest {
         UUID batchId = UUID.randomUUID();
         String filename = "missing.mp4";
         String rawKey = batchId + "/" + filename;
-        MinioEvent event = new MinioEvent("s3:ObjectCreated:Put", batchId, filename, rawKey);
+        MinioEvent event = new MinioEvent("s3:ObjectCreated:Put", batchId, filename, rawKey, null);
 
         when(repository.findByFilenameAndUploadBatchDirectory(filename, batchId)).thenReturn(Optional.empty());
 

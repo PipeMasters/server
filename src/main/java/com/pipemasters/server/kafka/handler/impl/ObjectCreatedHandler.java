@@ -9,7 +9,6 @@ import com.pipemasters.server.repository.MediaFileRepository;
 import com.pipemasters.server.service.ImotioService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,9 +37,13 @@ public class ObjectCreatedHandler implements MinioEventHandler {
     public void handle(MinioEvent event) {
         repository.findByFilenameAndUploadBatchDirectory(event.filename(), event.batchId())
                 .ifPresentOrElse(file -> {
+
                     file.setStatus(MediaFileStatus.UPLOADED);
+                    file.setSize(event.size());
                     repository.save(file);
+
                     log.debug("Status of file {} set to {}", file.getId(), file.getStatus());
+
                     if (file.getFileType() == FileType.AUDIO) {
                         log.info("Audio file detected {}", file.getFilename());
                         if (imotioService.isImotioIntegrationEnabled()) {

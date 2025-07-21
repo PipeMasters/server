@@ -3,9 +3,7 @@ package com.pipemasters.server.dto.response;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.pipemasters.server.dto.BaseDto;
 import com.pipemasters.server.entity.enums.FileType;
-import jakarta.validation.constraints.NotNull;
 
-import java.time.Duration;
 import java.time.Instant;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -14,14 +12,14 @@ public class MediaFileResponseDto extends BaseDto {
     private FileType fileType;
     private Instant uploadedAt;
     private MediaFileResponseDto source;
-    private Duration duration;
+    private Long duration;
     private Long size;
     private String hash;
 
     public MediaFileResponseDto() {
     }
 
-    public MediaFileResponseDto(String filename, FileType fileType, Instant uploadedAt, MediaFileResponseDto source, Duration duration, Long size, String hash) {
+    public MediaFileResponseDto(String filename, FileType fileType, Instant uploadedAt, MediaFileResponseDto source, Long duration, Long size, String hash) {
         this.filename = filename;
         this.fileType = fileType;
         this.uploadedAt = uploadedAt;
@@ -63,11 +61,11 @@ public class MediaFileResponseDto extends BaseDto {
         this.source = source;
     }
 
-    public Duration getDuration() {
+    public Long getDuration() {
         return duration;
     }
 
-    public void setDuration(Duration duration) {
+    public void setDuration(Long duration) {
         this.duration = duration;
     }
 
