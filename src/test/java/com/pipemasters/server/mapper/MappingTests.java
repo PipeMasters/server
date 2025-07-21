@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ContextConfiguration;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -75,9 +76,21 @@ public class MappingTests {
     @Test
     void shouldMapMediaFileToDtoCorrectly() {
         UploadBatch uploadBatch = createTestUploadBatch();
-        MediaFile sourceFile = new MediaFile("source.mp4", FileType.VIDEO, Instant.now(), null, uploadBatch);
+        MediaFile sourceFile = new MediaFile(
+                "video.mp4",
+                FileType.VIDEO,
+                Instant.now(),
+                null,
+                uploadBatch
+        );
         sourceFile.setId(123L);
-        MediaFile file = new MediaFile("video.mp4", FileType.VIDEO, Instant.now(), sourceFile, uploadBatch);
+        MediaFile file = new MediaFile(
+                "video.mp4",
+                FileType.VIDEO,
+                Instant.now(),
+                sourceFile,
+                uploadBatch
+        );
         file.setId(456L);
 
         MediaFileRequestDto dto = modelMapper.map(file, MediaFileRequestDto.class);
@@ -96,9 +109,21 @@ public class MappingTests {
         uploadBatchRequestDto.setId(10L);
         Long sourceId = 123L;
 
-        MediaFileRequestDto sourceDto = new MediaFileRequestDto("old.mp4", FileType.VIDEO, Instant.now(), null, uploadBatchRequestDto.getId());
+        MediaFileRequestDto sourceDto = new MediaFileRequestDto(
+                "old.mp4",
+                FileType.VIDEO,
+                Instant.now(),
+                null,
+                uploadBatchRequestDto.getId()
+        );
         sourceDto.setId(sourceId);
-        MediaFileRequestDto dto = new MediaFileRequestDto("new.mp4", FileType.VIDEO, Instant.now(), sourceDto.getId(), uploadBatchRequestDto.getId());
+        MediaFileRequestDto dto = new MediaFileRequestDto(
+                "new.mp4",
+                FileType.VIDEO,
+                Instant.now(),
+                sourceDto.getId(),
+                uploadBatchRequestDto.getId()
+        );
 
         MediaFile entity = modelMapper.map(dto, MediaFile.class);
 

@@ -12,6 +12,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -108,7 +109,12 @@ public class TestDataRunner implements CommandLineRunner {
             if (withFiles) {
                 MediaFile video = new MediaFile("batch" + (i + 1) + "/video.mp4", FileType.VIDEO, batch);
                 video.setStatus(MediaFileStatus.PROCESSED);
-                MediaFile audio = new MediaFile("batch" + (i + 1) + "/audio.mp3", FileType.AUDIO, Instant.now(), video, batch);
+                MediaFile audio = new MediaFile(
+                        "batch" + (i + 1) + "/audio.mp3",
+                        FileType.AUDIO,
+                        Instant.now(),
+                        video,
+                        batch);
                 audio.setStatus(MediaFileStatus.PROCESSED);
                 batch.getFiles().addAll(List.of(video, audio));
             } else {

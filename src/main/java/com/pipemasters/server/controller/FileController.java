@@ -6,6 +6,8 @@ import com.pipemasters.server.service.ImotioService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Duration;
+
 @RestController
 @RequestMapping("/api/v1/files")
 public class FileController {
@@ -23,8 +25,11 @@ public class FileController {
     }
 
     @PostMapping("/upload-url-audio")
-    public ResponseEntity<String> getPresignedUploadUrlForAudio(@RequestParam String sourceKey) {
-        String url = fileService.generatePresignedUploadUrlForAudio(sourceKey);
+    public ResponseEntity<String> getPresignedUploadUrlForAudio(@RequestParam String sourceKey,
+                                                                @RequestParam Long duration,
+                                                                @RequestParam Long size,
+                                                                @RequestParam String hash) {
+        String url = fileService.generatePresignedUploadUrlForAudio(sourceKey,Duration.ofMillis(duration),size,hash);
         return ResponseEntity.ok(url);
     }
 
