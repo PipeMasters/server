@@ -91,7 +91,8 @@ public class TranscriptFragmentServiceImpl implements TranscriptFragmentService 
     @Caching(evict = {
             @CacheEvict(value = "transcript_media_file", allEntries = true),
             @CacheEvict(value = "transcript_search", allEntries = true),
-            @CacheEvict(value = "upload_batch_search", allEntries = true)
+            @CacheEvict(value = "upload_batch_search", allEntries = true),
+            @CacheEvict(value = "searchByUploadBatch", allEntries = true)
     })
     @Transactional
     public void fetchFromExternal(Long mediaFileId, String callId) {
@@ -123,11 +124,6 @@ public class TranscriptFragmentServiceImpl implements TranscriptFragmentService 
                     .toList();
 
             repository.saveAll(newFragments);
-
-            Cache cache = cacheManager.getCache("searchByUploadBatch");
-            if (cache != null && mediaFile.getUploadBatch() != null) {
-                cache.evict(mediaFile.getUploadBatch().getId());
-            }
         } catch (IOException | InterruptedException e) {
             throw new ServiceUnavailableException("Failed to fetch transcript", e);
         }
@@ -161,7 +157,7 @@ public class TranscriptFragmentServiceImpl implements TranscriptFragmentService 
     }
 
     @Override
-    @Cacheable(cacheNames = "searchByUploadBatch", key = "#uploadBatchId")
+    @Cacheable(cacheNames = "searchByUploadBatch")
     @Transactional(readOnly = true)
     public List<MediaFileFragmentsDto> searchByUploadBatch(Long uploadBatchId, String query) {
         var fragments = repository.findFragmentsByUploadBatch(uploadBatchId, query);

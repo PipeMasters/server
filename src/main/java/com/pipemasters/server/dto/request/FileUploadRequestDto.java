@@ -17,8 +17,6 @@ public class FileUploadRequestDto {
     private Long sourceId; // Optional, for audio extraction
     @NotNull(message = "duration cannot be empty")
     private Long duration;
-    @NotNull(message = "size cannot be empty")
-    private Long size;
     @NotNull(message = "hash cannot be empty")
     private String hash;
 
@@ -31,13 +29,12 @@ public class FileUploadRequestDto {
         this.fileType = fileType;
     }
 
-    public FileUploadRequestDto(Long uploadBatchId, String filename, FileType fileType, Long sourceId, Long duration, Long size, String hash) {
+    public FileUploadRequestDto(Long uploadBatchId, String filename, FileType fileType, Long sourceId, Long duration, String hash) {
         this.uploadBatchId = uploadBatchId;
         this.filename = filename;
         this.fileType = fileType;
         this.sourceId = sourceId;
         this.duration = duration;
-        this.size = size;
         this.hash = hash;
     }
 
@@ -79,14 +76,6 @@ public class FileUploadRequestDto {
 
     public void setDuration(Long duration) {
         this.duration = duration;
-    }
-
-    public Long getSize() {
-        return size;
-    }
-
-    public void setSize(Long size) {
-        this.size = size;
     }
 
     public String getHash() {

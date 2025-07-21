@@ -4,9 +4,7 @@ import com.pipemasters.server.entity.enums.FileType;
 import com.pipemasters.server.entity.enums.MediaFileStatus;
 import jakarta.persistence.*;
 
-import java.time.Duration;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -39,7 +37,7 @@ public class MediaFile extends BaseEntity {
 
 
     @Column
-    private Duration duration;
+    private Long duration;
 
     @Column
     private Long size;
@@ -67,7 +65,7 @@ public class MediaFile extends BaseEntity {
     public MediaFile() {
     }
 
-    public MediaFile(String filename, FileType fileType, MediaFileStatus status, Instant uploadedAt, MediaFile source, UploadBatch uploadBatch, Duration duration, Long size, String hash) {
+    public MediaFile(String filename, FileType fileType, MediaFileStatus status, Instant uploadedAt, MediaFile source, UploadBatch uploadBatch, Long duration, Long size, String hash) {
         this.filename = filename;
         this.fileType = fileType;
         this.status = status;
@@ -127,11 +125,11 @@ public class MediaFile extends BaseEntity {
         this.status = status;
     }
 
-    public Duration getDuration() {
+    public Long getDuration() {
         return duration;
     }
 
-    public void setDuration(Duration duration) {
+    public void setDuration(Long duration) {
         this.duration = duration;
     }
 

@@ -75,8 +75,7 @@ public class FileServiceImpl implements FileService {
             mediaFile.setFileType(fileUploadRequestDTO.getFileType());
             mediaFile.setUploadBatch(uploadBatch);
             mediaFile.setStatus(MediaFileStatus.PENDING);
-            mediaFile.setDuration(Duration.ofMillis(fileUploadRequestDTO.getDuration()));
-            mediaFile.setSize(fileUploadRequestDTO.getSize());
+            mediaFile.setDuration(fileUploadRequestDTO.getDuration());
             mediaFile.setHash(fileUploadRequestDTO.getHash());
             mediaFileRepository.save(mediaFile);
         }
@@ -85,7 +84,7 @@ public class FileServiceImpl implements FileService {
 
     @Override
     @Transactional
-    public String generatePresignedUploadUrlForAudio(String sourceKey, Duration duration, Long size, String hash) {
+    public String generatePresignedUploadUrlForAudio(String sourceKey, Long duration, String hash) {
         if (sourceKey == null || !sourceKey.contains("/")) {
             throw new InvalidFileKeyException("Invalid sourceKey for audio upload: " + sourceKey + ". Expected format: 'directory/filename'.");
         }
@@ -121,7 +120,6 @@ public class FileServiceImpl implements FileService {
             mediaFile.setSource(sourceMediaFile);
             mediaFile.setStatus(MediaFileStatus.PENDING);
             mediaFile.setDuration(duration);
-            mediaFile.setSize(size);
             mediaFile.setHash(hash);
             mediaFileRepository.save(mediaFile);
         }
