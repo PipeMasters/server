@@ -149,7 +149,7 @@ public class MediaFile extends BaseEntity {
 
     public void setHash(String hash) {
         this.hash = hash;
-
+    }
     public List<TranscriptFragment> getTranscriptFragments() {
         return transcriptFragments;
     }

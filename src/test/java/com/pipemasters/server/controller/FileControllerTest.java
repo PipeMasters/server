@@ -43,14 +43,14 @@ class FileControllerTest {
     @Test
     void getPresignedUploadUrlForAudio_ReturnsUrl() {
         String expectedUrl = "http://example.com/audio";
-        when(fileService.generatePresignedUploadUrlForAudio("dir/file.mp4"))
+        when(fileService.generatePresignedUploadUrlForAudio("dir/file.mp4",null,null,null))
                 .thenReturn(expectedUrl);
 
-        ResponseEntity<String> response = fileController.getPresignedUploadUrlForAudio("dir/file.mp4");
+        ResponseEntity<String> response = fileController.getPresignedUploadUrlForAudio("dir/file.mp4",null,null,null);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(expectedUrl, response.getBody());
-        verify(fileService).generatePresignedUploadUrlForAudio("dir/file.mp4");
+        verify(fileService).generatePresignedUploadUrlForAudio("dir/file.mp4",null,null,null);
     }
 
     @Test
