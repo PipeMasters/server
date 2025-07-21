@@ -14,7 +14,6 @@ public class FileController {
 
     public FileController(FileService fileService, ImotioService imotioService) {
         this.fileService = fileService;
-        this.imotioService = imotioService;
     }
 
     @PostMapping("/upload-url-video")
@@ -49,12 +48,5 @@ public class FileController {
             url = fileService.getDownloadUrl(sourceKey);
         }
         return ResponseEntity.ok(url);
-    }
-
-    // временно для тестов
-    private final ImotioService imotioService;
-    @GetMapping("/test/{mediaFileId}")
-    public void test(@PathVariable Long mediaFileId) {
-        imotioService.processImotioFileUpload(mediaFileId);
     }
 }

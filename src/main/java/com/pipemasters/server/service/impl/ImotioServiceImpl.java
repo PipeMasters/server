@@ -50,28 +50,40 @@ public class ImotioServiceImpl implements ImotioService {
     @Value("${imotio.api.token}")
     private String imotioAuthToken;
 
+    private volatile boolean imotioIntegrationEnabled;
+
     private WebClient webClient;
     private final WebClient.Builder webClientBuilder;
 
     public ImotioServiceImpl(WebClient.Builder webClientBuilder, ObjectMapper objectMapper,
-                             MediaFileRepository mediaFileRepository, FileService fileService, TranscriptFragmentService transcriptFragmentService) {
+                             MediaFileRepository mediaFileRepository, FileService fileService, TranscriptFragmentService transcriptFragmentService,
+                             @Value("${imotio.integration.enabled:true}") boolean initialImotioIntegrationEnabled) {
         this.webClientBuilder = webClientBuilder;
         this.objectMapper = objectMapper;
         this.mediaFileRepository = mediaFileRepository;
         this.fileService = fileService;
         this.transcriptFragmentService = transcriptFragmentService;
+        this.imotioIntegrationEnabled = initialImotioIntegrationEnabled;
     }
 
     @PostConstruct
     public void init() {
-        this.webClient = webClientBuilder
-                .baseUrl(imotioApiUrl)
-                .build();
+        if (imotioIntegrationEnabled && this.webClient == null) {
+            this.webClient = webClientBuilder
+                    .baseUrl(imotioApiUrl)
+                    .build();
+        } else if (!imotioIntegrationEnabled) {
+            log.info("Imotio integration is disabled.");
+        }
     }
 
     @Override
     @Transactional
     public void processImotioFileUpload(Long mediaFileId) {
+        if (!imotioIntegrationEnabled) {
+            log.info("Imotio integration is disabled");
+            return;
+        }
         log.info("Attempting to process Imotio file upload for MediaFile ID: {}.", mediaFileId);
         MediaFile mediaFile = null;
 
@@ -141,6 +153,10 @@ public class ImotioServiceImpl implements ImotioService {
     @Override
     @Transactional(readOnly = true)
     public void handleImotioWebhook(String callId) {
+        if (!imotioIntegrationEnabled) {
+            log.info("Imotio integration is disabled");
+            return;
+        }
         if (callId == null || callId.isEmpty()) {
             log.warn("Received empty or null callId from Imotio webhook.");
             return;
@@ -151,6 +167,26 @@ public class ImotioServiceImpl implements ImotioService {
         }
         MediaFile mediaFile = mediaFileOptional.get();
         transcriptFragmentService.fetchFromExternal(mediaFile.getId(), callId);
+    }
+
+    @Override
+    public void setImotioIntegrationEnabled(boolean enabled) {
+        if (this.imotioIntegrationEnabled != enabled) {
+            this.imotioIntegrationEnabled = enabled;
+
+            if (enabled && this.webClient == null) {
+                this.webClient = webClientBuilder
+                        .baseUrl(imotioApiUrl)
+                        .build();
+            } else if (!enabled && this.webClient != null) {
+                this.webClient = null;
+            }
+        }
+    }
+
+    @Override
+    public boolean isImotioIntegrationEnabled() {
+        return this.imotioIntegrationEnabled;
     }
 
     private String performImotioUpload(String stereoUrl,
@@ -220,7 +256,4 @@ public class ImotioServiceImpl implements ImotioService {
         return mediaFile.getFileType() == FileType.AUDIO &&
                 (fileExtension.equals("mp3") || fileExtension.equals("wav"));
     }
-
-
-
 }
