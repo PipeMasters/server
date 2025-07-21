@@ -106,7 +106,7 @@ class ObjectCreatedHandlerTest {
         UUID batchId = UUID.randomUUID();
         String filename = "audio.mp3";
         String rawKey = batchId + "/" + filename;
-        MinioEvent event = new MinioEvent("s3:ObjectCreated:Put", batchId, filename, rawKey);
+        MinioEvent event = new MinioEvent("s3:ObjectCreated:Put", batchId, filename, rawKey, null);
         MediaFile file = new MediaFile();
         file.setId(3L);
         file.setFileType(FileType.AUDIO);
@@ -133,7 +133,7 @@ class ObjectCreatedHandlerTest {
         UUID batchId = UUID.randomUUID();
         String filename = "audio.wav";
         String rawKey = batchId + "/" + filename;
-        MinioEvent event = new MinioEvent("s3:ObjectCreated:Put", batchId, filename, rawKey);
+        MinioEvent event = new MinioEvent("s3:ObjectCreated:Put", batchId, filename, rawKey, null);
         MediaFile file = new MediaFile();
         file.setId(4L);
         file.setFileType(FileType.AUDIO);
