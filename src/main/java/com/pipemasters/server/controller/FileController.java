@@ -28,7 +28,7 @@ public class FileController {
                                                                 @RequestParam Long duration,
                                                                 @RequestParam Long size,
                                                                 @RequestParam String hash) {
-        String url = fileService.generatePresignedUploadUrlForAudio(sourceKey,Duration.ofMillis(duration),size,hash);
+        String url = fileService.generatePresignedUploadUrlForAudio(sourceKey, duration, size, hash);
         return ResponseEntity.ok(url);
     }
 

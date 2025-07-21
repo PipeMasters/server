@@ -47,12 +47,13 @@ public class MinioEventConsumer {
                 String rawKey = record.path("s3").path("object").path("key").asText();
                 String decodedKey = URLDecoder.decode(rawKey, StandardCharsets.UTF_8);
                 String[] parts = decodedKey.split("/", 2);
+                long size = record.path("s3").path("object").path("size").asLong();
                 if (parts.length != 2) {
                     log.warn("Skipped record with unexpected key: {}", rawKey);
                     continue;
                 }
                 try {
-                    events.add(new MinioEvent(eventName, UUID.fromString(parts[0]), parts[1], rawKey));
+                    events.add(new MinioEvent(eventName, UUID.fromString(parts[0]), parts[1], rawKey, size));
                 } catch (IllegalArgumentException ex) {
                     log.error("Skipped record with invalid UUID in key {}: {}", rawKey, ex.getMessage());
                 }

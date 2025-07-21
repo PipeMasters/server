@@ -6,7 +6,8 @@ public record MinioEvent(
         String eventName,
         UUID batchId,
         String filename,
-        String rawKey
+        String rawKey,
+        Long size
 ) {
     public String decodedKey() {
         return batchId + "/" + filename;

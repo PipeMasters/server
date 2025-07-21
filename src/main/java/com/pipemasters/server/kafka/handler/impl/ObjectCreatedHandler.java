@@ -32,6 +32,7 @@ public class ObjectCreatedHandler implements MinioEventHandler {
         repository.findByFilenameAndUploadBatchDirectory(event.filename(), event.batchId())
                 .ifPresentOrElse(file -> {
                     file.setStatus(MediaFileStatus.UPLOADED);
+                    file.setSize(event.size());
                     repository.save(file);
                     log.debug("Status of file {} set to {}", file.getId(), file.getStatus());
                     if (file.getFileType() == FileType.VIDEO) {
