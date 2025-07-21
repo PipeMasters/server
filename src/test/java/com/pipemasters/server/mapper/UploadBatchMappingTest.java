@@ -1,6 +1,7 @@
 package com.pipemasters.server.mapper;
 
 import com.pipemasters.server.TestEnvInitializer;
+import com.pipemasters.server.config.ModelMapperConfig;
 import com.pipemasters.server.dto.request.BranchRequestDto;
 import com.pipemasters.server.dto.request.UploadBatchRequestDto;
 import com.pipemasters.server.dto.request.TrainRequestDto;
@@ -9,6 +10,7 @@ import com.pipemasters.server.dto.UploadBatchDtoSmallResponse;
 import com.pipemasters.server.entity.*;
 import com.pipemasters.server.entity.UploadBatch;
 import com.pipemasters.server.entity.enums.Role;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,12 +23,14 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.*;
 
-@SpringBootTest
-@ContextConfiguration(initializers = TestEnvInitializer.class)
 public class UploadBatchMappingTest {
 
-    @Autowired
     private ModelMapper modelMapper;
+
+    @BeforeEach
+    public void setup() {
+        modelMapper = new ModelMapperConfig().modelMapper();
+    }
 
     @Test
     void shouldMapUploadBatchToDtoResponseCorrectly() {

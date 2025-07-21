@@ -6,6 +6,8 @@ import jakarta.persistence.*;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "media_files",
@@ -35,6 +37,7 @@ public class MediaFile extends BaseEntity {
     @JoinColumn(name = "upload_batch_id")
     private UploadBatch uploadBatch;
 
+
     @Column
     private Duration duration;
 
@@ -42,6 +45,10 @@ public class MediaFile extends BaseEntity {
     private Long size;
     @Column
     private String hash;
+
+    @OneToMany(mappedBy = "mediaFile", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TranscriptFragment> transcriptFragments;
+
 
     public MediaFile(String filename, FileType fileType, UploadBatch uploadBatch) {
         this.filename = filename;
@@ -142,5 +149,13 @@ public class MediaFile extends BaseEntity {
 
     public void setHash(String hash) {
         this.hash = hash;
+
+    public List<TranscriptFragment> getTranscriptFragments() {
+        return transcriptFragments;
+    }
+
+    public void setTranscriptFragments(List<TranscriptFragment> transcriptFragments) {
+        this.transcriptFragments = transcriptFragments;
+
     }
 }
