@@ -151,7 +151,7 @@ public class ImotioServiceImpl implements ImotioService {
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public void handleImotioWebhook(String callId) {
         if (!imotioIntegrationEnabled) {
             log.info("Imotio integration is disabled");
