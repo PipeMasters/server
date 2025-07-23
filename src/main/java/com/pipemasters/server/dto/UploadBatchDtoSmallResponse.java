@@ -8,16 +8,18 @@ public class UploadBatchDtoSmallResponse {
     private LocalDate dateArrived;
     private Long trainNumber;
     private String chiefName;
+    private String branchName;
 
     public UploadBatchDtoSmallResponse() {
     }
 
-    public UploadBatchDtoSmallResponse(Long id, LocalDate dateDeparted, LocalDate dateArrived, Long trainNumber, String chiefName) {
+    public UploadBatchDtoSmallResponse(Long id, LocalDate dateDeparted, LocalDate dateArrived, Long trainNumber, String chiefName, String branchName) {
         this.id = id;
         this.dateDeparted = dateDeparted;
         this.dateArrived = dateArrived;
         this.trainNumber = trainNumber;
         this.chiefName = chiefName;
+        this.branchName = branchName;
     }
 
     public Long getId() {
@@ -58,6 +60,14 @@ public class UploadBatchDtoSmallResponse {
 
     public void setChiefName(String chiefName) {
         this.chiefName = chiefName;
+    }
+
+    public String getBranchName() {
+        return branchName;
+    }
+
+    public void setBranchName(String branchName) {
+        this.branchName = branchName;
     }
 
     @Override
