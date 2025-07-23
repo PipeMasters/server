@@ -9,6 +9,7 @@ public class UploadBatchSearchDto {
     private LocalDate dateArrived;
     private Long trainNumber;
     private String chiefName;
+    private String branchName;
     private List<MediaFileFragmentsDto> files;
 
     public UploadBatchSearchDto() {
@@ -16,13 +17,14 @@ public class UploadBatchSearchDto {
 
     public UploadBatchSearchDto(Long id, LocalDate dateDeparted, LocalDate dateArrived,
                                 Long trainNumber, String chiefName,
-                                List<MediaFileFragmentsDto> files) {
+                                List<MediaFileFragmentsDto> files, String branchName) {
         this.id = id;
         this.dateDeparted = dateDeparted;
         this.dateArrived = dateArrived;
         this.trainNumber = trainNumber;
         this.chiefName = chiefName;
         this.files = files;
+        this.branchName = branchName;
     }
 
     public Long getId() {
@@ -71,5 +73,13 @@ public class UploadBatchSearchDto {
 
     public void setFiles(List<MediaFileFragmentsDto> files) {
         this.files = files;
+    }
+
+    public String getBranchName() {
+        return branchName;
+    }
+
+    public void setBranchName(String branchName) {
+        this.branchName = branchName;
     }
 }

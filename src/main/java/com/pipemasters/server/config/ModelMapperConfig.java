@@ -108,6 +108,7 @@ public class ModelMapperConfig {
                     mapper.map(UploadBatch::getTrainDeparted, UploadBatchDtoSmallResponse::setDateDeparted);
                     mapper.map(UploadBatch::getTrainArrived, UploadBatchDtoSmallResponse::setDateArrived);
                     mapper.map(chf -> chf.getTrain().getChief().getFullName(), UploadBatchDtoSmallResponse::setChiefName);
+                    mapper.map(br -> br.getBranch().getName(), UploadBatchDtoSmallResponse::setBranchName);
                 });
         modelMapper.typeMap(UploadBatch.class, UploadBatchSearchDto.class)
                 .addMappings(mapper -> {
@@ -115,6 +116,7 @@ public class ModelMapperConfig {
                     mapper.map(UploadBatch::getTrainDeparted, UploadBatchSearchDto::setDateDeparted);
                     mapper.map(UploadBatch::getTrainArrived, UploadBatchSearchDto::setDateArrived);
                     mapper.map(chf -> chf.getTrain().getChief().getFullName(), UploadBatchSearchDto::setChiefName);
+                    mapper.map(br -> br.getBranch().getName(), UploadBatchSearchDto::setBranchName);
                 });
     }
 
