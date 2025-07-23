@@ -6,10 +6,12 @@ import com.pipemasters.server.dto.response.UploadBatchSearchDto;
 import com.pipemasters.server.entity.TranscriptFragment;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface TranscriptFragmentService {
     List<SttFragmentDto> search(String query);
     List<SttFragmentDto> getByMediaFile(Long mediaFileId);
+    Optional<TranscriptFragment> findByImotioFragmentId(String imotioFragmentId);
     List<UploadBatchSearchDto> searchUploadBatches(String query);
     List<MediaFileFragmentsDto> searchByUploadBatch(Long uploadBatchId, String query);
     void fetchFromExternal(Long mediaFileId, String callId);

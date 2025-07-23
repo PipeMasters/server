@@ -43,6 +43,7 @@ public class ImotioServiceImpl implements ImotioService {
     private final MediaFileRepository mediaFileRepository;
     private final FileService fileService;
     private final TranscriptFragmentService transcriptFragmentService;
+    private final TagServiceImpl tagService;
 
     @Value("${imotio.api.url}")
     private String imotioApiUrl;
@@ -56,13 +57,14 @@ public class ImotioServiceImpl implements ImotioService {
     private final WebClient.Builder webClientBuilder;
 
     public ImotioServiceImpl(WebClient.Builder webClientBuilder, ObjectMapper objectMapper,
-                             MediaFileRepository mediaFileRepository, FileService fileService, TranscriptFragmentService transcriptFragmentService,
+                             MediaFileRepository mediaFileRepository, FileService fileService, TranscriptFragmentService transcriptFragmentService, TagServiceImpl tagService,
                              @Value("${imotio.integration.enabled:true}") boolean initialImotioIntegrationEnabled) {
         this.webClientBuilder = webClientBuilder;
         this.objectMapper = objectMapper;
         this.mediaFileRepository = mediaFileRepository;
         this.fileService = fileService;
         this.transcriptFragmentService = transcriptFragmentService;
+        this.tagService = tagService;
         this.imotioIntegrationEnabled = initialImotioIntegrationEnabled;
     }
 
@@ -167,6 +169,7 @@ public class ImotioServiceImpl implements ImotioService {
         }
         MediaFile mediaFile = mediaFileOptional.get();
         transcriptFragmentService.fetchFromExternal(mediaFile.getId(), callId);
+        tagService.fetchAndProcessImotioTags(mediaFile, callId);
     }
 
     @Override

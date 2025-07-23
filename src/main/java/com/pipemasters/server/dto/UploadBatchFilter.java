@@ -27,7 +27,9 @@ public class UploadBatchFilter {
 
     private String uploadedByName;
 
-    private Set<String> keywords;
+    private Set<String> tags;
+
+//    private Set<String> keywords;
 
     public LocalDate getDepartureDateFrom() {
         return departureDateFrom;
@@ -125,11 +127,19 @@ public class UploadBatchFilter {
         this.uploadedByName = uploadedByName;
     }
 
-    public Set<String> getKeywords() {
-        return keywords;
+    public Set<String> getTags() {
+        return tags;
     }
 
-    public void setKeywords(Set<String> keywords) {
-        this.keywords = keywords;
+    public void setTags(Set<String> tags) {
+        this.tags = tags;
     }
+
+//    public Set<String> getKeywords() {
+//        return keywords;
+//    }
+
+//    public void setKeywords(Set<String> keywords) {
+//        this.keywords = keywords;
+//    }
 }

@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface TranscriptFragmentRepository extends GeneralRepository<TranscriptFragment, Long> {
 
@@ -37,6 +38,8 @@ public interface TranscriptFragmentRepository extends GeneralRepository<Transcri
             AND tf.tsv @@ plainto_tsquery('russian', :query)
             """, nativeQuery = true)
     List<MediaFileFragmentProjection> findFragmentsByUploadBatch(@Param("uploadBatchId") Long uploadBatchId, @Param("query") String query);
+
+    Optional<TranscriptFragment> findByFragmentId(String fragmentId);
 
     @Query(value = """
             SELECT mf.upload_batch_id AS batchId, tf.media_file_id AS mediaFileId, tf.id AS fragmentId

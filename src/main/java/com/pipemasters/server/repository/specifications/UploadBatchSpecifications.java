@@ -1,15 +1,26 @@
 package com.pipemasters.server.repository.specifications;
 
 import com.pipemasters.server.dto.UploadBatchFilter;
+import com.pipemasters.server.entity.MediaFile;
+import com.pipemasters.server.entity.Tag;
+import com.pipemasters.server.entity.TranscriptFragment;
 import com.pipemasters.server.entity.UploadBatch;
+import com.pipemasters.server.service.impl.ImotioServiceImpl;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.Subquery;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class UploadBatchSpecifications {
+
+    private final static Logger log = LoggerFactory.getLogger(UploadBatchSpecifications.class);
+
     public static Specification<UploadBatch> withFilter(UploadBatchFilter f) {
         return (root, query, cb) -> {
             List<Predicate> p = new ArrayList<>();
@@ -66,9 +77,30 @@ public class UploadBatchSpecifications {
                 p.add(cb.equal(br.get("id"), f.getBranchId()));
             }
 
-            if (f.getKeywords() != null && !f.getKeywords().isEmpty()) {
-                Join<UploadBatch, String> kw = root.joinSet("keywords");
-                p.add(kw.in(f.getKeywords()));
+//            if (f.getKeywords() != null && !f.getKeywords().isEmpty()) {
+//                Join<UploadBatch, String> kw = root.joinSet("keywords");
+//                p.add(kw.in(f.getKeywords()));
+//            }
+
+            if (f.getTags() != null && !f.getTags().isEmpty()) {
+                assert query != null;
+                query.distinct(true);
+
+                for (String tag : f.getTags()) {
+                    Subquery<Long> tagSubquery = query.subquery(Long.class);
+                    Root<UploadBatch> subRoot = tagSubquery.from(UploadBatch.class);
+
+                    Join<UploadBatch, MediaFile> subMediaFileJoin = subRoot.join("files");
+                    Join<MediaFile, TranscriptFragment> subFragmentJoin = subMediaFileJoin.join("transcriptFragments");
+                    Join<TranscriptFragment, Tag> subTagJoin = subFragmentJoin.join("tags");
+
+                    tagSubquery.select(subRoot.get("id"))
+                            .where(cb.and(
+                                    cb.equal(subRoot, root),
+                                    cb.equal(cb.lower(subTagJoin.get("name")), tag.toLowerCase())
+                            ));
+                    p.add(cb.exists(tagSubquery));
+                }
             }
 
             return cb.and(p.toArray(new Predicate[0]));

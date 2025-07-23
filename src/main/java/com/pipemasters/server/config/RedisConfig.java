@@ -97,12 +97,12 @@ public class RedisConfig {
             UploadBatchFilter f = (UploadBatchFilter) params[0];
             Pageable p = (Pageable) params[1];
 
-            String kw = "";
-            if (f.getKeywords() != null && !f.getKeywords().isEmpty()) {
-                List<String> list = new ArrayList<>(f.getKeywords());
-                Collections.sort(list);
-                kw = String.join(",", list);
-            }
+//            String kw = "";
+//            if (f.getKeywords() != null && !f.getKeywords().isEmpty()) {
+//                List<String> list = new ArrayList<>(f.getKeywords());
+//                Collections.sort(list);
+//                kw = String.join(",", list);
+//            }
 
             return "uploadBatchFilter:" +
                     (f.getSpecificDate() != null ? f.getSpecificDate() : "") + ":" +
@@ -117,7 +117,7 @@ public class RedisConfig {
                     (f.getUploadedById() != null ? f.getUploadedById() : "") + ":" +
                     (f.getUploadedByName() != null ? f.getUploadedByName() : "") + ":" +
                     (f.getBranchId() != null ? f.getBranchId() : "") + ":" +
-                    kw + ":" +
+//                    kw + ":" +
                     p.getPageNumber() + ":" +
                     p.getPageSize() + ":" +
                     p.getSort();
