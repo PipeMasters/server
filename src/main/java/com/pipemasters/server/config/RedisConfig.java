@@ -23,6 +23,7 @@ import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 
 import java.time.Duration;
+import java.util.stream.Collectors;
 
 
 @Configuration
@@ -91,7 +92,13 @@ public class RedisConfig {
         return (target, method, params) -> {
             UploadBatchFilter f = (UploadBatchFilter) params[0];
             Pageable p = (Pageable) params[1];
-
+            String tagsPart = "";
+            if (f.getTagIds() != null && !f.getTagIds().isEmpty()) {
+                tagsPart = f.getTagIds().stream()
+                        .sorted()
+                        .map(Object::toString)
+                        .collect(Collectors.joining(","));
+            }
             return "uploadBatchFilter:" +
                     (f.getSpecificDate() != null ? f.getSpecificDate() : "") + ":" +
                     (f.getDepartureDateFrom() != null ? f.getDepartureDateFrom() : "") + ":" +
@@ -105,6 +112,7 @@ public class RedisConfig {
                     (f.getUploadedById() != null ? f.getUploadedById() : "") + ":" +
                     (f.getUploadedByName() != null ? f.getUploadedByName() : "") + ":" +
                     (f.getBranchId() != null ? f.getBranchId() : "") + ":" +
+                    tagsPart + ":" +
                     p.getPageNumber() + ":" +
                     p.getPageSize() + ":" +
                     p.getSort();

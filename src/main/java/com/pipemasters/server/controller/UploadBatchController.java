@@ -7,6 +7,8 @@ import com.pipemasters.server.dto.request.create.UploadBatchCreateDto;
 import com.pipemasters.server.dto.response.UploadBatchResponseDto;
 import com.pipemasters.server.service.UploadBatchService;
 import com.pipemasters.server.dto.UploadBatchDtoSmallResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -24,6 +26,7 @@ import java.util.Set;
 @RestController
 @RequestMapping("/api/v1/batch")
 public class UploadBatchController {
+    private static final Logger log = LoggerFactory.getLogger(UploadBatchController.class);
     private final UploadBatchService uploadBatchService;
 
     public UploadBatchController(UploadBatchService uploadBatchService) {
@@ -70,7 +73,7 @@ public class UploadBatchController {
         filter.setBranchId(branchId);
 
         filter.setTagIds(tagId);
-
+        log.debug("Recived params for upload batch filter: departureDateFrom={}, departureDateTo={}, specificDate={}, arrivalDateFrom={}, arrivalDateTo={}, createdFrom={}, createdTo={}, trainId={}, chiefId={}, uploadedById={}, branchId={}, tagIds={}", departureDateFrom, departureDateTo, specificDate, arrivalDateFrom, arrivalDateTo, createdFrom, createdTo, trainId, chiefId, uploadedById, branchId, tagId);
         PageDto<UploadBatchDtoSmallResponse> dtoPage = uploadBatchService.getFilteredBatches(filter, pageable);
         return new ResponseEntity<>(dtoPage.toPage(pageable), HttpStatus.OK);
     }
