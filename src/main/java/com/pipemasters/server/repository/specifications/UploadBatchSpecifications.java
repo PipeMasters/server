@@ -1,10 +1,7 @@
 package com.pipemasters.server.repository.specifications;
 
 import com.pipemasters.server.dto.UploadBatchFilter;
-import com.pipemasters.server.entity.MediaFile;
-import com.pipemasters.server.entity.Tag;
-import com.pipemasters.server.entity.TranscriptFragment;
-import com.pipemasters.server.entity.UploadBatch;
+import com.pipemasters.server.entity.*;
 import com.pipemasters.server.service.impl.ImotioServiceImpl;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.Predicate;
@@ -83,7 +80,6 @@ public class UploadBatchSpecifications {
 //            }
 
             if (f.getTags() != null && !f.getTags().isEmpty()) {
-                assert query != null;
                 query.distinct(true);
 
                 for (String tag : f.getTags()) {
@@ -91,13 +87,13 @@ public class UploadBatchSpecifications {
                     Root<UploadBatch> subRoot = tagSubquery.from(UploadBatch.class);
 
                     Join<UploadBatch, MediaFile> subMediaFileJoin = subRoot.join("files");
-                    Join<MediaFile, TranscriptFragment> subFragmentJoin = subMediaFileJoin.join("transcriptFragments");
-                    Join<TranscriptFragment, Tag> subTagJoin = subFragmentJoin.join("tags");
+                    Join<MediaFile, TagInstance> subTagInstanceJoin = subMediaFileJoin.join("tagInstances");
+                    Join<TagInstance, TagDefinition> subTagDefinitionJoin = subTagInstanceJoin.join("definition");
 
                     tagSubquery.select(subRoot.get("id"))
                             .where(cb.and(
                                     cb.equal(subRoot, root),
-                                    cb.equal(cb.lower(subTagJoin.get("name")), tag.toLowerCase())
+                                    cb.equal(cb.lower(subTagDefinitionJoin.get("name")), tag.toLowerCase())
                             ));
                     p.add(cb.exists(tagSubquery));
                 }

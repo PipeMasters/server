@@ -3,11 +3,11 @@ package com.pipemasters.server.service.impl;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pipemasters.server.dto.ImotioTagDto;
-import com.pipemasters.server.entity.MediaFile;
-import com.pipemasters.server.entity.Tag;
-import com.pipemasters.server.entity.TranscriptFragment;
+import com.pipemasters.server.entity.*;
+import com.pipemasters.server.entity.enums.TagType;
 import com.pipemasters.server.exceptions.ServiceUnavailableException;
-import com.pipemasters.server.repository.TagRepository;
+import com.pipemasters.server.repository.TagDefinitionRepository;
+import com.pipemasters.server.repository.TagInstanceRepository;
 import com.pipemasters.server.service.TagService;
 import com.pipemasters.server.service.TranscriptFragmentService;
 import org.slf4j.Logger;
@@ -29,7 +29,8 @@ import java.util.Optional;
 public class TagServiceImpl implements TagService {
 
     private final static Logger log = LoggerFactory.getLogger(TagServiceImpl.class);
-    private final TagRepository tagRepository;
+    private final TagDefinitionRepository tagDefinitionRepository;
+    private final TagInstanceRepository tagInstanceRepository;
     private final TranscriptFragmentService transcriptFragmentService;
     private final ObjectMapper objectMapper;
     private final HttpClient httpClient;
@@ -38,12 +39,14 @@ public class TagServiceImpl implements TagService {
     @Value("${imotio.api.token}")
     private String imotioAuthToken;
 
-    public TagServiceImpl(TagRepository tagRepository,
+    public TagServiceImpl(TagDefinitionRepository tagDefinitionRepository,
+                      TagInstanceRepository tagInstanceRepository,
                       TranscriptFragmentService transcriptFragmentService,
                       ObjectMapper objectMapper,
                       String imotioApiUrl,
                       String imotioAuthToken) {
-        this.tagRepository = tagRepository;
+        this.tagDefinitionRepository = tagDefinitionRepository;
+        this.tagInstanceRepository = tagInstanceRepository;
         this.transcriptFragmentService = transcriptFragmentService;
         this.objectMapper = objectMapper;
         this.imotioApiUrl = imotioApiUrl;
@@ -55,7 +58,7 @@ public class TagServiceImpl implements TagService {
 
     @Transactional(readOnly = true)
     public List<String> getAllUniqueTagNames() {
-        return tagRepository.findDistinctNames();
+        return tagDefinitionRepository.findDistinctNames();
     }
 
     @Override
@@ -105,34 +108,48 @@ public class TagServiceImpl implements TagService {
     private void processSingleImotioTag(ImotioTagDto imotioTagDto, MediaFile mediaFile) {
         String tagName = imotioTagDto.getName();
         String tagValue = imotioTagDto.getValue() != null ? imotioTagDto.getValue() : "";
+        TagType tagType = TagType.valueOf(imotioTagDto.getTagType().toUpperCase());
+
+        TagDefinition definition = tagDefinitionRepository.findByNameAndType(tagName, tagType)
+                .orElseGet(() -> {
+                    log.info("Creating new TagDefinition: name='{}', type='{}'", tagName, tagType);
+                    return tagDefinitionRepository.save(new TagDefinition(tagName, tagType));
+                });
 
         Optional<TranscriptFragment> fragmentOptional = transcriptFragmentService.findByImotioFragmentId(imotioTagDto.getFragmentId());
 
         if (fragmentOptional.isEmpty()) {
-            log.warn("TranscriptFragment with Imotio fragment_id '{}' not found for MediaFile ID {}. Cannot link tag '{}' (value: '{}'). This tag might be orphaned.",
+            log.warn("TranscriptFragment with Imotio fragment_id '{}' not found for MediaFile ID {}. Cannot link tag instance for definition '{}' (value: '{}').",
                     imotioTagDto.getFragmentId(), mediaFile.getId(), tagName, tagValue);
             return;
         }
         TranscriptFragment transcriptFragment = fragmentOptional.get();
 
-        Optional<Tag> existingTagOptional = tagRepository.findByNameAndValue(tagName, tagValue);
+        Optional<TagInstance> existingInstanceOptional = tagInstanceRepository.findByDefinitionAndFragmentAndBeginTimeAndEndTimeAndValue(
+                definition,
+                transcriptFragment,
+                imotioTagDto.getBegin(),
+                imotioTagDto.getEnd(),
+                tagValue
+        );
 
-        Tag tag;
-        if (existingTagOptional.isPresent()) {
-            tag = existingTagOptional.get();
-            log.debug("Reusing existing tag '{}' (value: '{}', ID: {}) for fragment {}.", tagName, tagValue, tag.getId(), transcriptFragment.getId());
+        if (existingInstanceOptional.isPresent()) {
+            log.debug("Reusing existing TagInstance for definition '{}' (value: '{}') on fragment {} (ID: {}).",
+                    tagName, tagValue, transcriptFragment.getId(), existingInstanceOptional.get().getId());
         } else {
-            tag = new Tag(tagName, tagValue, imotioTagDto.getTagType(), mediaFile, transcriptFragment);
-            log.info("Creating new tag '{}' (value: '{}', type: {}) for fragment {}.", tagName, tagValue, imotioTagDto.getTagType(), transcriptFragment.getId());
+            log.info("Creating new TagInstance for definition '{}' (value: '{}') on fragment {} (ID: {}).",
+                    tagName, tagValue, transcriptFragment.getId(), definition.getId());
+
+            TagInstance newInstance = new TagInstance(
+                    imotioTagDto.getBegin(),
+                    imotioTagDto.getEnd(),
+                    imotioTagDto.getMatchText(),
+                    tagValue,
+                    definition,
+                    transcriptFragment,
+                    mediaFile
+            );
+            tagInstanceRepository.save(newInstance);
         }
-
-        tag.setMediaFile(mediaFile);
-        tag.setTranscriptFragment(transcriptFragment);
-
-        if (!transcriptFragment.getTags().contains(tag)) {
-            transcriptFragment.getTags().add(tag);
-        }
-
-        tagRepository.save(tag);
     }
 }

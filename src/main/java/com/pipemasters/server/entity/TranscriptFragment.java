@@ -2,7 +2,6 @@ package com.pipemasters.server.entity;
 
 import jakarta.persistence.*;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -34,8 +33,8 @@ public class TranscriptFragment extends BaseEntity {
             updatable = false)
     private String tsv;
 
-    @OneToMany(mappedBy = "transcriptFragment", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Tag> tags = new ArrayList<>();
+    @OneToMany(mappedBy = "fragment", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TagInstance> tagInstances;
 
     public TranscriptFragment() {
     }
@@ -105,11 +104,11 @@ public class TranscriptFragment extends BaseEntity {
         this.tsv = tsv;
     }
 
-    public List<Tag> getTags() {
-        return tags;
+    public List<TagInstance> getTagInstances() {
+        return tagInstances;
     }
 
-    public void setTags(List<Tag> tags) {
-        this.tags = tags;
+    public void setTagInstances(List<TagInstance> tagInstances) {
+        this.tagInstances = tagInstances;
     }
 }
