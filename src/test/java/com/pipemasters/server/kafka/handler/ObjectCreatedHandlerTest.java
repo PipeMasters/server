@@ -102,61 +102,61 @@ class ObjectCreatedHandlerTest {
         verify(producer, never()).send(anyString(), anyString());
     }
 
-    @Test
-    @Disabled
-    @Deprecated
-    void handle_updatesFileStatusAndCallsImotioServiceForAudioWhenEnabled() {
-        UUID batchId = UUID.randomUUID();
-        String filename = "audio.mp3";
-        String rawKey = batchId + "/" + filename;
-        MinioEvent event = new MinioEvent("s3:ObjectCreated:Put", batchId, filename, rawKey, null);
-        MediaFile file = new MediaFile();
-        file.setId(3L);
-        file.setFileType(FileType.AUDIO);
-        file.setFilename(filename);
-
-        UploadBatch uploadBatch = new UploadBatch();
-        uploadBatch.setDirectory(batchId);
-        file.setUploadBatch(uploadBatch);
-
-        when(repository.findByFilenameAndUploadBatchDirectory(filename, batchId)).thenReturn(Optional.of(file));
-        when(imotioService.isImotioIntegrationEnabled()).thenReturn(true);
-
-        handler.handle(event);
-
-        assertEquals(MediaFileStatus.UPLOADED, file.getStatus());
-        verify(repository).save(file);
-        verify(imotioService).isImotioIntegrationEnabled();
-        verify(imotioService).processImotioFileUpload(file.getId());
-        verify(producer, never()).send(anyString(), anyString());
-    }
-
-    @Test
-    @Disabled
-    @Deprecated
-    void handle_updatesFileStatusAndDoesNotCallImotioServiceForAudioWhenDisabled() {
-        UUID batchId = UUID.randomUUID();
-        String filename = "audio.wav";
-        String rawKey = batchId + "/" + filename;
-        MinioEvent event = new MinioEvent("s3:ObjectCreated:Put", batchId, filename, rawKey, null);
-        MediaFile file = new MediaFile();
-        file.setId(4L);
-        file.setFileType(FileType.AUDIO);
-        file.setFilename(filename);
-
-        UploadBatch uploadBatch = new UploadBatch();
-        uploadBatch.setDirectory(batchId);
-        file.setUploadBatch(uploadBatch);
-
-        when(repository.findByFilenameAndUploadBatchDirectory(filename, batchId)).thenReturn(Optional.of(file));
-        when(imotioService.isImotioIntegrationEnabled()).thenReturn(false);
-
-        handler.handle(event);
-
-        assertEquals(MediaFileStatus.UPLOADED, file.getStatus());
-        verify(repository).save(file);
-        verify(imotioService).isImotioIntegrationEnabled();
-        verify(imotioService, never()).processImotioFileUpload(anyLong());
-        verify(producer, never()).send(anyString(), anyString());
-    }
+//    @Test
+//    @Disabled
+//    @Deprecated
+//    void handle_updatesFileStatusAndCallsImotioServiceForAudioWhenEnabled() {
+//        UUID batchId = UUID.randomUUID();
+//        String filename = "audio.mp3";
+//        String rawKey = batchId + "/" + filename;
+//        MinioEvent event = new MinioEvent("s3:ObjectCreated:Put", batchId, filename, rawKey, null);
+//        MediaFile file = new MediaFile();
+//        file.setId(3L);
+//        file.setFileType(FileType.AUDIO);
+//        file.setFilename(filename);
+//
+//        UploadBatch uploadBatch = new UploadBatch();
+//        uploadBatch.setDirectory(batchId);
+//        file.setUploadBatch(uploadBatch);
+//
+//        when(repository.findByFilenameAndUploadBatchDirectory(filename, batchId)).thenReturn(Optional.of(file));
+//        when(imotioService.isImotioIntegrationEnabled()).thenReturn(true);
+//
+//        handler.handle(event);
+//
+//        assertEquals(MediaFileStatus.UPLOADED, file.getStatus());
+//        verify(repository).save(file);
+//        verify(imotioService).isImotioIntegrationEnabled();
+//        verify(imotioService).processImotioFileUpload(file.getId());
+//        verify(producer, never()).send(anyString(), anyString());
+//    }
+//
+//    @Test
+//    @Disabled
+//    @Deprecated
+//    void handle_updatesFileStatusAndDoesNotCallImotioServiceForAudioWhenDisabled() {
+//        UUID batchId = UUID.randomUUID();
+//        String filename = "audio.wav";
+//        String rawKey = batchId + "/" + filename;
+//        MinioEvent event = new MinioEvent("s3:ObjectCreated:Put", batchId, filename, rawKey, null);
+//        MediaFile file = new MediaFile();
+//        file.setId(4L);
+//        file.setFileType(FileType.AUDIO);
+//        file.setFilename(filename);
+//
+//        UploadBatch uploadBatch = new UploadBatch();
+//        uploadBatch.setDirectory(batchId);
+//        file.setUploadBatch(uploadBatch);
+//
+//        when(repository.findByFilenameAndUploadBatchDirectory(filename, batchId)).thenReturn(Optional.of(file));
+//        when(imotioService.isImotioIntegrationEnabled()).thenReturn(false);
+//
+//        handler.handle(event);
+//
+//        assertEquals(MediaFileStatus.UPLOADED, file.getStatus());
+//        verify(repository).save(file);
+//        verify(imotioService).isImotioIntegrationEnabled();
+//        verify(imotioService, never()).processImotioFileUpload(anyLong());
+//        verify(producer, never()).send(anyString(), anyString());
+//    }
 }
