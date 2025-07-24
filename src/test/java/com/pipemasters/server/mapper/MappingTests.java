@@ -41,7 +41,6 @@ public class MappingTests {
         LocalDate trainDeparted = LocalDate.now();
         Train train = new Train(null,null,null,null, null);
         String comment = "Test comment";
-        Set<String> keywords = Set.of("video", "absence");
         Branch branch = new Branch("Main", null);
         boolean archived = false;
         Instant deletedAt = null;
@@ -49,7 +48,7 @@ public class MappingTests {
         List<MediaFile> files = new ArrayList<>();
 
         return new UploadBatch(directory, uploadedBy, createdAt, trainDeparted, train,
-                comment, keywords, branch, archived, deletedAt, deleted, files);
+                comment, branch, archived, deletedAt, deleted, files);
     }
 
     @Test

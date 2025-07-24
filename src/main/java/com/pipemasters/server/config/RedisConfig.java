@@ -1,10 +1,8 @@
 package com.pipemasters.server.config;
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.jsontype.impl.LaissezFaireSubTypeValidator;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.pipemasters.server.config.serializer.PageDtoRedisSerializer;
 import com.pipemasters.server.dto.PageDto;
@@ -21,14 +19,11 @@ import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
-import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+
 
 @Configuration
 @EnableCaching
@@ -97,13 +92,6 @@ public class RedisConfig {
             UploadBatchFilter f = (UploadBatchFilter) params[0];
             Pageable p = (Pageable) params[1];
 
-//            String kw = "";
-//            if (f.getKeywords() != null && !f.getKeywords().isEmpty()) {
-//                List<String> list = new ArrayList<>(f.getKeywords());
-//                Collections.sort(list);
-//                kw = String.join(",", list);
-//            }
-
             return "uploadBatchFilter:" +
                     (f.getSpecificDate() != null ? f.getSpecificDate() : "") + ":" +
                     (f.getDepartureDateFrom() != null ? f.getDepartureDateFrom() : "") + ":" +
@@ -117,7 +105,6 @@ public class RedisConfig {
                     (f.getUploadedById() != null ? f.getUploadedById() : "") + ":" +
                     (f.getUploadedByName() != null ? f.getUploadedByName() : "") + ":" +
                     (f.getBranchId() != null ? f.getBranchId() : "") + ":" +
-//                    kw + ":" +
                     p.getPageNumber() + ":" +
                     p.getPageSize() + ":" +
                     p.getSort();

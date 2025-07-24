@@ -39,12 +39,6 @@ public class UploadBatch extends BaseEntity {
     @Column(length = 1024)
     private String comment;
 
-    /* ключевые слова для полнотекстового поиска */
-//    @ElementCollection
-//    @CollectionTable(name = "upload_batch_keywords", joinColumns = @JoinColumn(name = "upload_batch_id"))
-//    @Column(name = "keyword")
-//    private Set<String> keywords = new HashSet<>();
-
     /* филиал записи — для разграничения доступа */
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "branch_id")
@@ -74,7 +68,6 @@ public class UploadBatch extends BaseEntity {
         this.trainDeparted = trainDeparted;
         this.train = train;
         this.comment = comment;
-//        this.keywords = keywords;
         this.branch = branch;
         this.archived = archived;
         this.deletedAt = deletedAt;
@@ -142,14 +135,6 @@ public class UploadBatch extends BaseEntity {
     public void setComment(String comment) {
         this.comment = comment;
     }
-
-//    public Set<String> getKeywords() {
-//        return keywords;
-//    }
-//
-//    public void setKeywords(Set<String> keywords) {
-//        this.keywords = keywords;
-//    }
 
     public Branch getBranch() {
         return branch;

@@ -3,6 +3,7 @@ package com.pipemasters.server.service.impl;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pipemasters.server.dto.ImotioTagDto;
+import com.pipemasters.server.dto.response.TagDefinitionResponseDto;
 import com.pipemasters.server.entity.*;
 import com.pipemasters.server.entity.enums.TagType;
 import com.pipemasters.server.exceptions.ServiceUnavailableException;
@@ -10,6 +11,7 @@ import com.pipemasters.server.repository.TagDefinitionRepository;
 import com.pipemasters.server.repository.TagInstanceRepository;
 import com.pipemasters.server.service.TagService;
 import com.pipemasters.server.service.TranscriptFragmentService;
+import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -33,6 +35,7 @@ public class TagServiceImpl implements TagService {
     private final TagInstanceRepository tagInstanceRepository;
     private final TranscriptFragmentService transcriptFragmentService;
     private final ObjectMapper objectMapper;
+    private final ModelMapper modelMapper;
     private final HttpClient httpClient;
     @Value("${imotio.api.url}")
     private String imotioApiUrl;
@@ -40,15 +43,16 @@ public class TagServiceImpl implements TagService {
     private String imotioAuthToken;
 
     public TagServiceImpl(TagDefinitionRepository tagDefinitionRepository,
-                      TagInstanceRepository tagInstanceRepository,
-                      TranscriptFragmentService transcriptFragmentService,
-                      ObjectMapper objectMapper,
-                      String imotioApiUrl,
-                      String imotioAuthToken) {
+                          TagInstanceRepository tagInstanceRepository,
+                          TranscriptFragmentService transcriptFragmentService,
+                          ObjectMapper objectMapper, ModelMapper modelMapper,
+                          String imotioApiUrl,
+                          String imotioAuthToken) {
         this.tagDefinitionRepository = tagDefinitionRepository;
         this.tagInstanceRepository = tagInstanceRepository;
         this.transcriptFragmentService = transcriptFragmentService;
         this.objectMapper = objectMapper;
+        this.modelMapper = modelMapper;
         this.imotioApiUrl = imotioApiUrl;
         this.imotioAuthToken = imotioAuthToken;
         this.httpClient = HttpClient.newBuilder()
@@ -56,9 +60,10 @@ public class TagServiceImpl implements TagService {
                 .build();
     }
 
+    @Override
     @Transactional(readOnly = true)
-    public List<String> getAllUniqueTagNames() {
-        return tagDefinitionRepository.findDistinctNames();
+    public List<TagDefinitionResponseDto> getAllUniqueTagNames() {
+        return tagDefinitionRepository.findAll().stream().map(t -> modelMapper.map(t, TagDefinitionResponseDto.class)).toList();
     }
 
     @Override

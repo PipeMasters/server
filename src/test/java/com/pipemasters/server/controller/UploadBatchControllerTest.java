@@ -56,8 +56,7 @@ class UploadBatchControllerTest {
                 10L,
                 20L,
                 30L,
-//                Set.of("k1", "k2"),
-                "hello",
+                Set.of(1L, 2L),
                 pageable
         );
 

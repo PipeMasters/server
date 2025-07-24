@@ -104,7 +104,6 @@ public class TestDataRunner implements CommandLineRunner {
             batch.setTrain(train);
             batch.setComment("Test batch #" + (i + 1));
             batch.setBranch(branch);
-//            batch.getKeywords().addAll(Set.of("test", "batch" + (i + 1)));
 
             if (withFiles) {
                 MediaFile video = new MediaFile("batch" + (i + 1) + "/video.mp4", FileType.VIDEO, batch);
