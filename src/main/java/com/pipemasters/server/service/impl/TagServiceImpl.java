@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -63,15 +64,19 @@ public class TagServiceImpl implements TagService {
     }
 
     @Override
-    @Transactional(readOnly = true)
     @Cacheable(value = "tagDefinitions")
+    @Transactional(readOnly = true)
     public List<TagDefinitionResponseDto> getAllTags() {
         return tagDefinitionRepository.findAll().stream().map(t -> modelMapper.map(t, TagDefinitionResponseDto.class)).toList();
     }
 
     @Override
+    @Caching(evict = {
+            @CacheEvict(value = "filteredBatches", allEntries = true),
+            @CacheEvict(value = "batches", allEntries = true),
+            @CacheEvict(value = "tagDefinitions", allEntries = true)
+    })
     @Transactional
-    @CacheEvict(value = "tagDefinitions", allEntries = true)
     public void fetchAndProcessImotioTags(MediaFile mediaFile, String callId) {
         String tagsUrl = imotioApiUrl + "/call/" + callId + "/tags";
         log.info("Fetching Imotio tags from: {}", tagsUrl);
