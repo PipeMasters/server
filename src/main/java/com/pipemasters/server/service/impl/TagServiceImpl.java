@@ -130,6 +130,28 @@ public class TagServiceImpl implements TagService {
                     return tagDefinitionRepository.save(new TagDefinition(tagName, tagType));
                 });
 
+        if (imotioTagDto.getFragmentId() == null || imotioTagDto.getFragmentId().isEmpty() || imotioTagDto.getBegin() == null || imotioTagDto.getEnd() == null) {
+            Optional<TagInstance> exists = tagInstanceRepository
+                    .findByDefinitionAndMediaFileAndFragmentIsNull(definition, mediaFile);
+            if (exists.isEmpty()) {
+                TagInstance newInstance = new TagInstance(
+                        imotioTagDto.getBegin(),
+                        imotioTagDto.getEnd(),
+                        imotioTagDto.getMatchText(),
+                        tagValue,
+                        definition,
+                        null,
+                        mediaFile
+                );
+                tagInstanceRepository.save(newInstance);
+                log.info("Created new TagInstance for definition '{}' (value: '{}') without fragment for MediaFile ID {}.",
+                        tagName, tagValue, mediaFile.getId());
+                return;
+            }
+            log.debug("Skipping tag instance creation for definition '{}' (value: '{}') as already exists.", tagName, tagValue);
+            return;
+        }
+
         Optional<TranscriptFragment> fragmentOptional = transcriptFragmentService.findByImotioFragmentId(imotioTagDto.getFragmentId());
 
         if (fragmentOptional.isEmpty()) {
@@ -139,12 +161,13 @@ public class TagServiceImpl implements TagService {
         }
         TranscriptFragment transcriptFragment = fragmentOptional.get();
 
-        Optional<TagInstance> existingInstanceOptional = tagInstanceRepository.findByDefinitionAndFragmentAndBeginTimeAndEndTimeAndValue(
+        Optional<TagInstance> existingInstanceOptional = tagInstanceRepository.findByDefinitionAndFragmentAndBeginTimeAndEndTimeAndValueAndMatchText(
                 definition,
                 transcriptFragment,
                 imotioTagDto.getBegin(),
                 imotioTagDto.getEnd(),
-                tagValue
+                tagValue,
+                imotioTagDto.getMatchText()
         );
 
         if (existingInstanceOptional.isPresent()) {

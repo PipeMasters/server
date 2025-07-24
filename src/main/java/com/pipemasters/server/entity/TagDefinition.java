@@ -17,7 +17,7 @@ public class TagDefinition extends BaseEntity {
     private TagType type;
 
     @OneToMany(mappedBy = "definition", cascade = CascadeType.ALL, orphanRemoval = true)
-    private java.util.List<TagInstance> instances;
+    private List<TagInstance> instances;
 
     protected TagDefinition() {
     }
