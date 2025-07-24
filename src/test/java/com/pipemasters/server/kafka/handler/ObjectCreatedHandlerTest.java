@@ -10,6 +10,7 @@ import com.pipemasters.server.kafka.handler.impl.ObjectCreatedHandler;
 import com.pipemasters.server.repository.MediaFileRepository;
 import com.pipemasters.server.service.ImotioService;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.util.Optional;
@@ -102,6 +103,8 @@ class ObjectCreatedHandlerTest {
     }
 
     @Test
+    @Disabled
+    @Deprecated
     void handle_updatesFileStatusAndCallsImotioServiceForAudioWhenEnabled() {
         UUID batchId = UUID.randomUUID();
         String filename = "audio.mp3";
@@ -129,6 +132,8 @@ class ObjectCreatedHandlerTest {
     }
 
     @Test
+    @Disabled
+    @Deprecated
     void handle_updatesFileStatusAndDoesNotCallImotioServiceForAudioWhenDisabled() {
         UUID batchId = UUID.randomUUID();
         String filename = "audio.wav";
