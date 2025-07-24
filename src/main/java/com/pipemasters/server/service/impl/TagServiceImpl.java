@@ -15,6 +15,8 @@ import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -62,12 +64,14 @@ public class TagServiceImpl implements TagService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "tagDefinitions")
     public List<TagDefinitionResponseDto> getAllTags() {
         return tagDefinitionRepository.findAll().stream().map(t -> modelMapper.map(t, TagDefinitionResponseDto.class)).toList();
     }
 
     @Override
     @Transactional
+    @CacheEvict(value = "tagDefinitions", allEntries = true)
     public void fetchAndProcessImotioTags(MediaFile mediaFile, String callId) {
         String tagsUrl = imotioApiUrl + "/call/" + callId + "/tags";
         log.info("Fetching Imotio tags from: {}", tagsUrl);
