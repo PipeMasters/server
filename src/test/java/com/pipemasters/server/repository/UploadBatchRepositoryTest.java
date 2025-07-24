@@ -59,7 +59,6 @@ class UploadBatchRepositoryTest {
                 today,
                 train,
                 "Комментарий",
-                Set.of("ключевое", "слово"),
                 branch,
                 false,
                 null,
@@ -89,7 +88,7 @@ class UploadBatchRepositoryTest {
         LocalDate today = LocalDate.now();
 
         UploadBatch uploadBatch = new UploadBatch(UUID.randomUUID(), user, Instant.now(), today,
-                train, "test", Set.of("key"), branch, false, null, false, new ArrayList<>());
+                train, "test", branch, false, null, false, new ArrayList<>());
         uploadBatch.setTrainArrived(today.plusDays(1));
         uploadBatchRepository.save(uploadBatch);
 

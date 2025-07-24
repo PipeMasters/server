@@ -47,7 +47,8 @@ public class UploadBatchController {
             @RequestParam(required = false) Long uploadedById,
             @RequestParam(required = false) Long branchId,
 
-            @RequestParam(required = false) Set<String> keywords,
+            @RequestParam(required = false) Set<Long> tagId,
+
             @PageableDefault(size = 15, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
         UploadBatchFilter filter = new UploadBatchFilter();
         filter.setDepartureDateFrom(departureDateFrom);
@@ -68,7 +69,7 @@ public class UploadBatchController {
 
         filter.setBranchId(branchId);
 
-        filter.setKeywords(keywords);
+        filter.setTagIds(tagId);
 
         PageDto<UploadBatchDtoSmallResponse> dtoPage = uploadBatchService.getFilteredBatches(filter, pageable);
         return new ResponseEntity<>(dtoPage.toPage(pageable), HttpStatus.OK);

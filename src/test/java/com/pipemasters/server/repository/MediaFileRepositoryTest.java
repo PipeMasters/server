@@ -64,7 +64,6 @@ public class MediaFileRepositoryTest {
                 departed,
                 train,
                 "Комментарий",
-                Set.of("ключевое", "слово"),
                 branch,
                 false,
                 null,

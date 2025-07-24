@@ -2,6 +2,8 @@ package com.pipemasters.server.entity;
 
 import jakarta.persistence.*;
 
+import java.util.List;
+
 @Entity
 @Table(name = "transcript_fragments",
         indexes = {@Index(columnList = "media_file_id")})
@@ -30,6 +32,9 @@ public class TranscriptFragment extends BaseEntity {
             insertable = false,
             updatable = false)
     private String tsv;
+
+    @OneToMany(mappedBy = "fragment", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TagInstance> tagInstances;
 
     public TranscriptFragment() {
     }
@@ -97,5 +102,13 @@ public class TranscriptFragment extends BaseEntity {
 
     public void setTsv(String tsv) {
         this.tsv = tsv;
+    }
+
+    public List<TagInstance> getTagInstances() {
+        return tagInstances;
+    }
+
+    public void setTagInstances(List<TagInstance> tagInstances) {
+        this.tagInstances = tagInstances;
     }
 }

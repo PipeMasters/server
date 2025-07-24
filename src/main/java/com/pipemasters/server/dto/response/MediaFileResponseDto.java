@@ -5,6 +5,7 @@ import com.pipemasters.server.dto.BaseDto;
 import com.pipemasters.server.entity.enums.FileType;
 
 import java.time.Instant;
+import java.util.List;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class MediaFileResponseDto extends BaseDto {
@@ -15,6 +16,7 @@ public class MediaFileResponseDto extends BaseDto {
     private Long duration;
     private Long size;
     private String hash;
+    private List<TagInstanceResponseDto> tagInstances;
 
     public MediaFileResponseDto() {
     }
@@ -83,5 +85,13 @@ public class MediaFileResponseDto extends BaseDto {
 
     public void setHash(String hash) {
         this.hash = hash;
+    }
+
+    public List<TagInstanceResponseDto> getTagInstances() {
+        return tagInstances;
+    }
+
+    public void setTagInstances(List<TagInstanceResponseDto> tagInstances) {
+        this.tagInstances = tagInstances;
     }
 }

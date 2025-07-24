@@ -1,15 +1,18 @@
 package com.pipemasters.server.repository.specifications;
 
 import com.pipemasters.server.dto.UploadBatchFilter;
-import com.pipemasters.server.entity.UploadBatch;
+import com.pipemasters.server.entity.*;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.Subquery;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class UploadBatchSpecifications {
+
     public static Specification<UploadBatch> withFilter(UploadBatchFilter f) {
         return (root, query, cb) -> {
             List<Predicate> p = new ArrayList<>();
@@ -66,10 +69,19 @@ public class UploadBatchSpecifications {
                 p.add(cb.equal(br.get("id"), f.getBranchId()));
             }
 
-            if (f.getKeywords() != null && !f.getKeywords().isEmpty()) {
-                Join<UploadBatch, String> kw = root.joinSet("keywords");
-                p.add(kw.in(f.getKeywords()));
+            if (f.getTagIds() != null && !f.getTagIds().isEmpty()) {
+                assert query != null;
+                Join<UploadBatch, MediaFile> mediaFileJoin = root.join("files");
+                Join<MediaFile, TagInstance> tagInstanceJoin = mediaFileJoin.join("tagInstances");
+                Join<TagInstance, TagDefinition> tagDefinitionJoin = tagInstanceJoin.join("definition");
+
+                p.add(tagDefinitionJoin.get("id").in(f.getTagIds()));
+
+                query.groupBy(root.get("id"));
+                query.having(cb.equal(cb.countDistinct(tagDefinitionJoin.get("id")), f.getTagIds().size()));
+                query.distinct(true);
             }
+
 
             return cb.and(p.toArray(new Predicate[0]));
         };

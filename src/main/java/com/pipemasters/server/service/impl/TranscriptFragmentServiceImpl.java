@@ -16,7 +16,6 @@ import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -31,6 +30,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -127,6 +127,12 @@ public class TranscriptFragmentServiceImpl implements TranscriptFragmentService 
         } catch (IOException | InterruptedException e) {
             throw new ServiceUnavailableException("Failed to fetch transcript", e);
         }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<TranscriptFragment> findByImotioFragmentId(String imotioFragmentId) {
+        return repository.findByFragmentId(imotioFragmentId);
     }
 
     @Override

@@ -50,6 +50,9 @@ public class MediaFile extends BaseEntity {
     @Column
     private String imotioId;
 
+    @OneToMany(mappedBy = "mediaFile", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TagInstance> tagInstances;
+
     public MediaFile(String filename, FileType fileType, UploadBatch uploadBatch) {
         this.filename = filename;
         this.fileType = fileType;
@@ -164,5 +167,13 @@ public class MediaFile extends BaseEntity {
 
     public void setImotioId(String imotioId) {
         this.imotioId = imotioId;
+    }
+
+    public List<TagInstance> getTagInstances() {
+        return tagInstances;
+    }
+
+    public void setTagInstances(List<TagInstance> tagInstances) {
+        this.tagInstances = tagInstances;
     }
 }

@@ -55,7 +55,6 @@ public class UploadBatchMappingTest {
                 LocalDate.of(2024, 1, 2),
                 train,
                 "Комментарий",
-                Set.of("ключевое", "видео"),
                 branch,
                 false,
                 Instant.parse("2025-01-01T10:00:00Z"),
@@ -140,7 +139,6 @@ public class UploadBatchMappingTest {
         assertEquals(dto.getTrainDeparted(), uploadBatch.getTrainDeparted());
         assertEquals(branchStub.getId(), uploadBatch.getBranch().getId());
         assertEquals(branchStub.getName(), uploadBatch.getBranch().getName());
-        assertEquals(dto.getKeywords(), uploadBatch.getKeywords());
         assertTrue(uploadBatch.getFiles().isEmpty());
     }
 
@@ -158,7 +156,6 @@ public class UploadBatchMappingTest {
                 LocalDate.now(),
                 train,
                 "Комментарий",
-                Set.of("тест"),
                 branch,
                 false,
                 null,

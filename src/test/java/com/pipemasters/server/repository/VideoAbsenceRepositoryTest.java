@@ -76,7 +76,6 @@ public class VideoAbsenceRepositoryTest {
                 departed,
                 train,
                 "Комментарий",
-                Set.of("ключевое", "слово"),
                 branch,
                 false,
                 null,
