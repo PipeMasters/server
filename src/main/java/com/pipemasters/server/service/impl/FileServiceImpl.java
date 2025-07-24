@@ -223,4 +223,28 @@ public class FileServiceImpl implements FileService {
             throw new FileGenerationException("Could not generate upload URL for: " + s3Key, e);
         }
     }
+
+    @Override
+    @Transactional
+    public void deleteMediaFileById(Long mediaFileId) {
+        MediaFile mediaFile = mediaFileRepository.findById(mediaFileId)
+                .orElseThrow(() -> new MediaFileNotFoundException("MediaFile not found with ID: " + mediaFileId));
+
+        String s3Key = mediaFile.getUploadBatch().getDirectory() + "/" + mediaFile.getFilename();
+
+        try {
+            DeleteObjectRequest deleteRequest = DeleteObjectRequest.builder()
+                    .bucket(minioBucketName)
+                    .key(s3Key)
+                    .build();
+            s3Client.deleteObject(deleteRequest);
+            logger.info("Deleted file from MinIO: {}", s3Key);
+        } catch (Exception e) {
+            logger.error("Failed to delete file from MinIO: {}", s3Key, e);
+            throw new FileGenerationException("Failed to delete file from MinIO: " + s3Key, e);
+        }
+
+        mediaFileRepository.deleteById(mediaFileId);
+        logger.info("Deleted mediaFile from DB: {}", mediaFileId);
+    }
 }
