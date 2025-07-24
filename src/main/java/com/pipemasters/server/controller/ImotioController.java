@@ -17,9 +17,6 @@ public class ImotioController {
 
     @PostMapping("/webhook")
     public void handle(@RequestBody String callId) {
-        if (!imotioService.isImotioIntegrationEnabled()) {
-            return;
-        }
         imotioService.handleImotioWebhook(callId);
     }
 

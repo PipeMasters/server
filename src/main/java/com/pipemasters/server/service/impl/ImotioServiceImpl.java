@@ -156,10 +156,6 @@ public class ImotioServiceImpl implements ImotioService {
     @Override
     @Transactional
     public void handleImotioWebhook(String callId) {
-        if (!imotioIntegrationEnabled) {
-            log.info("Imotio integration is disabled");
-            return;
-        }
         if (callId == null || callId.isEmpty()) {
             log.warn("Received empty or null callId from Imotio webhook.");
             return;
