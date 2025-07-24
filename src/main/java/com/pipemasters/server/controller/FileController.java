@@ -53,4 +53,10 @@ public class FileController {
         }
         return ResponseEntity.ok(url);
     }
+
+    @DeleteMapping("/{mediaFileId}")
+    public ResponseEntity<Void> deleteMediaFile(@PathVariable Long mediaFileId) {
+        fileService.deleteMediaFileById(mediaFileId);
+        return ResponseEntity.noContent().build();
+    }
 }

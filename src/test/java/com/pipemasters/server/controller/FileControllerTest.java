@@ -85,4 +85,14 @@ class FileControllerTest {
         assertThrows(IllegalArgumentException.class, () ->
                 fileController.getPresignedDownloadUrl(1L, "key"));
     }
+
+    @Test
+    void deleteMediaFile_ShouldCallService() {
+        Long mediaFileId = 123L;
+
+        ResponseEntity<Void> response = fileController.deleteMediaFile(mediaFileId);
+
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+        verify(fileService).deleteMediaFileById(mediaFileId);
+    }
 }

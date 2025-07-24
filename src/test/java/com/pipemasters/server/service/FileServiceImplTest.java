@@ -13,6 +13,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
@@ -84,5 +85,30 @@ class FileServiceImplTest {
     void getDownloadUrl_ExceptionWrapped() {
         when(s3Presigner.presignGetObject(any(GetObjectPresignRequest.class))).thenThrow(new RuntimeException("boom"));
         assertThrows(FileGenerationException.class, () -> fileService.getDownloadUrl("key"));
+    }
+
+    @Test
+    void deleteMediaFileById_DeletesFromMinioAndDb() {
+        UUID dir = UUID.randomUUID();
+        UploadBatch batch = new UploadBatch();
+        batch.setDirectory(dir);
+        MediaFile mediaFile = new MediaFile();
+        mediaFile.setId(1L);
+        mediaFile.setFilename("test.mp4");
+        mediaFile.setUploadBatch(batch);
+
+        when(mediaFileRepository.findById(1L)).thenReturn(Optional.of(mediaFile));
+
+        fileService.deleteMediaFileById(1L);
+
+        verify(s3Client).deleteObject(any(DeleteObjectRequest.class));
+        verify(mediaFileRepository).deleteById(1L);
+    }
+
+    @Test
+    void deleteMediaFileById_NotFound() {
+        when(mediaFileRepository.findById(1L)).thenReturn(Optional.empty());
+
+        assertThrows(MediaFileNotFoundException.class, () -> fileService.deleteMediaFileById(1L));
     }
 }
