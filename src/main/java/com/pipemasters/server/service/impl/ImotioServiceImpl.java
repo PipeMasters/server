@@ -7,6 +7,7 @@ import com.pipemasters.server.exceptions.file.MediaFileProcessingException;
 import com.pipemasters.server.exceptions.imotio.ImotioApiCallException;
 import com.pipemasters.server.exceptions.imotio.ImotioProcessingException;
 import com.pipemasters.server.exceptions.imotio.ImotioResponseParseException;
+import com.pipemasters.server.service.TagService;
 import com.pipemasters.server.service.TranscriptFragmentService;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
@@ -43,7 +44,7 @@ public class ImotioServiceImpl implements ImotioService {
     private final MediaFileRepository mediaFileRepository;
     private final FileService fileService;
     private final TranscriptFragmentService transcriptFragmentService;
-    private final TagServiceImpl tagService;
+    private final TagService tagService;
 
     @Value("${imotio.api.url}")
     private String imotioApiUrl;
