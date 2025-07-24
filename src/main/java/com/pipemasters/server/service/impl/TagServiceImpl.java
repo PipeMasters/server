@@ -53,6 +53,11 @@ public class TagServiceImpl implements TagService {
                 .build();
     }
 
+    @Transactional(readOnly = true)
+    public List<String> getAllUniqueTagNames() {
+        return tagRepository.findDistinctNames();
+    }
+
     @Override
     @Transactional
     public void fetchAndProcessImotioTags(MediaFile mediaFile, String callId) {

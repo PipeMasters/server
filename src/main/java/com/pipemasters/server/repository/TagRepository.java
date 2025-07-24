@@ -1,7 +1,6 @@
 package com.pipemasters.server.repository;
 
 import com.pipemasters.server.entity.Tag;
-import com.pipemasters.server.entity.TranscriptFragment;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
