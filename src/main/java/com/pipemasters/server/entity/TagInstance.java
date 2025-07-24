@@ -6,10 +6,10 @@ import jakarta.persistence.*;
 @Table(name = "tag_instances")
 public class TagInstance extends BaseEntity {
 
-    @Column(name = "begin_time", nullable = false)
+    @Column(name = "begin_time")
     private Long beginTime;
 
-    @Column(name = "end_time", nullable = false)
+    @Column(name = "end_time")
     private Long endTime;
 
     @Column(name = "match_text", length = 256)
@@ -22,8 +22,8 @@ public class TagInstance extends BaseEntity {
     @JoinColumn(name = "definition_id", nullable = false)
     private TagDefinition definition;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "transcript_fragment_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "transcript_fragment_id")
     private TranscriptFragment fragment;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -42,6 +42,8 @@ public class TagInstance extends BaseEntity {
         this.fragment = fragment;
         this.mediaFile = mediaFile;
     }
+
+
 
     public Long getBeginTime() {
         return beginTime;
