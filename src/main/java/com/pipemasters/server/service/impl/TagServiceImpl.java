@@ -62,7 +62,7 @@ public class TagServiceImpl implements TagService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<TagDefinitionResponseDto> getAllUniqueTagNames() {
+    public List<TagDefinitionResponseDto> getAllTags() {
         return tagDefinitionRepository.findAll().stream().map(t -> modelMapper.map(t, TagDefinitionResponseDto.class)).toList();
     }
 

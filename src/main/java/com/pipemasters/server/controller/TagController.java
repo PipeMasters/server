@@ -18,7 +18,7 @@ public class TagController {
     }
 
     @GetMapping("/all")
-    public List<TagDefinitionResponseDto> getAllUniqueTagNames() {
-        return tagService.getAllUniqueTagNames();
+    public List<TagDefinitionResponseDto> getAllTags() {
+        return tagService.getAllTags();
     }
 }

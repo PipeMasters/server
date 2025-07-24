@@ -6,6 +6,6 @@ import com.pipemasters.server.entity.MediaFile;
 import java.util.List;
 
 public interface TagService {
-    List<TagDefinitionResponseDto> getAllUniqueTagNames();
+    List<TagDefinitionResponseDto> getAllTags();
     void fetchAndProcessImotioTags(MediaFile mediaFile, String callId);
 }
