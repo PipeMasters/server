@@ -7,10 +7,7 @@ import com.pipemasters.server.dto.request.DelegationRequestDto;
 import com.pipemasters.server.dto.request.MediaFileRequestDto;
 import com.pipemasters.server.dto.request.UploadBatchRequestDto;
 import com.pipemasters.server.dto.request.update.UserUpdateDto;
-import com.pipemasters.server.dto.response.SttFragmentDto;
-import com.pipemasters.server.dto.response.TrainResponseDto;
-import com.pipemasters.server.dto.response.UploadBatchResponseDto;
-import com.pipemasters.server.dto.response.UploadBatchSearchDto;
+import com.pipemasters.server.dto.response.*;
 import com.pipemasters.server.entity.*;
 import org.modelmapper.Conditions;
 import org.modelmapper.ModelMapper;
@@ -45,6 +42,7 @@ public class ModelMapperConfig {
         modelMapper.getConfiguration().setSkipNullEnabled(true);
 
         configureFragmentMapping(modelMapper);
+        configureTagInstanceMapping(modelMapper);
 //        configureMediaFileMapping(modelMapper);
 //        configureUploadBatchMapping(modelMapper);
 //        configureVideoAbsenceDtoMapping(modelMapper);
@@ -128,5 +126,23 @@ public class ModelMapperConfig {
                     mapper.map(TranscriptFragment::getId, SttFragmentDto::setId);
                     mapper.map(TranscriptFragment::getFragmentId, SttFragmentDto::setFragment_id);
                 });
+    }
+
+    private void configureTagInstanceMapping(ModelMapper modelMapper) {
+        TypeMap<TagInstance, TagInstanceResponseDto> typeMap = modelMapper.createTypeMap(TagInstance.class, TagInstanceResponseDto.class);
+
+        typeMap.addMappings(mapper -> {
+            mapper.map(src -> src.getDefinition().getName(), TagInstanceResponseDto::setTagName);
+            mapper.map(src -> src.getDefinition().getType(), TagInstanceResponseDto::setTagType);
+
+            mapper.map(TagInstance::getValue, TagInstanceResponseDto::setTagValue);
+            mapper.map(TagInstance::getBeginTime, TagInstanceResponseDto::setBeginTime);
+            mapper.map(TagInstance::getEndTime, TagInstanceResponseDto::setEndTime);
+            mapper.map(TagInstance::getMatchText, TagInstanceResponseDto::setMatchText);
+
+            mapper.map(src -> src.getFragment().getId(), TagInstanceResponseDto::setFragmentId);
+
+            mapper.map(TagInstance::getId, TagInstanceResponseDto::setId);
+        });
     }
 }

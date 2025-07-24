@@ -45,5 +45,4 @@ public class MediaFileServiceImpl implements MediaFileService {
         return mediaFileRepository.findByUploadBatchId(uploadBatchId).stream().map(m ->
                 modelMapper.map(m, MediaFileResponseDto.class)).toList();
     }
-
 }

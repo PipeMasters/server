@@ -71,24 +71,17 @@ public class UploadBatchSpecifications {
 
             if (f.getTagIds() != null && !f.getTagIds().isEmpty()) {
                 assert query != null;
+                Join<UploadBatch, MediaFile> mediaFileJoin = root.join("files");
+                Join<MediaFile, TagInstance> tagInstanceJoin = mediaFileJoin.join("tagInstances");
+                Join<TagInstance, TagDefinition> tagDefinitionJoin = tagInstanceJoin.join("definition");
+
+                p.add(tagDefinitionJoin.get("id").in(f.getTagIds()));
+
+                query.groupBy(root.get("id"));
+                query.having(cb.equal(cb.countDistinct(tagDefinitionJoin.get("id")), f.getTagIds().size()));
                 query.distinct(true);
-
-                for (Long tagId : f.getTagIds()) {
-                    Subquery<Long> tagSubquery = query.subquery(Long.class);
-                    Root<UploadBatch> subRoot = tagSubquery.from(UploadBatch.class);
-
-                    Join<UploadBatch, MediaFile> subMediaFileJoin = subRoot.join("files");
-                    Join<MediaFile, TagInstance> subTagInstanceJoin = subMediaFileJoin.join("tagInstances");
-                    Join<TagInstance, TagDefinition> subTagDefinitionJoin = subTagInstanceJoin.join("definition");
-
-                    tagSubquery.select(subRoot.get("id"))
-                            .where(cb.and(
-                                    cb.equal(subRoot, root),
-                                    cb.equal(subTagDefinitionJoin.get("id"), tagId)
-                            ));
-                    p.add(cb.exists(tagSubquery));
-                }
             }
+
 
             return cb.and(p.toArray(new Predicate[0]));
         };
