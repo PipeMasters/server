@@ -46,13 +46,8 @@ public class ObjectCreatedHandler implements MinioEventHandler {
 
                     if (file.getFileType() == FileType.AUDIO) {
                         log.info("Audio file detected {}", file.getFilename());
-                        if (imotioService.isImotioIntegrationEnabled()) {
-                            imotioService.processImotioFileUpload(file.getId());
-                        } else {
-                            log.info("Imotio integration is disabled");;
-                        }
-                    }
-                    else if (file.getFileType() == FileType.VIDEO) {
+                        imotioService.processImotioFileUpload(file.getId());
+                    } else if (file.getFileType() == FileType.VIDEO) {
                         log.debug("Video file queued for processing: {}", file.getFilename());
                         producer.send("audio-extraction", file.getUploadBatch().getDirectory() + "/" + file.getFilename());
                     }
