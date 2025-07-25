@@ -1,0 +1,11 @@
+name: Deploy on dev merge
+on:
+  push:
+    branches: [dev]
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    steps:
+      - name: Deploy server (sudo)
+        run: sudo /opt/dev/devops/deploy_server.sh
