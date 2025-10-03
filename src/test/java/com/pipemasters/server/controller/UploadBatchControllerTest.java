@@ -1,7 +1,7 @@
 package com.pipemasters.server.controller;
 
 import com.pipemasters.server.dto.PageDto;
-import com.pipemasters.server.dto.UploadBatchDtoMediumResponse;
+import com.pipemasters.server.dto.UploadBatchDtoSmallResponse;
 import com.pipemasters.server.dto.UploadBatchFilter;
 import com.pipemasters.server.entity.enums.AbsenceCause;
 import com.pipemasters.server.service.UploadBatchService;
@@ -42,8 +42,8 @@ class UploadBatchControllerTest {
     void getFiltered_WithAllParams_ReturnsOkStatusAndPage() {
         Pageable pageable = PageRequest.of(0, 15, Sort.by(Sort.Direction.DESC, "createdAt"));
 
-        UploadBatchDtoMediumResponse dto = new UploadBatchDtoMediumResponse();
-        PageDto<UploadBatchDtoMediumResponse> pageDto = new PageDto<>(List.of(dto), 0, 15, 1);
+        UploadBatchDtoSmallResponse dto = new UploadBatchDtoSmallResponse();
+        PageDto<UploadBatchDtoSmallResponse> pageDto = new PageDto<>(List.of(dto), 0, 15, 1);
 
         LocalDate departureDateFrom = LocalDate.of(2024, 1, 1);
         LocalDate departureDateTo = LocalDate.of(2024, 1, 31);
@@ -66,7 +66,7 @@ class UploadBatchControllerTest {
         when(uploadBatchService.getFilteredBatches(any(UploadBatchFilter.class), eq(pageable)))
                 .thenReturn(pageDto);
 
-        ResponseEntity<Page<UploadBatchDtoMediumResponse>> response = uploadBatchController.getFiltered(
+        ResponseEntity<Page<UploadBatchDtoSmallResponse>> response = uploadBatchController.getFiltered(
                 departureDateFrom,
                 departureDateTo,
                 specificDate,
@@ -120,13 +120,13 @@ class UploadBatchControllerTest {
     @Test
     void getFiltered_WithNoParams_ReturnsOkStatusAndPage() {
         Pageable pageable = PageRequest.of(0, 15, Sort.by(Sort.Direction.DESC, "createdAt"));
-        UploadBatchDtoMediumResponse dto = new UploadBatchDtoMediumResponse();
-        PageDto<UploadBatchDtoMediumResponse> pageDto = new PageDto<>(List.of(dto), 0, 15, 1);
+        UploadBatchDtoSmallResponse dto = new UploadBatchDtoSmallResponse();
+        PageDto<UploadBatchDtoSmallResponse> pageDto = new PageDto<>(List.of(dto), 0, 15, 1);
 
         when(uploadBatchService.getFilteredBatches(any(UploadBatchFilter.class), eq(pageable)))
                 .thenReturn(pageDto);
 
-        ResponseEntity<Page<UploadBatchDtoMediumResponse>> response = uploadBatchController.getFiltered(
+        ResponseEntity<Page<UploadBatchDtoSmallResponse>> response = uploadBatchController.getFiltered(
                 null, null, null, null, null, null, null,
                 null, null, null, null, null, null, null,
                 null, null, null,

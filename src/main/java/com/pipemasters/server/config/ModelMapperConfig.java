@@ -102,16 +102,13 @@ public class ModelMapperConfig {
     private void configureUploadBatchDtoResponseMapping(ModelMapper modelMapper) {
         modelMapper.typeMap(UploadBatch.class, UploadBatchDtoSmallResponse.class)
                 .addMappings(mapper -> {
-                    mapper.map(tn -> tn.getTrain().getTrainNumber(), UploadBatchDtoSmallResponse::setTrainNumber);
-                    mapper.map(UploadBatch::getTrainDeparted, UploadBatchDtoSmallResponse::setDateDeparted);
-                    mapper.map(UploadBatch::getTrainArrived, UploadBatchDtoSmallResponse::setDateArrived);
+//                    mapper.map(tn -> tn.getTrain().getTrainNumber(), UploadBatchDtoSmallResponse::setTrainNumber);
+//                    mapper.map(UploadBatch::getTrainDeparted, UploadBatchDtoSmallResponse::setDateDeparted);
+//                    mapper.map(UploadBatch::getTrainArrived, UploadBatchDtoSmallResponse::setDateArrived);
+//                    mapper.map(chf -> chf.getTrain().getChief().getFullName(), UploadBatchDtoSmallResponse::setChiefName);
+//                    mapper.map(br -> br.getBranch().getName(), UploadBatchDtoSmallResponse::setBranchName);
+                    mapper.map(upBy -> upBy.getUploadedBy().getFullName(), UploadBatchDtoSmallResponse::setUploadedBy);
                     mapper.map(chf -> chf.getTrain().getChief().getFullName(), UploadBatchDtoSmallResponse::setChiefName);
-                    mapper.map(br -> br.getBranch().getName(), UploadBatchDtoSmallResponse::setBranchName);
-                });
-        modelMapper.typeMap(UploadBatch.class, UploadBatchDtoMediumResponse.class)
-                .addMappings(mapper -> {
-                   mapper.map(upBy -> upBy.getUploadedBy().getFullName(), UploadBatchDtoMediumResponse::setUploadedBy);
-                   mapper.map(chf -> chf.getTrain().getChief().getFullName(), UploadBatchDtoMediumResponse::setChiefName);
                 });
         modelMapper.typeMap(UploadBatch.class, UploadBatchSearchDto.class)
                 .addMappings(mapper -> {

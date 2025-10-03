@@ -269,35 +269,35 @@ class UploadBatchServiceImplTest {
 
         when(uploadBatchRepository.findAll(any(Specification.class), eq(pageable))).thenReturn(entityPage);
 
-        UploadBatchDtoMediumResponse responseDto1 = new UploadBatchDtoMediumResponse();
+        UploadBatchDtoSmallResponse responseDto1 = new UploadBatchDtoSmallResponse();
         responseDto1.setId(1L);
-        when(modelMapper.map(batch1, UploadBatchDtoMediumResponse.class)).thenReturn(responseDto1);
+        when(modelMapper.map(batch1, UploadBatchDtoSmallResponse.class)).thenReturn(responseDto1);
 
-        UploadBatchDtoMediumResponse responseDto2 = new UploadBatchDtoMediumResponse();
+        UploadBatchDtoSmallResponse responseDto2 = new UploadBatchDtoSmallResponse();
         responseDto2.setId(2L);
-        when(modelMapper.map(batch2, UploadBatchDtoMediumResponse.class)).thenReturn(responseDto2);
+        when(modelMapper.map(batch2, UploadBatchDtoSmallResponse.class)).thenReturn(responseDto2);
 
-        UploadBatchDtoMediumResponse responseDto3 = new UploadBatchDtoMediumResponse();
+        UploadBatchDtoSmallResponse responseDto3 = new UploadBatchDtoSmallResponse();
         responseDto3.setId(3L);
-        when(modelMapper.map(batch3, UploadBatchDtoMediumResponse.class)).thenReturn(responseDto3);
+        when(modelMapper.map(batch3, UploadBatchDtoSmallResponse.class)).thenReturn(responseDto3);
 
-        PageDto<UploadBatchDtoMediumResponse> resultPage = uploadBatchService.getFilteredBatches(filter, pageable);
+        PageDto<UploadBatchDtoSmallResponse> resultPage = uploadBatchService.getFilteredBatches(filter, pageable);
 
         assertNotNull(resultPage);
         assertEquals(3, resultPage.getTotalElements());
         assertEquals(3, resultPage.getContent().size());
 
-        UploadBatchDtoMediumResponse dto1Result = resultPage.getContent().get(0);
+        UploadBatchDtoSmallResponse dto1Result = resultPage.getContent().get(0);
         assertEquals(1L, dto1Result.getId());
 
-        UploadBatchDtoMediumResponse dto2Result = resultPage.getContent().get(1);
+        UploadBatchDtoSmallResponse dto2Result = resultPage.getContent().get(1);
         assertEquals(2L, dto2Result.getId());
 
-        UploadBatchDtoMediumResponse dto3Result = resultPage.getContent().get(2);
+        UploadBatchDtoSmallResponse dto3Result = resultPage.getContent().get(2);
         assertEquals(3L, dto3Result.getId());
 
         verify(uploadBatchRepository).findAll(any(Specification.class), eq(pageable));
-        verify(modelMapper, times(3)).map(any(UploadBatch.class), eq(UploadBatchDtoMediumResponse.class));
+        verify(modelMapper, times(3)).map(any(UploadBatch.class), eq(UploadBatchDtoSmallResponse.class));
     }
 
     @Test
@@ -308,12 +308,12 @@ class UploadBatchServiceImplTest {
 
         when(uploadBatchRepository.findAll(any(Specification.class), eq(pageable))).thenReturn(emptyPage);
 
-        PageDto<UploadBatchDtoMediumResponse> resultPage = uploadBatchService.getFilteredBatches(filter, pageable);
+        PageDto<UploadBatchDtoSmallResponse> resultPage = uploadBatchService.getFilteredBatches(filter, pageable);
 
         assertNotNull(resultPage);
         assertEquals(0, resultPage.getTotalElements());
         assertEquals(0, resultPage.getContent().size());
         verify(uploadBatchRepository).findAll(any(Specification.class), eq(pageable));
-        verify(modelMapper, never()).map(any(UploadBatch.class), eq(UploadBatchDtoMediumResponse.class));
+        verify(modelMapper, never()).map(any(UploadBatch.class), eq(UploadBatchDtoSmallResponse.class));
     }
 }
