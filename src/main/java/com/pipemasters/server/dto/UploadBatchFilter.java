@@ -1,5 +1,7 @@
 package com.pipemasters.server.dto;
 
+import com.pipemasters.server.entity.enums.AbsenceCause;
+
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.Set;
@@ -28,6 +30,16 @@ public class UploadBatchFilter {
     private String uploadedByName;
 
     private Set<Long> tagIds;
+
+    private String comment;
+
+    private Long id;
+
+    private Boolean archived;
+
+    private Boolean deleted;
+
+    private AbsenceCause absenceCause;
 
     public LocalDate getDepartureDateFrom() {
         return departureDateFrom;
@@ -131,5 +143,45 @@ public class UploadBatchFilter {
 
     public void setTagIds(Set<Long> tagIds) {
         this.tagIds = tagIds;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getComment() {
+        return comment;
+    }
+
+    public void setComment(String comment) {
+        this.comment = comment;
+    }
+
+    public Boolean getArchived() {
+        return archived;
+    }
+
+    public void setArchived(Boolean archived) {
+        this.archived = archived;
+    }
+
+    public Boolean getDeleted() {
+        return deleted;
+    }
+
+    public void setDeleted(Boolean deleted) {
+        this.deleted = deleted;
+    }
+
+    public AbsenceCause getAbsenceCause() {
+        return absenceCause;
+    }
+
+    public void setAbsenceCause(AbsenceCause absenceCause) {
+        this.absenceCause = absenceCause;
     }
 }

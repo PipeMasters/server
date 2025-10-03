@@ -17,6 +17,18 @@ public class UploadBatchSpecifications {
         return (root, query, cb) -> {
             List<Predicate> p = new ArrayList<>();
 
+            if(f.getId() != null) {
+                p.add(cb.equal(root.get("id"), f.getId()));
+            }
+
+            if (f.getArchived() != null) {
+                p.add(cb.equal(root.get("archived"), f.getArchived()));
+            }
+
+            if (f.getDeleted() != null) {
+                p.add(cb.equal(root.get("deleted"), f.getDeleted()));
+            }
+
             if (f.getSpecificDate() != null) {
                 p.add(cb.equal(root.get("trainDeparted"), f.getSpecificDate()));
             } else {
@@ -69,11 +81,21 @@ public class UploadBatchSpecifications {
                 p.add(cb.equal(br.get("id"), f.getBranchId()));
             }
 
+            if (f.getComment() != null && !f.getComment().trim().isEmpty()) {
+                p.add(cb.like(cb.lower(root.get("comment")), "%" + f.getComment().trim().toLowerCase() + "%"));
+            }
+
+            if (f.getAbsenceCause() != null) {
+                Join<UploadBatch, VideoAbsence> absenceJoin = root.join("absence");
+                p.add(cb.equal(absenceJoin.get("cause"), f.getAbsenceCause()));
+            }
+
+
             if (f.getTagIds() != null && !f.getTagIds().isEmpty()) {
                 Subquery<Long> sub = query.subquery(Long.class);
                 Root<UploadBatch> subBatch = sub.from(UploadBatch.class);
 
-                Join<UploadBatch, MediaFile>   fileJoin = subBatch.join("files");
+                Join<UploadBatch, MediaFile> fileJoin = subBatch.join("files");
                 Join<MediaFile,   TagInstance> instJoin = fileJoin.join("tagInstances");
                 Join<TagInstance, TagDefinition> defJoin = instJoin.join("definition");
 

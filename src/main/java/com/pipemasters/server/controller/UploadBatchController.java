@@ -1,10 +1,12 @@
 package com.pipemasters.server.controller;
 
 import com.pipemasters.server.dto.PageDto;
+import com.pipemasters.server.dto.UploadBatchDtoMediumResponse;
 import com.pipemasters.server.dto.request.UploadBatchRequestDto;
 import com.pipemasters.server.dto.UploadBatchFilter;
 import com.pipemasters.server.dto.request.create.UploadBatchCreateDto;
 import com.pipemasters.server.dto.response.UploadBatchResponseDto;
+import com.pipemasters.server.entity.enums.AbsenceCause;
 import com.pipemasters.server.service.UploadBatchService;
 import com.pipemasters.server.dto.UploadBatchDtoSmallResponse;
 import org.slf4j.Logger;
@@ -34,7 +36,7 @@ public class UploadBatchController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<UploadBatchDtoSmallResponse>> getFiltered(
+    public ResponseEntity<Page<UploadBatchDtoMediumResponse>> getFiltered(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate departureDateFrom,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate departureDateTo,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate specificDate,
@@ -51,6 +53,13 @@ public class UploadBatchController {
             @RequestParam(required = false) Long branchId,
 
             @RequestParam(required = false) Set<Long> tagId,
+
+            @RequestParam(required = false) Long id,
+            @RequestParam(required = false) String comment,
+            @RequestParam(required = false) Boolean archived,
+            @RequestParam(required = false) Boolean deleted,
+
+            @RequestParam(required = false) AbsenceCause absenceCause,
 
             @PageableDefault(size = 15, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
         UploadBatchFilter filter = new UploadBatchFilter();
@@ -73,8 +82,16 @@ public class UploadBatchController {
         filter.setBranchId(branchId);
 
         filter.setTagIds(tagId);
-        log.debug("Recived params for upload batch filter: departureDateFrom={}, departureDateTo={}, specificDate={}, arrivalDateFrom={}, arrivalDateTo={}, createdFrom={}, createdTo={}, trainId={}, chiefId={}, uploadedById={}, branchId={}, tagIds={}", departureDateFrom, departureDateTo, specificDate, arrivalDateFrom, arrivalDateTo, createdFrom, createdTo, trainId, chiefId, uploadedById, branchId, tagId);
-        PageDto<UploadBatchDtoSmallResponse> dtoPage = uploadBatchService.getFilteredBatches(filter, pageable);
+
+        filter.setId(id);
+        filter.setArchived(archived);
+        filter.setDeleted(deleted);
+
+        filter.setAbsenceCause(absenceCause);
+
+        filter.setComment(comment);
+        log.debug("Recived params for upload batch filter: departureDateFrom={}, departureDateTo={}, specificDate={}, arrivalDateFrom={}, arrivalDateTo={}, createdFrom={}, createdTo={}, trainId={}, chiefId={}, uploadedById={}, branchId={}, tagIds={}, id={}, comment={}, archived={}, deleted={}, absenceCause={}", departureDateFrom, departureDateTo, specificDate, arrivalDateFrom, arrivalDateTo, createdFrom, createdTo, trainId, chiefId, uploadedById, branchId, tagId, id, comment, archived, deleted, absenceCause);
+        PageDto<UploadBatchDtoMediumResponse> dtoPage = uploadBatchService.getFilteredBatches(filter, pageable);
         return new ResponseEntity<>(dtoPage.toPage(pageable), HttpStatus.OK);
     }
 

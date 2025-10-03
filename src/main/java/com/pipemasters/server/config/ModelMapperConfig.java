@@ -108,6 +108,11 @@ public class ModelMapperConfig {
                     mapper.map(chf -> chf.getTrain().getChief().getFullName(), UploadBatchDtoSmallResponse::setChiefName);
                     mapper.map(br -> br.getBranch().getName(), UploadBatchDtoSmallResponse::setBranchName);
                 });
+        modelMapper.typeMap(UploadBatch.class, UploadBatchDtoMediumResponse.class)
+                .addMappings(mapper -> {
+                   mapper.map(upBy -> upBy.getUploadedBy().getFullName(), UploadBatchDtoMediumResponse::setUploadedBy);
+                   mapper.map(chf -> chf.getTrain().getChief().getFullName(), UploadBatchDtoMediumResponse::setChiefName);
+                });
         modelMapper.typeMap(UploadBatch.class, UploadBatchSearchDto.class)
                 .addMappings(mapper -> {
                     mapper.map(tn -> tn.getTrain().getTrainNumber(), UploadBatchSearchDto::setTrainNumber);

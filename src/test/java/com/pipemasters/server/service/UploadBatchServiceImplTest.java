@@ -1,7 +1,6 @@
 package com.pipemasters.server.service;
 
 import com.pipemasters.server.dto.*;
-import com.pipemasters.server.dto.UploadBatchDtoSmallResponse;
 import com.pipemasters.server.dto.request.UploadBatchRequestDto;
 import com.pipemasters.server.dto.request.create.UploadBatchCreateDto;
 import com.pipemasters.server.dto.request.create.UploadBatchCreateDto.VideoAbsenceCreateDto;
@@ -229,7 +228,7 @@ class UploadBatchServiceImplTest {
     void updateUploadBatchDto_ShouldThrowExceptionWhenNotFound() {
         when(uploadBatchRepository.findById(1L)).thenReturn(Optional.empty());
 
-        assertThrows(RuntimeException.class,
+        assertThrows(UploadBatchNotFoundException.class,
                 () -> uploadBatchService.update(1L, new UploadBatchRequestDto()));
         verify(uploadBatchRepository).findById(1L);
         verifyNoMoreInteractions(modelMapper, uploadBatchRepository);
@@ -270,35 +269,35 @@ class UploadBatchServiceImplTest {
 
         when(uploadBatchRepository.findAll(any(Specification.class), eq(pageable))).thenReturn(entityPage);
 
-        UploadBatchDtoSmallResponse responseDto1 = new UploadBatchDtoSmallResponse();
+        UploadBatchDtoMediumResponse responseDto1 = new UploadBatchDtoMediumResponse();
         responseDto1.setId(1L);
-        when(modelMapper.map(batch1, UploadBatchDtoSmallResponse.class)).thenReturn(responseDto1);
+        when(modelMapper.map(batch1, UploadBatchDtoMediumResponse.class)).thenReturn(responseDto1);
 
-        UploadBatchDtoSmallResponse responseDto2 = new UploadBatchDtoSmallResponse();
+        UploadBatchDtoMediumResponse responseDto2 = new UploadBatchDtoMediumResponse();
         responseDto2.setId(2L);
-        when(modelMapper.map(batch2, UploadBatchDtoSmallResponse.class)).thenReturn(responseDto2);
+        when(modelMapper.map(batch2, UploadBatchDtoMediumResponse.class)).thenReturn(responseDto2);
 
-        UploadBatchDtoSmallResponse responseDto3 = new UploadBatchDtoSmallResponse();
+        UploadBatchDtoMediumResponse responseDto3 = new UploadBatchDtoMediumResponse();
         responseDto3.setId(3L);
-        when(modelMapper.map(batch3, UploadBatchDtoSmallResponse.class)).thenReturn(responseDto3);
+        when(modelMapper.map(batch3, UploadBatchDtoMediumResponse.class)).thenReturn(responseDto3);
 
-        PageDto<UploadBatchDtoSmallResponse> resultPage = uploadBatchService.getFilteredBatches(filter, pageable);
+        PageDto<UploadBatchDtoMediumResponse> resultPage = uploadBatchService.getFilteredBatches(filter, pageable);
 
         assertNotNull(resultPage);
         assertEquals(3, resultPage.getTotalElements());
         assertEquals(3, resultPage.getContent().size());
 
-        UploadBatchDtoSmallResponse dto1Result = resultPage.getContent().get(0);
+        UploadBatchDtoMediumResponse dto1Result = resultPage.getContent().get(0);
         assertEquals(1L, dto1Result.getId());
 
-        UploadBatchDtoSmallResponse dto2Result = resultPage.getContent().get(1);
+        UploadBatchDtoMediumResponse dto2Result = resultPage.getContent().get(1);
         assertEquals(2L, dto2Result.getId());
 
-        UploadBatchDtoSmallResponse dto3Result = resultPage.getContent().get(2);
+        UploadBatchDtoMediumResponse dto3Result = resultPage.getContent().get(2);
         assertEquals(3L, dto3Result.getId());
 
         verify(uploadBatchRepository).findAll(any(Specification.class), eq(pageable));
-        verify(modelMapper, times(3)).map(any(UploadBatch.class), eq(UploadBatchDtoSmallResponse.class));
+        verify(modelMapper, times(3)).map(any(UploadBatch.class), eq(UploadBatchDtoMediumResponse.class));
     }
 
     @Test
@@ -309,12 +308,12 @@ class UploadBatchServiceImplTest {
 
         when(uploadBatchRepository.findAll(any(Specification.class), eq(pageable))).thenReturn(emptyPage);
 
-        PageDto<UploadBatchDtoSmallResponse> resultPage = uploadBatchService.getFilteredBatches(filter, pageable);
+        PageDto<UploadBatchDtoMediumResponse> resultPage = uploadBatchService.getFilteredBatches(filter, pageable);
 
         assertNotNull(resultPage);
         assertEquals(0, resultPage.getTotalElements());
         assertEquals(0, resultPage.getContent().size());
         verify(uploadBatchRepository).findAll(any(Specification.class), eq(pageable));
-        verify(modelMapper, never()).map(any(UploadBatch.class), eq(UploadBatchDtoSmallResponse.class));
+        verify(modelMapper, never()).map(any(UploadBatch.class), eq(UploadBatchDtoMediumResponse.class));
     }
 }

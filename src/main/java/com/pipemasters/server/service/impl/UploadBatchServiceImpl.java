@@ -75,11 +75,11 @@ public class UploadBatchServiceImpl implements UploadBatchService {
     @Override
     @Cacheable(cacheNames = "filteredBatches", keyGenerator = "uploadBatchFilterKeyGenerator")
     @Transactional(readOnly = true)
-    public PageDto<UploadBatchDtoSmallResponse> getFilteredBatches(UploadBatchFilter filter, Pageable pageable) {
+    public PageDto<UploadBatchDtoMediumResponse> getFilteredBatches(UploadBatchFilter filter, Pageable pageable) {
         Page<UploadBatch> page = uploadBatchRepository.findAll(UploadBatchSpecifications.withFilter(filter), pageable);
 
-        List<UploadBatchDtoSmallResponse> dtoList = page.stream()
-                .map(batch -> modelMapper.map(batch, UploadBatchDtoSmallResponse.class))
+        List<UploadBatchDtoMediumResponse> dtoList = page.stream()
+                .map(batch -> modelMapper.map(batch, UploadBatchDtoMediumResponse.class))
                 .toList();
 
 //        List<UploadBatchResponseDto> dtoList = page.stream().map(batch -> {
