@@ -1,24 +1,37 @@
 package com.pipemasters.server.dto;
 
+import java.time.Instant;
 import java.time.LocalDate;
 
 public class UploadBatchDtoSmallResponse {
     private Long id;
+    private String uploadedBy;
+    private Long trainNumber;
     private LocalDate dateDeparted;
     private LocalDate dateArrived;
-    private Long trainNumber;
+    private Instant createdAt;
     private String chiefName;
+    private String comment;
+    private boolean archived;
+    private boolean deleted;
+    private VideoAbsenceDto absence;
     private String branchName;
 
     public UploadBatchDtoSmallResponse() {
     }
 
-    public UploadBatchDtoSmallResponse(Long id, LocalDate dateDeparted, LocalDate dateArrived, Long trainNumber, String chiefName, String branchName) {
+    public UploadBatchDtoSmallResponse(Long id, String uploadedBy, Long trainNumber, LocalDate dateDeparted, LocalDate dateArrived, Instant createdAt, String chiefName, String comment, boolean archived, boolean deleted, VideoAbsenceDto absence, String branchName) {
         this.id = id;
+        this.uploadedBy = uploadedBy;
+        this.trainNumber = trainNumber;
         this.dateDeparted = dateDeparted;
         this.dateArrived = dateArrived;
-        this.trainNumber = trainNumber;
+        this.createdAt = createdAt;
         this.chiefName = chiefName;
+        this.comment = comment;
+        this.archived = archived;
+        this.deleted = deleted;
+        this.absence = absence;
         this.branchName = branchName;
     }
 
@@ -28,6 +41,22 @@ public class UploadBatchDtoSmallResponse {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public String getUploadedBy() {
+        return uploadedBy;
+    }
+
+    public void setUploadedBy(String uploadedBy) {
+        this.uploadedBy = uploadedBy;
+    }
+
+    public Long getTrainNumber() {
+        return trainNumber;
+    }
+
+    public void setTrainNumber(Long trainNumber) {
+        this.trainNumber = trainNumber;
     }
 
     public LocalDate getDateDeparted() {
@@ -46,12 +75,12 @@ public class UploadBatchDtoSmallResponse {
         this.dateArrived = dateArrived;
     }
 
-    public Long getTrainNumber() {
-        return trainNumber;
+    public Instant getCreatedAt() {
+        return createdAt;
     }
 
-    public void setTrainNumber(Long trainNumber) {
-        this.trainNumber = trainNumber;
+    public void setCreatedAt(Instant createdAt) {
+        this.createdAt = createdAt;
     }
 
     public String getChiefName() {
@@ -60,6 +89,38 @@ public class UploadBatchDtoSmallResponse {
 
     public void setChiefName(String chiefName) {
         this.chiefName = chiefName;
+    }
+
+    public String getComment() {
+        return comment;
+    }
+
+    public void setComment(String comment) {
+        this.comment = comment;
+    }
+
+    public boolean isArchived() {
+        return archived;
+    }
+
+    public void setArchived(boolean archived) {
+        this.archived = archived;
+    }
+
+    public boolean isDeleted() {
+        return deleted;
+    }
+
+    public void setDeleted(boolean deleted) {
+        this.deleted = deleted;
+    }
+
+    public VideoAbsenceDto getAbsence() {
+        return absence;
+    }
+
+    public void setAbsence(VideoAbsenceDto absence) {
+        this.absence = absence;
     }
 
     public String getBranchName() {
@@ -72,12 +133,19 @@ public class UploadBatchDtoSmallResponse {
 
     @Override
     public String toString() {
-        return "UploadBatchDto{" +
+        return "UploadBatchDtoSmallResponse{" +
                 "id=" + id +
-                ", dateFrom=" + dateDeparted +
-                ", dateTo=" + dateArrived +
+                ", uploadedBy='" + uploadedBy + '\'' +
                 ", trainNumber=" + trainNumber +
+                ", dateDeparted=" + dateDeparted +
+                ", dateArrived=" + dateArrived +
+                ", createdAt=" + createdAt +
                 ", chiefName='" + chiefName + '\'' +
+                ", comment='" + comment + '\'' +
+                ", archived=" + archived +
+                ", deleted=" + deleted +
+                ", absence=" + absence +
+                ", branchName='" + branchName + '\'' +
                 '}';
     }
 }

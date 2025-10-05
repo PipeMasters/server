@@ -1,7 +1,6 @@
 package com.pipemasters.server.service;
 
 import com.pipemasters.server.dto.*;
-import com.pipemasters.server.dto.UploadBatchDtoSmallResponse;
 import com.pipemasters.server.dto.request.UploadBatchRequestDto;
 import com.pipemasters.server.dto.request.create.UploadBatchCreateDto;
 import com.pipemasters.server.dto.request.create.UploadBatchCreateDto.VideoAbsenceCreateDto;
@@ -229,7 +228,7 @@ class UploadBatchServiceImplTest {
     void updateUploadBatchDto_ShouldThrowExceptionWhenNotFound() {
         when(uploadBatchRepository.findById(1L)).thenReturn(Optional.empty());
 
-        assertThrows(RuntimeException.class,
+        assertThrows(UploadBatchNotFoundException.class,
                 () -> uploadBatchService.update(1L, new UploadBatchRequestDto()));
         verify(uploadBatchRepository).findById(1L);
         verifyNoMoreInteractions(modelMapper, uploadBatchRepository);

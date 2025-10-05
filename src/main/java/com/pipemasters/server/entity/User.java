@@ -83,9 +83,11 @@ public class User extends BaseEntity {
     public void setBranch(Branch branch) {
         this.branch = branch;
     }
+
     public String getFullName() {
         return String.join(" ", surname, name, patronymic);
     }
+
     @Override
     public String toString() {
         return "User{" +
