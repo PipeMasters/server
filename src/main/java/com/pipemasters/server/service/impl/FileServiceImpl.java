@@ -11,7 +11,7 @@ import com.pipemasters.server.repository.UploadBatchRepository;
 import com.pipemasters.server.service.FileService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.beans.factory.annotation.Qualifier;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;
 import software.amazon.awssdk.services.s3.model.Delete;
@@ -35,15 +35,15 @@ public class FileServiceImpl implements FileService {
 
     private final S3Presigner s3Presigner;
     private final S3Client s3Client;
-    private final String minioBucketName;
+    private final String s3BucketName;
     private final MediaFileRepository mediaFileRepository;
     private final UploadBatchRepository uploadBatchRepository;
     private final Logger logger = LoggerFactory.getLogger(FileServiceImpl.class);
 
-    public FileServiceImpl(S3Presigner s3Presigner, S3Client s3Client, String minioBucketName, MediaFileRepository mediaFileRepository, UploadBatchRepository uploadBatchRepository) {
+    public FileServiceImpl(S3Presigner s3Presigner, S3Client s3Client, @Qualifier("s3BucketName") String s3BucketName, MediaFileRepository mediaFileRepository, UploadBatchRepository uploadBatchRepository) {
         this.s3Presigner = s3Presigner;
         this.s3Client = s3Client;
-        this.minioBucketName = minioBucketName;
+        this.s3BucketName = s3BucketName;
         this.mediaFileRepository = mediaFileRepository;
         this.uploadBatchRepository = uploadBatchRepository;
     }
@@ -153,7 +153,7 @@ public class FileServiceImpl implements FileService {
             String prefix = directoryUuid.toString() + "/";
 
             ListObjectsV2Request listObjectsRequest = ListObjectsV2Request.builder()
-                    .bucket(minioBucketName)
+                    .bucket(s3BucketName)
                     .prefix(prefix)
                     .build();
 
@@ -164,7 +164,7 @@ public class FileServiceImpl implements FileService {
 
             if (!objectsToDelete.isEmpty()) {
                 DeleteObjectsRequest deleteObjectsRequest = DeleteObjectsRequest.builder()
-                        .bucket(minioBucketName)
+                        .bucket(s3BucketName)
                         .delete(Delete.builder()
                                 .objects(objectsToDelete)
                                 .build())
@@ -187,7 +187,7 @@ public class FileServiceImpl implements FileService {
     public String getDownloadUrl(String s3Key){
         try {
             GetObjectRequest getObjectRequest = GetObjectRequest.builder()
-                    .bucket(minioBucketName)
+                    .bucket(s3BucketName)
                     .key(s3Key)
                     .build();
 
@@ -207,7 +207,7 @@ public class FileServiceImpl implements FileService {
     private String getUploadUrl (String s3Key){
         try {
             PutObjectRequest putObjectRequest = PutObjectRequest.builder()
-                    .bucket(minioBucketName)
+                    .bucket(s3BucketName)
                     .key(s3Key)
                     .build();
 
@@ -234,7 +234,7 @@ public class FileServiceImpl implements FileService {
 
         try {
             DeleteObjectRequest deleteRequest = DeleteObjectRequest.builder()
-                    .bucket(minioBucketName)
+                    .bucket(s3BucketName)
                     .key(s3Key)
                     .build();
             s3Client.deleteObject(deleteRequest);

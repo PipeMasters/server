@@ -1,6 +1,6 @@
 package com.pipemasters.server.kafka.handler;
 
-import com.pipemasters.server.kafka.event.MinioEvent;
+import com.pipemasters.server.kafka.event.GarageEvent;
 import com.pipemasters.server.kafka.handler.impl.ObjectRemovedHandler;
 import com.pipemasters.server.service.MediaFileService;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,7 +32,7 @@ class ObjectRemovedHandlerTest {
 
     @Test
     void handle_callsMediaFileServiceForValidEvent() {
-        MinioEvent event = new MinioEvent("s3:ObjectRemoved:Delete", UUID.randomUUID(), "file.mp4", "rawKey", 12345L);
+        GarageEvent event = new GarageEvent("s3:ObjectRemoved:Delete", UUID.randomUUID(), "file.mp4", "rawKey", 12345L);
 
         handler.handle(event);
 
@@ -41,7 +41,7 @@ class ObjectRemovedHandlerTest {
 
     @Test
     void handle_logsErrorWhenMediaFileServiceThrowsException() {
-        MinioEvent event = new MinioEvent("s3:ObjectRemoved:Delete", UUID.randomUUID(), "file.mp4", "rawKey", 12345L);
+        GarageEvent event = new GarageEvent("s3:ObjectRemoved:Delete", UUID.randomUUID(), "file.mp4", "rawKey", 12345L);
         doThrow(new RuntimeException("Service error")).when(mediaFileService).handleMinioFileDeletion(any(), any());
 
         handler.handle(event);

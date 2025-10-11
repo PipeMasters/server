@@ -3,8 +3,8 @@ package com.pipemasters.server.kafka.handler.impl;
 import com.pipemasters.server.entity.enums.FileType;
 import com.pipemasters.server.entity.enums.MediaFileStatus;
 import com.pipemasters.server.kafka.KafkaProducerService;
-import com.pipemasters.server.kafka.event.MinioEvent;
-import com.pipemasters.server.kafka.handler.MinioEventHandler;
+import com.pipemasters.server.kafka.event.SeaweedFSEvent;
+import com.pipemasters.server.kafka.handler.SeaweedFSEventHandler;
 import com.pipemasters.server.repository.MediaFileRepository;
 import com.pipemasters.server.service.ImotioService;
 import org.slf4j.Logger;
@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 @Component
-public class ObjectCreatedHandler implements MinioEventHandler {
+public class ObjectCreatedHandler implements SeaweedFSEventHandler {
     private final static Logger log = LoggerFactory.getLogger(ObjectCreatedHandler.class);
 
     private final MediaFileRepository repository;
@@ -34,7 +34,8 @@ public class ObjectCreatedHandler implements MinioEventHandler {
 
     @Override
     @Transactional
-    public void handle(MinioEvent event) {
+    public void handle(SeaweedFSEvent event) {
+        log.info("ObjectCreatedHandler received an event for key: {}", event.decodedKey());
         repository.findByFilenameAndUploadBatchDirectory(event.filename(), event.batchId())
                 .ifPresentOrElse(file -> {
 
@@ -49,7 +50,7 @@ public class ObjectCreatedHandler implements MinioEventHandler {
                         imotioService.processImotioFileUpload(file.getId());
                     } else if (file.getFileType() == FileType.VIDEO) {
                         log.debug("Video file queued for processing: {}", file.getFilename());
-                        producer.send("audio-extraction", file.getUploadBatch().getDirectory() + "/" + file.getFilename());
+                        producer.send("audio-extraction", event.decodedKey());
                     }
                 }, () -> log.warn("MediaFile not found for key {}", event.decodedKey()));
     }

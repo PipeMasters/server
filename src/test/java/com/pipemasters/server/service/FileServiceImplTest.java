@@ -88,7 +88,7 @@ class FileServiceImplTest {
     }
 
     @Test
-    void deleteMediaFileById_DeletesFromMinioAndDb() {
+    void deleteMediaFileById_DeletesFromGarageAndDb() {
         UUID dir = UUID.randomUUID();
         UploadBatch batch = new UploadBatch();
         batch.setDirectory(dir);

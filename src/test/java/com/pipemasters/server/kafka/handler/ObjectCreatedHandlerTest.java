@@ -5,7 +5,7 @@ import com.pipemasters.server.entity.UploadBatch;
 import com.pipemasters.server.entity.enums.FileType;
 import com.pipemasters.server.entity.enums.MediaFileStatus;
 import com.pipemasters.server.kafka.KafkaProducerService;
-import com.pipemasters.server.kafka.event.MinioEvent;
+import com.pipemasters.server.kafka.event.GarageEvent;
 import com.pipemasters.server.kafka.handler.impl.ObjectCreatedHandler;
 import com.pipemasters.server.repository.MediaFileRepository;
 import com.pipemasters.server.service.ImotioService;
@@ -49,7 +49,7 @@ class ObjectCreatedHandlerTest {
         UUID batchId = UUID.randomUUID();
         String filename = "video.mp4";
         String rawKey = batchId + "/" + filename;
-        MinioEvent event = new MinioEvent("s3:ObjectCreated:Put", batchId, filename, rawKey, null);
+        GarageEvent event = new GarageEvent("s3:ObjectCreated:Put", batchId, filename, rawKey, null);
         MediaFile file = new MediaFile();
         file.setId(1L);
         file.setFileType(FileType.VIDEO);
@@ -73,7 +73,7 @@ class ObjectCreatedHandlerTest {
         UUID batchId = UUID.randomUUID();
         String filename = "image.jpg";
         String rawKey = batchId + "/" + filename;
-        MinioEvent event = new MinioEvent("s3:ObjectCreated:Put", batchId, filename, rawKey, null);
+        GarageEvent event = new GarageEvent("s3:ObjectCreated:Put", batchId, filename, rawKey, null);
         MediaFile file = new MediaFile();
         file.setId(2L);
         file.setFileType(FileType.IMAGE);
@@ -92,7 +92,7 @@ class ObjectCreatedHandlerTest {
         UUID batchId = UUID.randomUUID();
         String filename = "missing.mp4";
         String rawKey = batchId + "/" + filename;
-        MinioEvent event = new MinioEvent("s3:ObjectCreated:Put", batchId, filename, rawKey, null);
+        GarageEvent event = new GarageEvent("s3:ObjectCreated:Put", batchId, filename, rawKey, null);
 
         when(repository.findByFilenameAndUploadBatchDirectory(filename, batchId)).thenReturn(Optional.empty());
 
@@ -109,7 +109,7 @@ class ObjectCreatedHandlerTest {
 //        UUID batchId = UUID.randomUUID();
 //        String filename = "audio.mp3";
 //        String rawKey = batchId + "/" + filename;
-//        MinioEvent event = new MinioEvent("s3:ObjectCreated:Put", batchId, filename, rawKey, null);
+//        GarageEvent event = new GarageEvent("s3:ObjectCreated:Put", batchId, filename, rawKey, null);
 //        MediaFile file = new MediaFile();
 //        file.setId(3L);
 //        file.setFileType(FileType.AUDIO);
@@ -138,7 +138,7 @@ class ObjectCreatedHandlerTest {
 //        UUID batchId = UUID.randomUUID();
 //        String filename = "audio.wav";
 //        String rawKey = batchId + "/" + filename;
-//        MinioEvent event = new MinioEvent("s3:ObjectCreated:Put", batchId, filename, rawKey, null);
+//        GarageEvent event = new GarageEvent("s3:ObjectCreated:Put", batchId, filename, rawKey, null);
 //        MediaFile file = new MediaFile();
 //        file.setId(4L);
 //        file.setFileType(FileType.AUDIO);

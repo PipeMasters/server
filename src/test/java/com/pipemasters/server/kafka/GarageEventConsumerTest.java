@@ -1,8 +1,7 @@
 package com.pipemasters.server.kafka;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.pipemasters.server.kafka.event.MinioEvent;
-import com.pipemasters.server.kafka.handler.MinioEventHandler;
+import com.pipemasters.server.kafka.event.GarageEvent;
+import com.pipemasters.server.kafka.handler.GarageEventHandler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -10,20 +9,20 @@ import org.mockito.ArgumentCaptor;
 import java.util.List;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
-class MinioEventConsumerTest {
+class GarageEventConsumerTest {
 
-    private MinioEventHandler handler1;
-    private MinioEventHandler handler2;
-    private MinioEventConsumer consumer;
+    private GarageEventHandler handler1;
+    private GarageEventHandler handler2;
+    private GarageEventConsumer consumer;
 
     @BeforeEach
     void setUp() {
-        handler1 = mock(MinioEventHandler.class);
-        handler2 = mock(MinioEventHandler.class);
-        consumer = new MinioEventConsumer(List.of(handler1, handler2));
+        handler1 = mock(GarageEventHandler.class);
+        handler2 = mock(GarageEventHandler.class);
+        consumer = new GarageEventConsumer(List.of(handler1, handler2));
     }
 
     @Test
@@ -39,7 +38,7 @@ class MinioEventConsumerTest {
 
         consumer.handle(message);
 
-        ArgumentCaptor<MinioEvent> captor = ArgumentCaptor.forClass(MinioEvent.class);
+        ArgumentCaptor<GarageEvent> captor = ArgumentCaptor.forClass(GarageEvent.class);
         verify(handler1).handle(captor.capture());
         assertEquals(eventName, captor.getValue().eventName());
         assertEquals(UUID.fromString(batchId), captor.getValue().batchId());
@@ -87,6 +86,6 @@ class MinioEventConsumerTest {
 
         consumer.handle(message);
 
-        verify(handler1, times(2)).handle(any(MinioEvent.class));
+        verify(handler1, times(2)).handle(any(GarageEvent.class));
     }
 }
