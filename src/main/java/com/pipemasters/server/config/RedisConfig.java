@@ -112,6 +112,11 @@ public class RedisConfig {
                     (f.getUploadedById() != null ? f.getUploadedById() : "") + ":" +
                     (f.getUploadedByName() != null ? f.getUploadedByName() : "") + ":" +
                     (f.getBranchId() != null ? f.getBranchId() : "") + ":" +
+                    (f.getId() != null ? f.getId() : "") + ":" +
+                    (f.getComment() != null ? f.getComment().trim().toLowerCase() : "") + ":" +
+                    (f.getArchived() != null ? f.getArchived() : "") + ":" +
+                    (f.getDeleted() != null ? f.getDeleted() : "") + ":" +
+                    (f.getAbsenceCause() != null ? f.getAbsenceCause() : "") + ":" +
                     tagsPart + ":" +
                     p.getPageNumber() + ":" +
                     p.getPageSize() + ":" +
