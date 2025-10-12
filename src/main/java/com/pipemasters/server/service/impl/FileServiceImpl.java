@@ -171,14 +171,14 @@ public class FileServiceImpl implements FileService {
                         .build();
 
                 s3Client.deleteObjects(deleteObjectsRequest);
-                logger.info("Successfully deleted {} objects from MinIO for directory: {}", objectsToDelete.size(), directoryUuid);
+                logger.info("Successfully deleted {} objects from S3 for directory: {}", objectsToDelete.size(), directoryUuid);
             } else {
-                logger.info("No objects found to delete in MinIO for directory: {}", directoryUuid);
+                logger.info("No objects found to delete in S3 for directory: {}", directoryUuid);
             }
 
         } catch (Exception e) {
-            logger.error("Failed to delete directory {} from MinIO. Error: {}", directoryUuid, e.getMessage(), e);
-            throw new FileGenerationException("Failed to delete directory from MinIO: " + directoryUuid, e);
+            logger.error("Failed to delete directory {} from S3. Error: {}", directoryUuid, e.getMessage(), e);
+            throw new FileGenerationException("Failed to delete directory from S3: " + directoryUuid, e);
         }
     }
 
@@ -238,10 +238,10 @@ public class FileServiceImpl implements FileService {
                     .key(s3Key)
                     .build();
             s3Client.deleteObject(deleteRequest);
-            logger.info("Deleted file from MinIO: {}", s3Key);
+            logger.info("Deleted file from S3: {}", s3Key);
         } catch (Exception e) {
-            logger.error("Failed to delete file from MinIO: {}", s3Key, e);
-            throw new FileGenerationException("Failed to delete file from MinIO: " + s3Key, e);
+            logger.error("Failed to delete file from S3: {}", s3Key, e);
+            throw new FileGenerationException("Failed to delete file from S3: " + s3Key, e);
         }
 
         mediaFileRepository.deleteById(mediaFileId);

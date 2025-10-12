@@ -5,12 +5,11 @@ import com.pipemasters.server.entity.UploadBatch;
 import com.pipemasters.server.entity.enums.FileType;
 import com.pipemasters.server.entity.enums.MediaFileStatus;
 import com.pipemasters.server.kafka.KafkaProducerService;
-import com.pipemasters.server.kafka.event.GarageEvent;
+import com.pipemasters.server.kafka.event.SeaweedFSEvent;
 import com.pipemasters.server.kafka.handler.impl.ObjectCreatedHandler;
 import com.pipemasters.server.repository.MediaFileRepository;
 import com.pipemasters.server.service.ImotioService;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.util.Optional;
@@ -18,7 +17,6 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
@@ -49,11 +47,11 @@ class ObjectCreatedHandlerTest {
         UUID batchId = UUID.randomUUID();
         String filename = "video.mp4";
         String rawKey = batchId + "/" + filename;
-        GarageEvent event = new GarageEvent("s3:ObjectCreated:Put", batchId, filename, rawKey, null);
+        SeaweedFSEvent event = new SeaweedFSEvent("s3:ObjectCreated:Put", batchId, filename, rawKey, null);
         MediaFile file = new MediaFile();
         file.setId(1L);
         file.setFileType(FileType.VIDEO);
-        file.setFilename("audio.mp3");
+        file.setFilename("video.mp4");
 
         UploadBatch uploadBatch = new UploadBatch();
         uploadBatch.setDirectory(batchId);
@@ -65,7 +63,7 @@ class ObjectCreatedHandlerTest {
 
         assertEquals(MediaFileStatus.UPLOADED, file.getStatus());
         verify(repository).save(file);
-        verify(producer).send("audio-extraction", batchId + "/" + "audio.mp3");
+        verify(producer).send("audio-extraction", batchId + "/" + "video.mp4");
     }
 
     @Test
@@ -73,7 +71,7 @@ class ObjectCreatedHandlerTest {
         UUID batchId = UUID.randomUUID();
         String filename = "image.jpg";
         String rawKey = batchId + "/" + filename;
-        GarageEvent event = new GarageEvent("s3:ObjectCreated:Put", batchId, filename, rawKey, null);
+        SeaweedFSEvent event = new SeaweedFSEvent("s3:ObjectCreated:Put", batchId, filename, rawKey, null);
         MediaFile file = new MediaFile();
         file.setId(2L);
         file.setFileType(FileType.IMAGE);
@@ -92,7 +90,7 @@ class ObjectCreatedHandlerTest {
         UUID batchId = UUID.randomUUID();
         String filename = "missing.mp4";
         String rawKey = batchId + "/" + filename;
-        GarageEvent event = new GarageEvent("s3:ObjectCreated:Put", batchId, filename, rawKey, null);
+        SeaweedFSEvent event = new SeaweedFSEvent("s3:ObjectCreated:Put", batchId, filename, rawKey, null);
 
         when(repository.findByFilenameAndUploadBatchDirectory(filename, batchId)).thenReturn(Optional.empty());
 

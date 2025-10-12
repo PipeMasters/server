@@ -1,11 +1,10 @@
 package com.pipemasters.server.kafka.handler;
 
-import com.pipemasters.server.kafka.event.GarageEvent;
+import com.pipemasters.server.kafka.event.SeaweedFSEvent;
 import com.pipemasters.server.kafka.handler.impl.ObjectRemovedHandler;
 import com.pipemasters.server.service.MediaFileService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
 import java.util.UUID;
 
@@ -32,20 +31,20 @@ class ObjectRemovedHandlerTest {
 
     @Test
     void handle_callsMediaFileServiceForValidEvent() {
-        GarageEvent event = new GarageEvent("s3:ObjectRemoved:Delete", UUID.randomUUID(), "file.mp4", "rawKey", 12345L);
+        SeaweedFSEvent event = new SeaweedFSEvent("s3:ObjectRemoved:Delete", UUID.randomUUID(), "file.mp4", "rawKey", 12345L);
 
         handler.handle(event);
 
-        verify(mediaFileService).handleMinioFileDeletion(event.batchId(), event.filename());
+        verify(mediaFileService).handleS3FileDeletion(event.batchId(), event.filename());
     }
 
     @Test
     void handle_logsErrorWhenMediaFileServiceThrowsException() {
-        GarageEvent event = new GarageEvent("s3:ObjectRemoved:Delete", UUID.randomUUID(), "file.mp4", "rawKey", 12345L);
-        doThrow(new RuntimeException("Service error")).when(mediaFileService).handleMinioFileDeletion(any(), any());
+        SeaweedFSEvent event = new SeaweedFSEvent("s3:ObjectRemoved:Delete", UUID.randomUUID(), "file.mp4", "rawKey", 12345L);
+        doThrow(new RuntimeException("Service error")).when(mediaFileService).handleS3FileDeletion(any(), any());
 
         handler.handle(event);
 
-        verify(mediaFileService).handleMinioFileDeletion(event.batchId(), event.filename());
+        verify(mediaFileService).handleS3FileDeletion(event.batchId(), event.filename());
     }
 }

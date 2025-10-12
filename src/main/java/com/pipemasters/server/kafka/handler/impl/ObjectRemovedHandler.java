@@ -26,7 +26,7 @@ public class ObjectRemovedHandler implements SeaweedFSEventHandler {
     public void handle(SeaweedFSEvent event) {
         log.debug("Handling removal for key {}", event.decodedKey());
         try {
-            mediaFileService.handleMinioFileDeletion(event.batchId(), event.filename());
+            mediaFileService.handleS3FileDeletion(event.batchId(), event.filename());
         } catch (Exception e) {
             log.error("Error processing removal for key {}: {}", event.decodedKey(), e.getMessage(), e);
         }

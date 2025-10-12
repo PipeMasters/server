@@ -26,7 +26,7 @@ public class SeaweedFSEventConsumer {
         this.handlers = handlers;
     }
 
-    @KafkaListener(topics = "seaweedfs_filer_events")
+    @KafkaListener(topics = "seaweedfs.raw-events")
     @Transactional
     public void handle(ConsumerRecord<String, byte[]> record) {
         byte[] messageBytes = record.value();

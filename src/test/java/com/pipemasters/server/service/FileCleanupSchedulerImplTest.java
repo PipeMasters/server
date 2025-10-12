@@ -115,7 +115,7 @@ class FileCleanupSchedulerImplTest {
         when(uploadBatchRepository.findByCreatedAtBeforeAndDeletedFalseAndArchivedFalse(any(Instant.class)))
                 .thenReturn(oldBatches);
 
-        doThrow(new FileGenerationException("Simulated MinIO deletion error for batch1"))
+        doThrow(new FileGenerationException("Simulated S3 deletion error for batch1"))
                 .when(fileService).deleteUploadBatchDirectory(batch1.getDirectory());
         doNothing()
                 .when(fileService).deleteUploadBatchDirectory(batch2.getDirectory());
@@ -146,7 +146,7 @@ class FileCleanupSchedulerImplTest {
         when(uploadBatchRepository.findByCreatedAtBeforeAndDeletedFalseAndArchivedFalse(any(Instant.class)))
                 .thenReturn(Collections.singletonList(batch));
 
-        doThrow(new FileGenerationException("Simulated MinIO deletion error"))
+        doThrow(new FileGenerationException("Simulated S3 deletion error"))
                 .when(fileService).deleteUploadBatchDirectory(batch.getDirectory());
 
         fileCleanupScheduler.cleanupOldUploadBatches();
