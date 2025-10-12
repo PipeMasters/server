@@ -87,50 +87,50 @@ class MediaFileServiceImplTest {
     }
 
     @Test
-    void handleMinioFileDeletion_shouldDeleteMediaFileWhenFound() {
+    void handleS3FileDeletion_shouldDeleteMediaFileWhenFound() {
         when(mediaFileRepository.findByFilenameAndUploadBatchDirectory(testFilename, testUploadBatchDirectory))
                 .thenReturn(Optional.of(testMediaFile));
 
-        mediaFileService.handleMinioFileDeletion(testUploadBatchDirectory, testFilename);
+        mediaFileService.handleS3FileDeletion(testUploadBatchDirectory, testFilename);
 
         verify(mediaFileRepository, times(1)).deleteById(testMediaFileId);
     }
 
     @Test
-    void handleMinioFileDeletion_shouldNotDeleteMediaFileWhenNotFound() {
+    void handleS3FileDeletion_shouldNotDeleteMediaFileWhenNotFound() {
         when(mediaFileRepository.findByFilenameAndUploadBatchDirectory(testFilename, testUploadBatchDirectory))
                 .thenReturn(Optional.empty());
 
-        mediaFileService.handleMinioFileDeletion(testUploadBatchDirectory, testFilename);
+        mediaFileService.handleS3FileDeletion(testUploadBatchDirectory, testFilename);
         verify(mediaFileRepository, never()).deleteById(anyLong());
     }
 
     @Test
-    void handleMinioFileDeletion_shouldHandleNullUploadBatchDirectory() {
+    void handleS3FileDeletion_shouldHandleNullUploadBatchDirectory() {
         when(mediaFileRepository.findByFilenameAndUploadBatchDirectory(testFilename, null))
                 .thenReturn(Optional.empty());
 
-        mediaFileService.handleMinioFileDeletion(null, testFilename);
+        mediaFileService.handleS3FileDeletion(null, testFilename);
 
         verify(mediaFileRepository, never()).deleteById(anyLong());
     }
 
     @Test
-    void handleMinioFileDeletion_shouldHandleNullFilename() {
+    void handleS3FileDeletion_shouldHandleNullFilename() {
         when(mediaFileRepository.findByFilenameAndUploadBatchDirectory(null, testUploadBatchDirectory))
                 .thenReturn(Optional.empty());
 
-        mediaFileService.handleMinioFileDeletion(testUploadBatchDirectory, null);
+        mediaFileService.handleS3FileDeletion(testUploadBatchDirectory, null);
 
         verify(mediaFileRepository, never()).deleteById(anyLong());
     }
 
     @Test
-    void handleMinioFileDeletion_shouldHandleBothNull() {
+    void handleS3FileDeletion_shouldHandleBothNull() {
         when(mediaFileRepository.findByFilenameAndUploadBatchDirectory(null, null))
                 .thenReturn(Optional.empty());
 
-        mediaFileService.handleMinioFileDeletion(null, null);
+        mediaFileService.handleS3FileDeletion(null, null);
 
         verify(mediaFileRepository, never()).deleteById(anyLong());
     }

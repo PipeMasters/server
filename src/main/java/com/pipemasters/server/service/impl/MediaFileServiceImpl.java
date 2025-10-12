@@ -27,13 +27,13 @@ public class MediaFileServiceImpl implements MediaFileService {
 
     @Override
     @Transactional
-    public void handleMinioFileDeletion(UUID uploadBatchDirectory, String filename) {
+    public void handleS3FileDeletion(UUID uploadBatchDirectory, String filename) {
         Optional<MediaFile> mediaFileOptional = mediaFileRepository.findByFilenameAndUploadBatchDirectory(filename, uploadBatchDirectory);
 
         if (mediaFileOptional.isPresent()) {
             MediaFile file = mediaFileOptional.get();
             mediaFileRepository.deleteById(file.getId());
-            log.info("MediaFile with ID {} (filename: '{}' in batchDirectory '{}') deleted after Minio object removal.", file.getId(), filename, uploadBatchDirectory);
+            log.info("MediaFile with ID {} (filename: '{}' in batchDirectory '{}') deleted after S3 object removal.", file.getId(), filename, uploadBatchDirectory);
         } else {
             log.warn("MediaFile not found for filename '{}' in batchDirectory '{}'. It might have been already deleted or never existed in DB.", filename, uploadBatchDirectory);
         }
