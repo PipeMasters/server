@@ -40,6 +40,8 @@ public class ObjectCreatedHandler implements MinioEventHandler {
 
                     file.setStatus(MediaFileStatus.UPLOADED);
                     file.setSize(event.size());
+                    file.setCreatedAt(event.createdAt());
+
                     repository.save(file);
 
                     log.debug("Status of file {} set to {}", file.getId(), file.getStatus());

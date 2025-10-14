@@ -11,6 +11,7 @@ import java.util.List;
 public class MediaFileResponseDto extends BaseDto {
     private String filename;
     private FileType fileType;
+    private Instant createdAt;
     private Instant uploadedAt;
     private MediaFileResponseDto source;
     private Long duration;
@@ -21,9 +22,10 @@ public class MediaFileResponseDto extends BaseDto {
     public MediaFileResponseDto() {
     }
 
-    public MediaFileResponseDto(String filename, FileType fileType, Instant uploadedAt, MediaFileResponseDto source, Long duration, Long size, String hash) {
+    public MediaFileResponseDto(String filename, FileType fileType, Instant createdAt, Instant uploadedAt, MediaFileResponseDto source, Long duration, Long size, String hash) {
         this.filename = filename;
         this.fileType = fileType;
+        this.createdAt = createdAt;
         this.uploadedAt = uploadedAt;
         this.source = source;
         this.duration = duration;
@@ -45,6 +47,14 @@ public class MediaFileResponseDto extends BaseDto {
 
     public void setFileType(FileType fileType) {
         this.fileType = fileType;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Instant createdAt) {
+        this.createdAt = createdAt;
     }
 
     public Instant getUploadedAt() {

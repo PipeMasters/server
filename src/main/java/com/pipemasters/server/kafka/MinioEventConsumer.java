@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -43,6 +44,8 @@ public class MinioEventConsumer {
         List<MinioEvent> events = new ArrayList<>();
         if (recordsNode.isArray()) {
             for (JsonNode record : recordsNode) {
+                String eventTimeString = record.path("eventTime").asText(null);
+                Instant createdAt = Instant.parse(eventTimeString);
                 String eventName = record.path("eventName").asText();
                 String rawKey = record.path("s3").path("object").path("key").asText();
                 String decodedKey = URLDecoder.decode(rawKey, StandardCharsets.UTF_8);
@@ -53,7 +56,7 @@ public class MinioEventConsumer {
                     continue;
                 }
                 try {
-                    events.add(new MinioEvent(eventName, UUID.fromString(parts[0]), parts[1], rawKey, size));
+                    events.add(new MinioEvent(eventName, UUID.fromString(parts[0]), parts[1], rawKey, size, createdAt));
                 } catch (IllegalArgumentException ex) {
                     log.error("Skipped record with invalid UUID in key {}: {}", rawKey, ex.getMessage());
                 }
