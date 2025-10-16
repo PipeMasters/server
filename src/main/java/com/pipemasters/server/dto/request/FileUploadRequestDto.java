@@ -2,10 +2,10 @@ package com.pipemasters.server.dto.request;
 
 import com.pipemasters.server.entity.enums.FileType;
 import jakarta.persistence.Column;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.*;
 
 import java.time.Duration;
+import java.time.Instant;
 
 public class FileUploadRequestDto {
     @NotNull(message = "Upload batch ID cannot be empty")
@@ -19,6 +19,9 @@ public class FileUploadRequestDto {
     private Long duration;
     @NotNull(message = "hash cannot be empty")
     private String hash;
+    @NotNull(message = "createdAt cannot be empty")
+    @PastOrPresent(message = "creation time must be in past or present")
+    private Instant createdAt;
 
     public FileUploadRequestDto() {
     }
@@ -84,6 +87,14 @@ public class FileUploadRequestDto {
 
     public void setHash(String hash) {
         this.hash = hash;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Instant createdAt) {
+        this.createdAt = createdAt;
     }
 
     @Override

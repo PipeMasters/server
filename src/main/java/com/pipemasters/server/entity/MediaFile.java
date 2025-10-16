@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Objects;
 
 @Entity
 @Table(name = "media_files",
@@ -22,6 +23,9 @@ public class MediaFile extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 16)
     private MediaFileStatus status = MediaFileStatus.PENDING;
+
+    @Column(updatable = false)
+    private Instant createdAt;
 
     @Column(nullable = false, updatable = false)
     private Instant uploadedAt = Instant.now();
@@ -96,6 +100,14 @@ public class MediaFile extends BaseEntity {
 
     public void setFileType(FileType fileType) {
         this.fileType = fileType;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Instant createdAt) {
+        this.createdAt = createdAt;
     }
 
     public Instant getUploadedAt() {
