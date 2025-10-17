@@ -94,6 +94,7 @@ public class MediaFileRepositoryTest {
     void saveMediaFileWithNullSourcePersistsSuccessfully() {
         UploadBatch batch = createUploadBatch();
         MediaFile file = new MediaFile("file.mp4", FileType.VIDEO, batch);
+        file.setCreatedAt(Instant.now());
         MediaFile saved = mediaFileRepository.save(file);
         assertNotNull(saved.getId());
         assertNull(saved.getSource());
@@ -103,9 +104,12 @@ public class MediaFileRepositoryTest {
     @Test
     void saveAndFindMediaFileWithSourcePersistsHierarchy() {
         UploadBatch batch = createUploadBatch();
-        MediaFile source = mediaFileRepository.save(new MediaFile("source.mp4", FileType.VIDEO, batch));
+        MediaFile file1 = new MediaFile("source.mp4", FileType.VIDEO, batch);
+        file1.setCreatedAt(Instant.now());
+        MediaFile source = mediaFileRepository.save(file1);
         MediaFile file = new MediaFile("child.mp3", FileType.AUDIO, batch);
         file.setSource(source);
+        file.setCreatedAt(Instant.now());
         MediaFile saved = mediaFileRepository.save(file);
         Optional<MediaFile> found = mediaFileRepository.findById(saved.getId());
         assertTrue(found.isPresent());
@@ -116,8 +120,12 @@ public class MediaFileRepositoryTest {
     @Test
     void findAllReturnsAllMediaFiles() {
         UploadBatch batch = createUploadBatch();
-        mediaFileRepository.save(new MediaFile("a.mp4", FileType.VIDEO, batch));
-        mediaFileRepository.save(new MediaFile("b.mp3", FileType.AUDIO, batch));
+        MediaFile file1 = new MediaFile("a.mp4", FileType.VIDEO, batch);
+        MediaFile file2 = new MediaFile("b.mp3", FileType.AUDIO, batch);
+        file1.setCreatedAt(Instant.now());
+        file2.setCreatedAt(Instant.now());
+        mediaFileRepository.save(file1);
+        mediaFileRepository.save(file2);
         List<MediaFile> all = mediaFileRepository.findAll();
         assertEquals(2, all.size());
     }
@@ -138,8 +146,11 @@ public class MediaFileRepositoryTest {
     @Test
     void saveMultipleMediaFilesWithSameFilenameAllowed() {
         UploadBatch batch = createUploadBatch();
-        mediaFileRepository.save(new MediaFile("duplicate.mp4", FileType.VIDEO, batch));
+        MediaFile file1 = new MediaFile("duplicate.mp4", FileType.VIDEO, batch);
+        file1.setCreatedAt(Instant.now());
+        mediaFileRepository.save(file1);
         MediaFile second = new MediaFile("duplicate.mp4", FileType.VIDEO, batch);
+        second.setCreatedAt(Instant.now());
         MediaFile saved = mediaFileRepository.save(second);
         assertNotNull(saved.getId());
         assertEquals("duplicate.mp4", saved.getFilename());
@@ -148,7 +159,9 @@ public class MediaFileRepositoryTest {
     @Test
     void deleteMediaFileRemovesItFromRepository() {
         UploadBatch batch = createUploadBatch();
-        MediaFile file = mediaFileRepository.save(new MediaFile("toDelete.mp4", FileType.VIDEO, batch));
+        var file2 = new MediaFile("toDelete.mp4", FileType.VIDEO, batch);
+        file2.setCreatedAt(Instant.now());
+        MediaFile file = mediaFileRepository.save(file2);
         mediaFileRepository.deleteById(file.getId());
         assertFalse(mediaFileRepository.existsById(file.getId()));
     }
@@ -170,6 +183,7 @@ public class MediaFileRepositoryTest {
                 customInstant,
                 null,
                 batch);
+        file.setCreatedAt(Instant.now());
         MediaFile saved = mediaFileRepository.save(file);
         assertEquals(customInstant, saved.getUploadedAt());
     }
@@ -178,6 +192,7 @@ public class MediaFileRepositoryTest {
     void saveMediaFileWithItselfAsSourcePersistsSuccessfully() {
         UploadBatch batch = createUploadBatch();
         MediaFile file = new MediaFile("selfsource.mp4", FileType.VIDEO, batch);
+        file.setCreatedAt(Instant.now());
         file.setSource(file);
         MediaFile saved = mediaFileRepository.save(file);
         assertEquals(saved.getId(), saved.getSource().getId());
@@ -192,7 +207,9 @@ public class MediaFileRepositoryTest {
     @Test
     void findByIdAfterDeleteReturnsEmptyOptional() {
         UploadBatch batch = createUploadBatch();
-        MediaFile file = mediaFileRepository.save(new MediaFile("deleteCheck.mp4", FileType.VIDEO, batch));
+        var file2 = new MediaFile("deleteCheck.mp4", FileType.VIDEO, batch);
+        file2.setCreatedAt(Instant.now());
+        MediaFile file = mediaFileRepository.save(file2);
         mediaFileRepository.deleteById(file.getId());
         assertTrue(mediaFileRepository.findById(file.getId()).isEmpty());
     }
@@ -202,6 +219,7 @@ public class MediaFileRepositoryTest {
         UploadBatch batch = createUploadBatch();
         String longFilename = "a".repeat(255) + ".mp4";
         MediaFile file = new MediaFile(longFilename, FileType.VIDEO, batch);
+        file.setCreatedAt(Instant.now());
         MediaFile saved = mediaFileRepository.save(file);
         assertEquals(longFilename, saved.getFilename());
     }
@@ -210,9 +228,12 @@ public class MediaFileRepositoryTest {
     void saveMediaFileWithSourceFromAnotherBatchPersistsSuccessfully() {
         UploadBatch batch1 = createUploadBatch();
         UploadBatch batch2 = createUploadBatch();
-        MediaFile source = mediaFileRepository.save(new MediaFile("source.mp4", FileType.VIDEO, batch1));
+        var file1 = new MediaFile("source.mp4", FileType.VIDEO, batch1);
+        file1.setCreatedAt(Instant.now());
+        MediaFile source = mediaFileRepository.save(file1);
         MediaFile file = new MediaFile("child.mp4", FileType.VIDEO, batch2);
         file.setSource(source);
+        file.setCreatedAt(Instant.now());
         MediaFile saved = mediaFileRepository.save(file);
         assertEquals(source.getId(), saved.getSource().getId());
         assertEquals(batch2.getId(), saved.getUploadBatch().getId());
@@ -222,6 +243,7 @@ public class MediaFileRepositoryTest {
     void saveMediaFileWithNullSourceAndNullUploadedAtUsesDefaultInstant() {
         UploadBatch batch = createUploadBatch();
         MediaFile file = new MediaFile("defaultTime.mp4", FileType.VIDEO, batch);
+        file.setCreatedAt(Instant.now());
         MediaFile saved = mediaFileRepository.save(file);
         assertNotNull(saved.getUploadedAt());
     }
@@ -229,6 +251,7 @@ public class MediaFileRepositoryTest {
     void findByFilenameAndUploadBatchDirectoryReturnsMediaFileWhenExists() {
         UploadBatch batch = createUploadBatch();
         MediaFile file = new MediaFile("unique.mp4", FileType.VIDEO, batch);
+        file.setCreatedAt(Instant.now());
         mediaFileRepository.save(file);
         Optional<MediaFile> found = mediaFileRepository.findByFilenameAndUploadBatchDirectory("unique.mp4", batch.getDirectory());
         assertTrue(found.isPresent());
@@ -247,6 +270,7 @@ public class MediaFileRepositoryTest {
         UploadBatch batch1 = createUploadBatch();
         UploadBatch batch2 = createUploadBatch();
         MediaFile file = new MediaFile("shared.mp4", FileType.VIDEO, batch1);
+        file.setCreatedAt(Instant.now());
         mediaFileRepository.save(file);
         Optional<MediaFile> found = mediaFileRepository.findByFilenameAndUploadBatchDirectory("shared.mp4", batch2.getDirectory());
         assertTrue(found.isEmpty());
@@ -256,10 +280,16 @@ public class MediaFileRepositoryTest {
     void findByUploadBatchIdReturnsCorrectMediaFiles() {
         UploadBatch batch1 = createUploadBatch();
         UploadBatch batch2 = createUploadBatch();
+        MediaFile file = new MediaFile("file1_b1.mp4", FileType.VIDEO, batch1);
+        MediaFile file2 = new MediaFile("file2_b1.mp3", FileType.AUDIO, batch1);
+        MediaFile file3 = new MediaFile("file1_b2.jpg", FileType.IMAGE, batch2);
+        file.setCreatedAt(Instant.now());
+        file2.setCreatedAt(Instant.now());
+        file3.setCreatedAt(Instant.now());
 
-        MediaFile file1Batch1 = mediaFileRepository.save(new MediaFile("file1_b1.mp4", FileType.VIDEO, batch1));
-        MediaFile file2Batch1 = mediaFileRepository.save(new MediaFile("file2_b1.mp3", FileType.AUDIO, batch1));
-        MediaFile file1Batch2 = mediaFileRepository.save(new MediaFile("file1_b2.jpg", FileType.IMAGE, batch2));
+        MediaFile file1Batch1 = mediaFileRepository.save(file);
+        MediaFile file2Batch1 = mediaFileRepository.save(file2);
+        MediaFile file1Batch2 = mediaFileRepository.save(file3);
 
         List<MediaFile> foundFilesForBatch1 = mediaFileRepository.findByUploadBatchId(batch1.getId());
         assertNotNull(foundFilesForBatch1);

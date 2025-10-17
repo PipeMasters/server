@@ -11,6 +11,7 @@ import java.util.List;
 public class MediaFileResponseDto extends BaseDto {
     private String filename;
     private FileType fileType;
+    private Instant createdAt;
     private Instant uploadedAt;
     private MediaFileResponseDto source;
     private Long duration;
@@ -45,6 +46,14 @@ public class MediaFileResponseDto extends BaseDto {
 
     public void setFileType(FileType fileType) {
         this.fileType = fileType;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Instant createdAt) {
+        this.createdAt = createdAt;
     }
 
     public Instant getUploadedAt() {
