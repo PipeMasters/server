@@ -3,6 +3,7 @@ package com.pipemasters.server.service;
 import com.pipemasters.server.dto.request.create.UserCreateDto;
 import com.pipemasters.server.dto.response.UserResponseDto;
 import com.pipemasters.server.dto.request.update.UserUpdateDto;
+import com.pipemasters.server.entity.User;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,4 +16,5 @@ public interface UserService {
     List<UserResponseDto> getUsers();
     UserResponseDto assignUserToBranch(Long userId, Long branchId);
     List<UserResponseDto> getUsersByBranchId(Long branchId);
+    User createAndReturnUser(UserCreateDto dto);
 }

@@ -37,22 +37,7 @@ public class UserServiceImpl implements UserService {
     @CacheEvict(cacheNames = "users", allEntries = true)
     @Transactional
     public UserResponseDto createUser(UserCreateDto dto) {
-        Branch branch = branchRepository.findById(dto.getBranchId())
-                .orElseThrow(() -> new BranchNotFoundException("Branch not found with ID: " + dto.getBranchId()));
-
-        User user = new User();
-        user.setName(dto.getName());
-        user.setSurname(dto.getSurname());
-        user.setPatronymic(dto.getPatronymic());
-        user.setBranch(branch);
-
-        if (user.getRoles() == null || user.getRoles().isEmpty()) {
-            Set<Role> defaultRoles = new HashSet<>();
-            defaultRoles.add(Role.USER);
-            user.setRoles(defaultRoles);
-        }
-
-        return modelMapper.map(userRepository.save(user), UserResponseDto.class);
+        return modelMapper.map(createAndReturnUser(dto), UserResponseDto.class);
     }
 
     @Override
@@ -116,5 +101,25 @@ public class UserServiceImpl implements UserService {
         return userRepository.findByBranchId(branchId).stream()
                 .map(user -> modelMapper.map(user, UserResponseDto.class))
                 .toList();
+    }
+
+    @Override
+    @Transactional
+    public User createAndReturnUser(UserCreateDto dto) {
+        Branch branch = branchRepository.findById(dto.getBranchId())
+                .orElseThrow(() -> new BranchNotFoundException("Branch not found with ID: " + dto.getBranchId()));
+
+        User user = new User();
+        user.setName(dto.getName());
+        user.setSurname(dto.getSurname());
+        user.setPatronymic(dto.getPatronymic());
+        user.setBranch(branch);
+
+        if (dto.getRoles() == null || dto.getRoles().isEmpty()) {
+            user.setRoles(Set.of(Role.USER));
+        } else {
+            user.setRoles(dto.getRoles());
+        }
+        return userRepository.save(user);
     }
 }

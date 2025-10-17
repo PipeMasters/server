@@ -33,6 +33,9 @@ public class User extends BaseEntity {
     @JoinColumn(name = "branch_id")
     private Branch branch;
 
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    private UserAccount userAccount;
+
     public User(String name, String surname, String patronymic, Set<Role> roles, Branch branch) {
         this.name = name;
         this.surname = surname;
@@ -86,6 +89,14 @@ public class User extends BaseEntity {
 
     public String getFullName() {
         return String.join(" ", surname, name, patronymic);
+    }
+
+    public UserAccount getUserAccount() {
+        return userAccount;
+    }
+
+    public void setUserAccount(UserAccount userAccount) {
+        this.userAccount = userAccount;
     }
 
     @Override
