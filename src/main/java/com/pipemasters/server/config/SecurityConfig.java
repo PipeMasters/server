@@ -52,7 +52,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://92.242.60.137"));
+        configuration.setAllowedOrigins(List.of("http://94.25.44.134"));
         configuration.setAllowedOriginPatterns(List.of("http://localhost:*", "https://*.obamus.ru"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(List.of("*"));
