@@ -1,10 +1,21 @@
 package com.pipemasters.server.service.impl;
 
+import com.pipemasters.server.dto.PageDto;
 import com.pipemasters.server.dto.ParsingStatsDto;
+import com.pipemasters.server.dto.request.create.TrainScheduleCreateDto;
+import com.pipemasters.server.dto.request.update.TrainScheduleUpdateDto;
+import com.pipemasters.server.dto.response.TrainScheduleResponseDto;
 import com.pipemasters.server.entity.TrainSchedule;
+import com.pipemasters.server.exceptions.trainSchedule.TrainScheduleNotFoundException;
 import com.pipemasters.server.repository.TrainScheduleRepository;
 import com.pipemasters.server.service.TrainScheduleService;
 import org.apache.poi.ss.usermodel.*;
+import org.modelmapper.ModelMapper;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -25,12 +36,15 @@ public class TrainScheduleServiceImpl implements TrainScheduleService {
 
     private final Logger log = LoggerFactory.getLogger(TrainScheduleServiceImpl.class);
     private final TrainScheduleRepository trainScheduleRepository;
+    private final ModelMapper modelMapper;
 
-    public TrainScheduleServiceImpl(TrainScheduleRepository trainScheduleRepository) {
+    public TrainScheduleServiceImpl(TrainScheduleRepository trainScheduleRepository, ModelMapper modelMapper) {
         this.trainScheduleRepository = trainScheduleRepository;
+        this.modelMapper = modelMapper;
     }
 
     @Override
+    @CacheEvict(value = "trainSchedules", allEntries = true)
     @Transactional
     public ParsingStatsDto parseExcelFile(MultipartFile file) throws IOException {
         log.info("Starting Excel file parsing for file: {}", file.getOriginalFilename());
@@ -300,5 +314,78 @@ public class TrainScheduleServiceImpl implements TrainScheduleService {
 
     private boolean parseFirmness(String firmnessStr) {
         return "Фирменный".equalsIgnoreCase(firmnessStr.trim());
+    }
+
+    @Override
+    @CacheEvict(value = "trainSchedules", allEntries = true)
+    @Transactional
+    public TrainScheduleResponseDto create(TrainScheduleCreateDto requestDto) {
+        log.info("Creating new train schedule for train number: {}", requestDto.getTrainNumber());
+        TrainSchedule trainSchedule = modelMapper.map(requestDto, TrainSchedule.class);
+
+        if (requestDto.getPairTrainId() != null) {
+            TrainSchedule pairTrain = trainScheduleRepository.findById(requestDto.getPairTrainId())
+                    .orElseThrow(() -> new TrainScheduleNotFoundException("Paired train with id " + requestDto.getPairTrainId() + " not found."));
+            trainSchedule.setPairTrain(pairTrain);
+        }
+
+        TrainSchedule savedTrainSchedule = trainScheduleRepository.save(trainSchedule);
+        log.info("Successfully created train schedule with id: {}", savedTrainSchedule.getId());
+        return modelMapper.map(savedTrainSchedule, TrainScheduleResponseDto.class);
+    }
+
+    @Override
+    @Cacheable("trainSchedules")
+    @Transactional(readOnly = true)
+    public PageDto<TrainScheduleResponseDto> getAllPaginated(Pageable pageable) {
+        log.info("Fetching paginated train schedules with pageable: {}", pageable);
+        Page<TrainSchedule> page = trainScheduleRepository.findAll(pageable);
+        List<TrainScheduleResponseDto> dtoList = page.stream()
+                .map(schedule -> modelMapper.map(schedule, TrainScheduleResponseDto.class)).toList();
+
+        return new PageDto<>(dtoList, page.getNumber(), page.getSize(), page.getTotalElements());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public TrainScheduleResponseDto getById(Long id) {
+        log.info("Fetching train schedule with id: {}", id);
+        TrainSchedule trainSchedule = trainScheduleRepository.findById(id)
+                .orElseThrow(() -> new TrainScheduleNotFoundException("Train schedule with id " + id + " not found."));
+        return modelMapper.map(trainSchedule, TrainScheduleResponseDto.class);
+    }
+
+    @Override
+    @CacheEvict(value = "trainSchedules", allEntries = true)
+    @Transactional
+    public TrainScheduleResponseDto update(Long id, TrainScheduleUpdateDto updateDto) {
+        log.info("Updating train schedule with id: {}", id);
+        TrainSchedule existingTrainSchedule = trainScheduleRepository.findById(id)
+                .orElseThrow(() -> new TrainScheduleNotFoundException("Train schedule with id " + id + " not found."));
+
+        modelMapper.map(updateDto, existingTrainSchedule);
+        existingTrainSchedule.setId(id);
+
+        if (updateDto.getPairTrainId() != null) {
+            TrainSchedule pairTrain = trainScheduleRepository.findById(updateDto.getPairTrainId())
+                    .orElseThrow(() -> new TrainScheduleNotFoundException("Paired train with id " + updateDto.getPairTrainId() + " not found."));
+            existingTrainSchedule.setPairTrain(pairTrain);
+        }
+
+        TrainSchedule updatedTrainSchedule = trainScheduleRepository.save(existingTrainSchedule);
+        log.info("Successfully updated train schedule with id: {}", updatedTrainSchedule.getId());
+        return modelMapper.map(updatedTrainSchedule, TrainScheduleResponseDto.class);
+    }
+
+    @Override
+    @CacheEvict(value = "trainSchedules", allEntries = true)
+    @Transactional
+    public void delete(Long id) {
+        log.info("Deleting train schedule with id: {}", id);
+        if (!trainScheduleRepository.existsById(id)) {
+            throw new TrainScheduleNotFoundException("Train schedule with id " + id + " not found for deletion.");
+        }
+        trainScheduleRepository.deleteById(id);
+        log.info("Successfully marked train schedule with id: {} as deleted.", id);
     }
 }

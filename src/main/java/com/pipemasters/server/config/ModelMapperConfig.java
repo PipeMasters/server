@@ -2,14 +2,11 @@ package com.pipemasters.server.config;
 
 import com.pipemasters.server.dto.*;
 import com.pipemasters.server.dto.UploadBatchDtoSmallResponse;
-import com.pipemasters.server.dto.request.BranchRequestDto;
-import com.pipemasters.server.dto.request.DelegationRequestDto;
-import com.pipemasters.server.dto.request.MediaFileRequestDto;
-import com.pipemasters.server.dto.request.UploadBatchRequestDto;
+import com.pipemasters.server.dto.request.*;
+import com.pipemasters.server.dto.request.create.TrainScheduleCreateDto;
 import com.pipemasters.server.dto.request.update.UserUpdateDto;
 import com.pipemasters.server.dto.response.*;
 import com.pipemasters.server.entity.*;
-import org.modelmapper.Conditions;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeMap;
 import org.springframework.context.annotation.Bean;
@@ -43,6 +40,7 @@ public class ModelMapperConfig {
 
         configureFragmentMapping(modelMapper);
         configureTagInstanceMapping(modelMapper);
+        configureTrainScheduleMapping(modelMapper);
 //        configureMediaFileMapping(modelMapper);
 //        configureUploadBatchMapping(modelMapper);
 //        configureVideoAbsenceDtoMapping(modelMapper);
@@ -147,6 +145,19 @@ public class ModelMapperConfig {
             mapper.map(src -> src.getFragment().getId(), TagInstanceResponseDto::setFragmentId);
 
             mapper.map(TagInstance::getId, TagInstanceResponseDto::setId);
+        });
+    }
+
+    private void configureTrainScheduleMapping(ModelMapper modelMapper) {
+        modelMapper.typeMap(TrainScheduleCreateDto.class, TrainSchedule.class)
+                .addMappings(mapper -> {
+                    mapper.skip(TrainSchedule::setId);
+                    mapper.skip(TrainSchedule::setPairTrain);
+                });
+
+        modelMapper.typeMap(TrainSchedule.class, TrainScheduleResponseDto.class).addMappings(mapper -> {
+            mapper.map(src -> src.getPairTrain() != null ? src.getPairTrain().getId() : null,
+                    TrainScheduleResponseDto::setPairTrainId);
         });
     }
 }

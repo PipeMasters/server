@@ -1,9 +1,14 @@
 package com.pipemasters.server.controller;
 
+import com.pipemasters.server.dto.PageDto;
 import com.pipemasters.server.dto.request.TrainRequestDto;
 import com.pipemasters.server.dto.response.TrainResponseDto;
 import com.pipemasters.server.dto.response.UserResponseDto;
 import com.pipemasters.server.service.TrainService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -28,10 +33,18 @@ public class TrainController {
         return new ResponseEntity<>(trainService.getById(id), HttpStatus.OK);
     }
 
-    @GetMapping
+    @GetMapping("/all")
     public ResponseEntity<List<TrainResponseDto>> getAll() {
         return new ResponseEntity<>(trainService.getAll(), HttpStatus.OK);
     }
+
+    @GetMapping
+    public ResponseEntity<Page<TrainResponseDto>> getPaginatedTrains(
+            @PageableDefault(size = 15, sort = "id", direction = Sort.Direction.ASC) Pageable pageable) {
+        PageDto<TrainResponseDto> dtoPage = trainService.getPaginatedTrains(pageable);
+        return new ResponseEntity<>(dtoPage.toPage(pageable), HttpStatus.OK);
+    }
+
 
     @PutMapping("/{id}")
     public ResponseEntity<TrainResponseDto> update(@PathVariable Long id, @RequestBody TrainRequestDto dto) {
