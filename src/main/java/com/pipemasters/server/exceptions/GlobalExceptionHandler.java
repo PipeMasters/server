@@ -15,6 +15,7 @@ import com.pipemasters.server.exceptions.branch.BranchNotFoundException;
 import com.pipemasters.server.exceptions.train.TrainNumberExistsException;
 import com.pipemasters.server.exceptions.trainSchedule.FileReadException;
 import com.pipemasters.server.exceptions.trainSchedule.TrainParsingException;
+import com.pipemasters.server.exceptions.trainSchedule.TrainScheduleNotFoundException;
 import com.pipemasters.server.exceptions.user.UserNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -124,7 +125,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
             BranchNotFoundException ex) {
         log.error("BranchNotFoundException: {}", ex.getMessage());
         return new ResponseEntity<>(createErrorBody(
-                HttpStatus.NOT_FOUND, "Not Found", ex.getMessage()), HttpStatus.NOT_FOUND);
+                HttpStatus.NOT_FOUND, "Branch Not Found", ex.getMessage()), HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler(RuntimeException.class)
@@ -224,6 +225,13 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         log.error("ImotioProcessingException: {}", ex.getMessage(), ex);
         return new ResponseEntity<>(createErrorBody(
                 HttpStatus.INTERNAL_SERVER_ERROR, "Imotio Processing Error", ex.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(TrainScheduleNotFoundException.class)
+    public ResponseEntity<Object> handleTrainScheduleNotFoundException(TrainScheduleNotFoundException ex) {
+        log.error("TrainScheduleNotFoundException: {}", ex.getMessage(), ex);
+        return new ResponseEntity<>(createErrorBody(
+                HttpStatus.NOT_FOUND, "TrainSchedule Not Found", ex.getMessage()), HttpStatus.NOT_FOUND);
     }
 
     private Map<String, Object> createErrorBody(HttpStatus status, String error, String message) {

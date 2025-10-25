@@ -9,4 +9,5 @@ import java.util.Optional;
 public interface TrainScheduleRepository extends GeneralRepository<TrainSchedule, Long> {
     Optional<TrainSchedule> findByTrainNumber(String trainNumber);
     List<TrainSchedule> findByTrainNumberIn(Collection<String> trainNumbers);
+    void deleteById(Long id);
 }

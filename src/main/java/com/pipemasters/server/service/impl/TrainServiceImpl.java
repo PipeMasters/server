@@ -1,5 +1,6 @@
 package com.pipemasters.server.service.impl;
 
+import com.pipemasters.server.dto.PageDto;
 import com.pipemasters.server.dto.request.TrainRequestDto;
 import com.pipemasters.server.dto.response.TrainResponseDto;
 import com.pipemasters.server.dto.response.UserResponseDto;
@@ -17,6 +18,8 @@ import com.pipemasters.server.service.TrainService;
 import org.modelmapper.ModelMapper;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,7 +41,7 @@ public class TrainServiceImpl implements TrainService {
     }
 
     @Override
-    @CacheEvict(cacheNames = "trains", allEntries = true)
+    @CacheEvict(value = {"trains", "trains_pages"}, allEntries = true)
     @Transactional
     public TrainResponseDto save(TrainRequestDto trainDto) {
         if (trainRepository.existsByTrainNumber(trainDto.getTrainNumber())) {
@@ -71,7 +74,20 @@ public class TrainServiceImpl implements TrainService {
     }
 
     @Override
-    @CacheEvict(cacheNames = "trains", allEntries = true)
+    @Cacheable("trains_pages")
+    @Transactional(readOnly = true)
+    public PageDto<TrainResponseDto> getPaginatedTrains(Pageable pageable) {
+        Page<Train> trainPage = trainRepository.findAll(pageable);
+
+        List<TrainResponseDto> dtoList = trainPage.getContent().stream()
+                .map(train -> modelMapper.map(train, TrainResponseDto.class))
+                .toList();
+
+        return new PageDto<>(dtoList, trainPage.getNumber(), trainPage.getSize(), trainPage.getTotalElements());
+    }
+
+    @Override
+    @CacheEvict(value = {"trains", "trains_pages"}, allEntries = true)
     @Transactional
     public TrainResponseDto update(Long id, TrainRequestDto trainDto) {
         Train train = trainRepository.findById(id).orElseThrow(() -> new TrainNotFoundException("Train not found with ID: " + id));
@@ -93,7 +109,7 @@ public class TrainServiceImpl implements TrainService {
     }
 
     @Override
-    @CacheEvict(cacheNames = "trains", allEntries = true)
+    @CacheEvict(value = {"trains", "trains_pages"}, allEntries = true)
     @Transactional
     public void delete(Long id) {
         trainRepository.deleteById(id);
@@ -108,7 +124,7 @@ public class TrainServiceImpl implements TrainService {
     }
 
     @Override
-    @CacheEvict(cacheNames = "trains", allEntries = true)
+    @CacheEvict(value = {"trains", "trains_pages"}, allEntries = true)
     @Transactional
     public TrainResponseDto assignTrainToBranch(Long trainId, Long branchId) {
         Train train = trainRepository.findById(trainId)
@@ -122,7 +138,7 @@ public class TrainServiceImpl implements TrainService {
     }
 
     @Override
-    @CacheEvict(cacheNames = "trains", allEntries = true)
+    @CacheEvict(value = {"trains", "trains_pages"}, allEntries = true)
     @Transactional
     public TrainResponseDto updateTrainChief(Long trainId, Long newChiefId) {
         Train train = trainRepository.findById(trainId)

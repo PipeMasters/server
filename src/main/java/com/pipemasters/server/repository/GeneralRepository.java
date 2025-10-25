@@ -1,5 +1,7 @@
 package com.pipemasters.server.repository;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.data.repository.Repository;
 
@@ -13,6 +15,8 @@ public interface GeneralRepository<T, ID> extends Repository<T, ID> {
     <S extends T> Iterable<S> saveAll(Iterable<S> entities);
 
     List<T> findAll();
+
+    Page<T> findAll(Pageable pageable);
 
     Iterable<T> findAllById(Iterable<ID> ids);
 

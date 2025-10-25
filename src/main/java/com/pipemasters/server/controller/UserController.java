@@ -1,10 +1,15 @@
 package com.pipemasters.server.controller;
 
+import com.pipemasters.server.dto.PageDto;
 import com.pipemasters.server.dto.response.UserResponseDto;
 import com.pipemasters.server.dto.request.create.UserCreateDto;
 import com.pipemasters.server.dto.request.update.UserUpdateDto;
 import com.pipemasters.server.service.UserService;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -39,10 +44,17 @@ public class UserController {
         return ResponseEntity.ok(user);
     }
 
-    @GetMapping
+    @GetMapping("/all")
     public ResponseEntity<List<UserResponseDto>> getUsers() {
         List<UserResponseDto> users = userService.getUsers();
         return ResponseEntity.ok(users);
+    }
+
+    @GetMapping
+    public ResponseEntity<Page<UserResponseDto>> getPaginatedUsers(
+            @PageableDefault(size = 15, sort = "id", direction = Sort.Direction.ASC) Pageable pageable) {
+        PageDto<UserResponseDto> dtoPage = userService.getPaginatedUsers(pageable);
+        return new ResponseEntity<>(dtoPage.toPage(pageable), HttpStatus.OK);
     }
 
     @PutMapping("/{userId}/assignBranch/{branchId}")

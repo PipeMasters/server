@@ -8,6 +8,10 @@ import com.pipemasters.server.config.serializer.PageDtoRedisSerializer;
 import com.pipemasters.server.dto.PageDto;
 import com.pipemasters.server.dto.UploadBatchFilter;
 import com.pipemasters.server.dto.UploadBatchDtoSmallResponse;
+import com.pipemasters.server.dto.response.BranchResponseDto;
+import com.pipemasters.server.dto.response.TrainResponseDto;
+import com.pipemasters.server.dto.response.TrainScheduleResponseDto;
+import com.pipemasters.server.dto.response.UserResponseDto;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cache.interceptor.KeyGenerator;
@@ -64,9 +68,28 @@ public class RedisConfig {
         // Специальный сериализатор для PageDto<UploadBatchResponseDto>
         PageDtoRedisSerializer<UploadBatchDtoSmallResponse> pageDtoSerializer =
                 new PageDtoRedisSerializer<>(redisObjectMapper, UploadBatchDtoSmallResponse.class);
-
         RedisSerializationContext.SerializationPair<PageDto<UploadBatchDtoSmallResponse>> pageDtoSerializationPair =
                 RedisSerializationContext.SerializationPair.fromSerializer(pageDtoSerializer);
+
+        PageDtoRedisSerializer<TrainScheduleResponseDto> trainSchedulePageSerializer =
+                new PageDtoRedisSerializer<>(redisObjectMapper, TrainScheduleResponseDto.class);
+        RedisSerializationContext.SerializationPair<PageDto<TrainScheduleResponseDto>> trainScheduleSerializationPair =
+                RedisSerializationContext.SerializationPair.fromSerializer(trainSchedulePageSerializer);
+
+        PageDtoRedisSerializer<BranchResponseDto> branchPageSerializer =
+                new PageDtoRedisSerializer<>(redisObjectMapper, BranchResponseDto.class);
+        RedisSerializationContext.SerializationPair<PageDto<BranchResponseDto>> branchSerializationPair =
+                RedisSerializationContext.SerializationPair.fromSerializer(branchPageSerializer);
+
+        PageDtoRedisSerializer<TrainResponseDto> trainPageSerializer =
+                new PageDtoRedisSerializer<>(redisObjectMapper, TrainResponseDto.class);
+        RedisSerializationContext.SerializationPair<PageDto<TrainResponseDto>> trainSerializationPair =
+                RedisSerializationContext.SerializationPair.fromSerializer(trainPageSerializer);
+
+        PageDtoRedisSerializer<UserResponseDto> userPageSerializer =
+                new PageDtoRedisSerializer<>(redisObjectMapper, UserResponseDto.class);
+        RedisSerializationContext.SerializationPair<PageDto<UserResponseDto>> userSerializationPair =
+                RedisSerializationContext.SerializationPair.fromSerializer(userPageSerializer);
 
         // Общий конфиг для остальных кешей
         RedisCacheConfiguration defaultCacheConfig = RedisCacheConfiguration.defaultCacheConfig()
@@ -80,9 +103,33 @@ public class RedisConfig {
                 .serializeValuesWith(pageDtoSerializationPair)
                 .disableCachingNullValues();
 
+        RedisCacheConfiguration trainSchedulesCacheConfig = RedisCacheConfiguration.defaultCacheConfig()
+                .entryTtl(Duration.ofMinutes(10))
+                .serializeValuesWith(trainScheduleSerializationPair)
+                .disableCachingNullValues();
+
+        RedisCacheConfiguration branchesCacheConfig = RedisCacheConfiguration.defaultCacheConfig()
+                .entryTtl(Duration.ofMinutes(10))
+                .serializeValuesWith(branchSerializationPair)
+                .disableCachingNullValues();
+
+        RedisCacheConfiguration trainsCacheConfig = RedisCacheConfiguration.defaultCacheConfig()
+                .entryTtl(Duration.ofMinutes(10))
+                .serializeValuesWith(trainSerializationPair)
+                .disableCachingNullValues();
+
+        RedisCacheConfiguration usersPagesCacheConfig = RedisCacheConfiguration.defaultCacheConfig()
+                .entryTtl(Duration.ofMinutes(10))
+                .serializeValuesWith(userSerializationPair)
+                .disableCachingNullValues();
+
         return RedisCacheManager.builder(redisConnectionFactory)
                 .cacheDefaults(defaultCacheConfig)
                 .withCacheConfiguration("filteredBatches", filteredBatchesCacheConfig)
+                .withCacheConfiguration("trainSchedules", trainSchedulesCacheConfig)
+                .withCacheConfiguration("branches_pages", branchesCacheConfig)
+                .withCacheConfiguration("trains_pages", trainsCacheConfig)
+                .withCacheConfiguration("users_pages", usersPagesCacheConfig)
                 .build();
     }
 
