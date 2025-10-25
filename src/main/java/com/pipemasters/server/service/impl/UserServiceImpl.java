@@ -1,5 +1,6 @@
 package com.pipemasters.server.service.impl;
 
+import com.pipemasters.server.dto.PageDto;
 import com.pipemasters.server.dto.response.UserResponseDto;
 import com.pipemasters.server.dto.request.create.UserCreateDto;
 import com.pipemasters.server.dto.request.update.UserUpdateDto;
@@ -14,10 +15,11 @@ import com.pipemasters.server.service.UserService;
 import org.modelmapper.ModelMapper;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -34,14 +36,14 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @CacheEvict(cacheNames = "users", allEntries = true)
+    @CacheEvict(value = {"users", "users_pages"}, allEntries = true)
     @Transactional
     public UserResponseDto createUser(UserCreateDto dto) {
         return modelMapper.map(createAndReturnUser(dto), UserResponseDto.class);
     }
 
     @Override
-    @CacheEvict(cacheNames = "users", allEntries = true)
+    @CacheEvict(value = {"users", "users_pages"}, allEntries = true)
     @Transactional
     public UserResponseDto updateUser(Long userId, UserUpdateDto dto) {
         User user = userRepository.findById(userId)
@@ -73,13 +75,25 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Cacheable("users")
+    @Transactional(readOnly = true)
     public List<UserResponseDto> getUsers() {
         List<User> users = userRepository.findAll();
         return users.stream().map(u -> modelMapper.map(u, UserResponseDto.class)).toList();
     }
 
     @Override
-    @CacheEvict(cacheNames = "users", allEntries = true)
+    @Cacheable("users_pages")
+    @Transactional(readOnly = true)
+    public PageDto<UserResponseDto> getPaginatedUsers(Pageable pageable) {
+        Page<User> userPage = userRepository.findAll(pageable);
+        List<UserResponseDto> dtoList = userPage.getContent().stream()
+                .map(user -> modelMapper.map(user, UserResponseDto.class))
+                .toList();
+        return new PageDto<>(dtoList, userPage.getNumber(), userPage.getSize(), userPage.getTotalElements());
+    }
+
+    @Override
+    @CacheEvict(value = {"users", "users_pages"}, allEntries = true)
     @Transactional
     public UserResponseDto assignUserToBranch(Long userId, Long branchId) {
         User user = userRepository.findById(userId)
@@ -104,6 +118,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @CacheEvict(value = {"users", "users_pages"}, allEntries = true)
     @Transactional
     public User createAndReturnUser(UserCreateDto dto) {
         Branch branch = branchRepository.findById(dto.getBranchId())

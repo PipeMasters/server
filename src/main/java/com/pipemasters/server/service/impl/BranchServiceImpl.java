@@ -1,5 +1,6 @@
 package com.pipemasters.server.service.impl;
 
+import com.pipemasters.server.dto.PageDto;
 import com.pipemasters.server.dto.request.BranchRequestDto;
 import com.pipemasters.server.dto.response.BranchResponseDto;
 import com.pipemasters.server.entity.Branch;
@@ -11,6 +12,8 @@ import com.pipemasters.server.service.BranchService;
 import org.modelmapper.ModelMapper;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,7 +31,7 @@ public class BranchServiceImpl implements BranchService {
     }
 
     @Override
-    @CacheEvict(value = {"branches", "branches_parent","branches_child", "branches_level" }, allEntries = true)
+    @CacheEvict(value = {"branches", "branches_parent","branches_child", "branches_level", "branches_pages"}, allEntries = true)
     @Transactional
     public BranchResponseDto createBranch(BranchRequestDto branchRequestDto) {
         Branch parent = null;
@@ -43,7 +46,7 @@ public class BranchServiceImpl implements BranchService {
     }
 
     @Override
-    @CacheEvict(value = {"branches", "branches_parent","branches_child", "branches_level"}, allEntries = true)
+    @CacheEvict(value = {"branches", "branches_parent","branches_child", "branches_level", "branches_pages"}, allEntries = true)
     @Transactional
     public BranchResponseDto updateBranchName(Long id, String newName) {
         Branch branch = branchRepository.findById(id)
@@ -55,7 +58,7 @@ public class BranchServiceImpl implements BranchService {
     }
 
     @Override
-    @CacheEvict(value = {"branches", "branches_parent","branches_child", "branches_level" }, allEntries = true)
+    @CacheEvict(value = {"branches", "branches_parent","branches_child", "branches_level", "branches_pages"}, allEntries = true)
     @Transactional
     public BranchResponseDto reassignParent(Long id, Long newParentId) {
         Branch branch = branchRepository.findById(id)
@@ -100,6 +103,19 @@ public class BranchServiceImpl implements BranchService {
         return branches.stream()
                 .map(entity -> toDto(entity, includeParent))
                 .toList();
+    }
+
+    @Override
+    @Cacheable("branches_pages")
+    @Transactional(readOnly = true)
+    public PageDto<BranchResponseDto> getPaginatedBranches(boolean includeParent, Pageable pageable) {
+        Page<Branch> page = branchRepository.findAll(pageable);
+
+        List<BranchResponseDto> dtoList = page.getContent().stream()
+                .map(entity -> toDto(entity, includeParent))
+                .toList();
+
+        return new PageDto<>(dtoList, page.getNumber(), page.getSize(), page.getTotalElements());
     }
 
     @Override
