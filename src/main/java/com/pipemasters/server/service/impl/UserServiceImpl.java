@@ -49,18 +49,17 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("User not found with ID: " + userId));
 
-        modelMapper.map(dto, user);
-
-         if (dto.getRoles() != null && !dto.getRoles().isEmpty()) {
-             user.setRoles(dto.getRoles());
-         }
-
-
         if (dto.getBranchId() != null) {
             Branch newBranch = branchRepository.findById(dto.getBranchId())
                     .orElseThrow(() -> new BranchNotFoundException("Branch not found with ID: " + dto.getBranchId()));
             user.setBranch(newBranch);
         }
+
+        modelMapper.map(dto, user);
+
+         if (dto.getRoles() != null && !dto.getRoles().isEmpty()) {
+             user.setRoles(dto.getRoles());
+         }
 
         return modelMapper.map(userRepository.save(user), UserResponseDto.class);
     }
