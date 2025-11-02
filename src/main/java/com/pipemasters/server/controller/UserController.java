@@ -68,4 +68,10 @@ public class UserController {
         List<UserResponseDto> users = userService.getUsersByBranchId(branchId);
         return new ResponseEntity<>(users, HttpStatus.OK);
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        userService.delete(id);
+        return ResponseEntity.noContent().build();
+    }
 }

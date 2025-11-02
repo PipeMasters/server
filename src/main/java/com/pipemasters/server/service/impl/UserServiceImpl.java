@@ -136,4 +136,17 @@ public class UserServiceImpl implements UserService {
         }
         return userRepository.save(user);
     }
+
+    @Override
+    @CacheEvict(value = {"users", "users_pages"}, allEntries = true)
+    @Transactional
+    public void delete(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException("User not found with ID: " + id));
+
+        user.setDeleted(true);
+        userRepository.save(user);
+    }
+
+
 }

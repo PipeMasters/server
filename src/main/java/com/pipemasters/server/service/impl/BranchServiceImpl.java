@@ -159,6 +159,16 @@ public class BranchServiceImpl implements BranchService {
                 .toList();
     }
 
+    @Override
+    @CacheEvict(value = {"branches", "branches_parent","branches_child", "branches_level", "branches_pages"}, allEntries = true)
+    @Transactional
+    public void delete(Long id) {
+        Branch branch = branchRepository.findById(id)
+                .orElseThrow(() -> new BranchNotFoundException("Branch not found with ID: " + id));
+        branch.setDeleted(true);
+        branchRepository.save(branch);
+    }
+
 
     private BranchResponseDto toDto(Branch entity, boolean includeParent) {
         BranchResponseDto dto = modelMapper.map(entity, BranchResponseDto.class);
