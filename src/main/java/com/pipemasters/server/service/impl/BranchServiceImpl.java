@@ -4,6 +4,7 @@ import com.pipemasters.server.dto.PageDto;
 import com.pipemasters.server.dto.request.BranchRequestDto;
 import com.pipemasters.server.dto.response.BranchResponseDto;
 import com.pipemasters.server.entity.Branch;
+import com.pipemasters.server.exceptions.branch.BranchHasChildrenException;
 import com.pipemasters.server.exceptions.branch.BranchNotFoundException;
 import com.pipemasters.server.exceptions.branch.InvalidBranchHierarchyException;
 import com.pipemasters.server.exceptions.branch.InvalidBranchLevelException;
@@ -160,13 +161,20 @@ public class BranchServiceImpl implements BranchService {
     }
 
     @Override
-    @CacheEvict(value = {"branches", "branches_parent","branches_child", "branches_level", "branches_pages"}, allEntries = true)
+    @CacheEvict(value = {"branches", "branches_parent", "branches_child", "branches_level", "branches_pages"}, allEntries = true)
     @Transactional
     public void delete(Long id) {
-        Branch branch = branchRepository.findById(id)
+        Branch branchToDelete = branchRepository.findById(id)
                 .orElseThrow(() -> new BranchNotFoundException("Branch not found with ID: " + id));
-        branch.setDeleted(true);
-        branchRepository.save(branch);
+
+        List<Branch> children = branchRepository.findByParentId(branchToDelete.getId());
+
+        if (children != null && !children.isEmpty()) {
+            throw new BranchHasChildrenException("Cannot delete branch with ID " + id + " because it has active children.");
+        }
+
+        branchToDelete.setDeleted(true);
+        branchRepository.save(branchToDelete);
     }
 
 

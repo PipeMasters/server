@@ -6,6 +6,7 @@ import com.pipemasters.server.dto.request.create.UserCreateDto;
 import com.pipemasters.server.dto.request.update.UserUpdateDto;
 import com.pipemasters.server.entity.Branch;
 import com.pipemasters.server.entity.User;
+import com.pipemasters.server.entity.UserAccount;
 import com.pipemasters.server.entity.enums.Role;
 import com.pipemasters.server.exceptions.branch.BranchNotFoundException;
 import com.pipemasters.server.exceptions.user.UserNotFoundException;
@@ -143,10 +144,13 @@ public class UserServiceImpl implements UserService {
     public void delete(Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException("User not found with ID: " + id));
-
         user.setDeleted(true);
+
+        UserAccount userAccount = user.getUserAccount();
+
+        if (userAccount != null) {
+            userAccount.setDeleted(true);
+        }
         userRepository.save(user);
     }
-
-
 }
