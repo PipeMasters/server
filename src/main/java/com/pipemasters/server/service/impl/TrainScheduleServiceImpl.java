@@ -13,7 +13,6 @@ import org.apache.poi.ss.usermodel.*;
 import org.modelmapper.ModelMapper;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -24,6 +23,7 @@ import com.pipemasters.server.exceptions.trainSchedule.TrainParsingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.Duration;
@@ -37,10 +37,12 @@ public class TrainScheduleServiceImpl implements TrainScheduleService {
     private final Logger log = LoggerFactory.getLogger(TrainScheduleServiceImpl.class);
     private final TrainScheduleRepository trainScheduleRepository;
     private final ModelMapper modelMapper;
+    private final ExcelExportService excelExportService;
 
-    public TrainScheduleServiceImpl(TrainScheduleRepository trainScheduleRepository, ModelMapper modelMapper) {
+    public TrainScheduleServiceImpl(TrainScheduleRepository trainScheduleRepository, ModelMapper modelMapper, ExcelExportService excelExportService) {
         this.trainScheduleRepository = trainScheduleRepository;
         this.modelMapper = modelMapper;
+        this.excelExportService = excelExportService;
     }
 
     @Override
@@ -387,5 +389,14 @@ public class TrainScheduleServiceImpl implements TrainScheduleService {
         }
         trainScheduleRepository.deleteById(id);
         log.info("Successfully marked train schedule with id: {} as deleted.", id);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ByteArrayOutputStream exportSchedulesToExcel() throws IOException {
+        log.info("Starting export of all train schedules to Excel.");
+        List<TrainSchedule> schedules = trainScheduleRepository.findAll();
+        ByteArrayOutputStream outputStream = excelExportService.exportTrainScheduleToExcel(schedules);
+        return outputStream;
     }
 }

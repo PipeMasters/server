@@ -2,6 +2,7 @@ package com.pipemasters.server.entity;
 
 import com.pipemasters.server.entity.enums.Role;
 import jakarta.persistence.*;
+import org.hibernate.annotations.SQLRestriction;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -10,6 +11,7 @@ import java.util.Set;
 @Table(name = "users"
 //        , uniqueConstraints = @UniqueConstraint(columnNames = "ad_sid")
 )
+@SQLRestriction("deleted = false")
 public class User extends BaseEntity {
 
 //    на будущее, для астры и тд.
@@ -35,6 +37,9 @@ public class User extends BaseEntity {
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     private UserAccount userAccount;
+
+    @Column(nullable = false)
+    private boolean deleted = false;
 
     public User(String name, String surname, String patronymic, Set<Role> roles, Branch branch) {
         this.name = name;
@@ -99,14 +104,22 @@ public class User extends BaseEntity {
         this.userAccount = userAccount;
     }
 
+    public boolean isDeleted() {
+        return deleted;
+    }
+
+    public void setDeleted(boolean deleted) {
+        this.deleted = deleted;
+    }
+
     @Override
     public String toString() {
         return "User{" +
-                "name='" + name + '\'' +
+                "id=" + getId() +
+                ", name='" + name + '\'' +
                 ", surname='" + surname + '\'' +
                 ", patronymic='" + patronymic + '\'' +
-                ", roles=" + roles +
-                ", branch=" + branch +
+                ", branchId=" + (branch != null ? branch.getId() : "null") +
                 '}';
     }
 }
