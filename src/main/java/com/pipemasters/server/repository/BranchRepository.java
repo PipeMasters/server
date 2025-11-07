@@ -3,6 +3,7 @@ package com.pipemasters.server.repository;
 import com.pipemasters.server.entity.Branch;
 import org.springframework.data.jpa.repository.Query;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -28,4 +29,6 @@ public interface BranchRepository extends GeneralRepository<Branch, Long> {
         WHERE bh.level = :level
         """, nativeQuery = true)
     List<Branch> findByLevel(int level);
+    List<Branch> findByNameIn(Collection<String> names);
+    List<Branch> findAllByOrderByNameAsc();
 }
