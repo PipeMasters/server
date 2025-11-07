@@ -6,9 +6,11 @@ import com.pipemasters.server.dto.response.MediaFileFragmentsDto;
 import com.pipemasters.server.dto.response.SttFragmentDto;
 import com.pipemasters.server.dto.response.UploadBatchSearchDto;
 import com.pipemasters.server.service.TranscriptFragmentService;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,9 +28,10 @@ public class TranscriptFragmentController {
 
 
     @GetMapping("/search")
-    public ResponseEntity<PageDto<UploadBatchDtoSmallResponse>> search(@RequestParam String q,
-                                                                       @PageableDefault(size = 15, sort = "id", direction = Sort.Direction.ASC) Pageable pageable) {
-        return ResponseEntity.ok(transcriptService.searchUploadBatches(q, pageable));
+    public ResponseEntity<Page<UploadBatchDtoSmallResponse>> search(@RequestParam String q,
+                                                                    @PageableDefault(size = 15, sort = "id", direction = Sort.Direction.ASC) Pageable pageable) {
+        PageDto<UploadBatchDtoSmallResponse> dtoPage = transcriptService.searchUploadBatches(q, pageable);
+        return new ResponseEntity<>(dtoPage.toPage(pageable), HttpStatus.OK);
     }
 
     @GetMapping("/batch/{uploadBatchId}/search")
