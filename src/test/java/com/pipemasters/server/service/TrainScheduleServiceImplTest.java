@@ -2,10 +2,12 @@ package com.pipemasters.server.service;
 
 import com.pipemasters.server.dto.ParsingStatsDto;
 import com.pipemasters.server.entity.TrainSchedule;
-import com.pipemasters.server.exceptions.trainSchedule.FileReadException;
 import com.pipemasters.server.repository.TrainScheduleRepository;
 import com.pipemasters.server.service.impl.TrainScheduleServiceImpl;
-import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -13,18 +15,22 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.modelmapper.ModelMapper;
 import org.springframework.mock.web.MockMultipartFile;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.time.Duration;
 import java.time.LocalTime;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -33,18 +39,22 @@ class TrainScheduleServiceImplTest {
     @Mock
     private TrainScheduleRepository trainScheduleRepository;
 
+    @Mock
+    private ExcelExportService excelExportService;
+
+    @Spy
+    private ModelMapper modelMapper = new ModelMapper();
+
     @InjectMocks
     private TrainScheduleServiceImpl trainScheduleService;
 
     private MockMultipartFile createExcelFile(String[][] data) throws IOException {
         try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
             Sheet sheet = workbook.createSheet("Расписание");
-
             sheet.createRow(0);
-            sheet.createRow(1);
 
             for (int i = 0; i < data.length; i++) {
-                Row row = sheet.createRow(i + 2);
+                Row row = sheet.createRow(i + 1);
                 for (int j = 0; j < data[i].length; j++) {
                     Cell cell = row.createCell(j);
                     cell.setCellValue(data[i][j]);
@@ -66,18 +76,6 @@ class TrainScheduleServiceImplTest {
         };
     }
 
-    private String[][] getInvalidTrainDataEmptyNumber() {
-        return new String[][]{
-                {"", "Скорые", "СПБ", "МСК", "Красная стрела", "РЖД", "09:00", "23:30", "08:30", "Фирменный", "Ежедневно", "Круглогодичный", ""},
-        };
-    }
-
-    private String[][] getInvalidTrainDataBadTimeFormat() {
-        return new String[][]{
-                {"0003В", "Скорые", "СПБ", "НВГ", "Тестовый", "РЖД", "09-00", "12:00", "08:00", "Обычный", "Ежедневно", "Круглогодичный", ""},
-        };
-    }
-
     @Test
     @DisplayName("Should successfully parse and save new train schedules")
     void parseExcelFile_shouldParseAndSaveNewTrains() throws IOException {
@@ -86,16 +84,7 @@ class TrainScheduleServiceImplTest {
                 {"0002Б", "Обычные", "КЗН", "ЕКБ", "Уральский", "РЖД", "15:00", "10:00", "01:00", "Обычный", "Пн,Ср,Пт", "Лето", ""}
         });
 
-        when(trainScheduleRepository.findByTrainNumber(anyString())).thenReturn(Optional.empty());
-
-        when(trainScheduleRepository.saveAll(anyList())).thenAnswer(invocation -> {
-            List<TrainSchedule> savedTrains = invocation.getArgument(0);
-            savedTrains.forEach(ts -> {
-                if (ts.getId() == null) ts.setId(1L);
-            });
-            return savedTrains;
-        });
-
+        when(trainScheduleRepository.findByTrainNumberIn(anySet())).thenReturn(Collections.emptyList());
 
         ParsingStatsDto result = trainScheduleService.parseExcelFile(file);
 
@@ -129,17 +118,17 @@ class TrainScheduleServiceImplTest {
     void parseExcelFile_shouldUpdateExistingTrains() throws IOException {
         String trainNumberToUpdate = "0001А";
         MockMultipartFile file = createExcelFile(new String[][]{
-                {trainNumberToUpdate, "Скорые-Обновленные", "СПБ", "МСК", "Красная стрела-НОВАЯ", "РЖД", "09:15", "23:45", "08:45", "Фирменный", "Ежедневно", "Круглогодичный", ""}
+                {trainNumberToUpdate, "Скорые-Обновленные", "СПБ", "МСК", "Красная стрела-НОВАЯ", "РЖД", "09:15", "23:45", "09:00", "Фирменный", "Ежедневно", "Круглогодичный", ""}
         });
 
         TrainSchedule existingTrain = new TrainSchedule();
+        existingTrain.setId(1L);
         existingTrain.setTrainNumber(trainNumberToUpdate);
         existingTrain.setCategory("Старые скорые");
         existingTrain.setDepartureTime(LocalTime.of(23, 0));
         existingTrain.setFirm(false);
 
-        when(trainScheduleRepository.findByTrainNumber(trainNumberToUpdate)).thenReturn(Optional.of(existingTrain));
-        when(trainScheduleRepository.saveAll(anyList())).thenAnswer(invocation -> invocation.getArgument(0));
+        when(trainScheduleRepository.findByTrainNumberIn(Set.of(trainNumberToUpdate))).thenReturn(List.of(existingTrain));
 
         ParsingStatsDto result = trainScheduleService.parseExcelFile(file);
 
@@ -151,16 +140,15 @@ class TrainScheduleServiceImplTest {
         assertEquals(1, result.getUpdatedRecords());
         assertTrue(result.getErrorMessages().isEmpty());
 
-
         ArgumentCaptor<List<TrainSchedule>> captor = ArgumentCaptor.forClass(List.class);
         verify(trainScheduleRepository, times(1)).saveAll(captor.capture());
         List<TrainSchedule> savedTrains = captor.getValue();
         assertEquals(1, savedTrains.size());
-        assertEquals(existingTrain, savedTrains.get(0));
+        TrainSchedule updatedTrain = savedTrains.get(0);
 
-        assertEquals("Скорые-Обновленные", existingTrain.getCategory());
-        assertEquals(LocalTime.of(23, 45), existingTrain.getDepartureTime());
-        assertTrue(existingTrain.isFirm());
+        assertEquals("Скорые-Обновленные", updatedTrain.getCategory());
+        assertEquals(LocalTime.of(23, 45), updatedTrain.getDepartureTime());
+        assertTrue(updatedTrain.isFirm());
     }
 
     @Test
@@ -172,8 +160,7 @@ class TrainScheduleServiceImplTest {
                 {"0003Ж", "Скорые", "ВЛГ", "ПРМ", "Р", "РЖД", "invalid-time", "12:00", "07:00", "Фирменный", "Ежедневно", "Круглогодичный", ""},
         });
 
-        when(trainScheduleRepository.findByTrainNumber(anyString())).thenReturn(Optional.empty());
-        when(trainScheduleRepository.saveAll(anyList())).thenAnswer(invocation -> invocation.getArgument(0));
+        when(trainScheduleRepository.findByTrainNumberIn(anySet())).thenReturn(Collections.emptyList());
 
         ParsingStatsDto result = trainScheduleService.parseExcelFile(file);
 
@@ -186,8 +173,8 @@ class TrainScheduleServiceImplTest {
         assertFalse(result.getErrorMessages().isEmpty());
         assertEquals(1, result.getErrorMessages().size());
 
-        assertTrue(result.getErrorMessages().get(0).contains("Error parsing row 5: Error when filling in train fields: Incorrect travel time format 'invalid-time'. Expected HH:MM."));
-
+        String expectedErrorMessage = "Error processing row 4 for train 0003Ж: Error when filling in train fields: Incorrect travel time format 'invalid-time'. Expected HH:MM.";
+        assertTrue(result.getErrorMessages().get(0).contains(expectedErrorMessage));
 
         ArgumentCaptor<List<TrainSchedule>> captor = ArgumentCaptor.forClass(List.class);
         verify(trainScheduleRepository, times(1)).saveAll(captor.capture());
@@ -197,13 +184,11 @@ class TrainScheduleServiceImplTest {
     }
 
     @Test
-    @DisplayName("Should throw FileReadException for a malformed Excel file")
-    void parseExcelFile_shouldThrowFileReadExceptionForMalformedFile() throws IOException {
+    @DisplayName("Should throw IOException for a malformed Excel file")
+    void parseExcelFile_shouldThrowIOExceptionForMalformedFile() {
         MockMultipartFile brokenFile = createBrokenExcelFile();
-
-        FileReadException thrown = assertThrows(FileReadException.class, () -> trainScheduleService.parseExcelFile(brokenFile));
-
-        assertTrue(thrown.getMessage().contains("It is not possible to create a Workbook from a file."));
+        IOException thrown = assertThrows(IOException.class, () -> trainScheduleService.parseExcelFile(brokenFile));
+        assertTrue(thrown.getMessage().contains("Failed to parse Excel file."));
         verify(trainScheduleRepository, never()).saveAll(anyList());
     }
 
@@ -213,35 +198,16 @@ class TrainScheduleServiceImplTest {
         MockMultipartFile file = createExcelFile(getValidTrainData());
 
         TrainSchedule train1A = new TrainSchedule();
+        train1A.setId(1L);
         train1A.setTrainNumber("0001А");
-        train1A.setCategory("Скорые");
-        train1A.setDepartureTime(LocalTime.of(23, 30));
-        train1A.setTravelTime(Duration.ofHours(9));
-        train1A.setFirm(true);
 
         TrainSchedule train2A = new TrainSchedule();
+        train2A.setId(2L);
         train2A.setTrainNumber("0002А");
-        train2A.setCategory("Скорые");
-        train2A.setDepartureTime(LocalTime.of(23, 30));
-        train2A.setTravelTime(Duration.ofHours(9));
-        train2A.setFirm(true);
 
-        when(trainScheduleRepository.findByTrainNumber("0001А")).thenReturn(Optional.empty());
-        when(trainScheduleRepository.findByTrainNumber("0002А")).thenReturn(Optional.empty());
-
-        when(trainScheduleRepository.saveAll(anyList())).thenAnswer(invocation -> {
-            List<TrainSchedule> newTrains = invocation.getArgument(0);
-            newTrains.forEach(t -> {
-                if ("0001А".equals(t.getTrainNumber())) {
-                    t.setId(1L);
-                } else if ("0002А".equals(t.getTrainNumber())) {
-                    t.setId(2L);
-                }
-            });
-            return newTrains;
-        });
-
-        when(trainScheduleRepository.findByTrainNumberIn(anySet())).thenReturn(Arrays.asList(train1A, train2A));
+        when(trainScheduleRepository.findByTrainNumberIn(anySet()))
+                .thenReturn(Collections.emptyList())
+                .thenReturn(List.of(train1A, train2A));
 
         ParsingStatsDto result = trainScheduleService.parseExcelFile(file);
 
@@ -251,49 +217,38 @@ class TrainScheduleServiceImplTest {
         assertEquals(0, result.getRecordsWithError());
         assertTrue(result.getErrorMessages().isEmpty());
 
-        verify(trainScheduleRepository, times(2)).saveAll(anyList());
-
-        assertEquals(train2A, train1A.getPairTrain());
-        assertEquals(train1A, train2A.getPairTrain());
-
         ArgumentCaptor<List<TrainSchedule>> captor = ArgumentCaptor.forClass(List.class);
         verify(trainScheduleRepository, times(2)).saveAll(captor.capture());
-        List<TrainSchedule> updatedTrains = captor.getAllValues().get(1);
-        assertEquals(2, updatedTrains.size());
-        assertTrue(updatedTrains.contains(train1A));
-        assertTrue(updatedTrains.contains(train2A));
-    }
 
+        List<TrainSchedule> linkedTrains = captor.getAllValues().get(1);
+        TrainSchedule linkedTrain1 = linkedTrains.stream().filter(t -> t.getTrainNumber().equals("0001А")).findFirst().orElseThrow();
+        TrainSchedule linkedTrain2 = linkedTrains.stream().filter(t -> t.getTrainNumber().equals("0002А")).findFirst().orElseThrow();
+
+        assertNotNull(linkedTrain1.getPairTrain());
+        assertNotNull(linkedTrain2.getPairTrain());
+        assertEquals("0002А", linkedTrain1.getPairTrain().getTrainNumber());
+        assertEquals("0001А", linkedTrain2.getPairTrain().getTrainNumber());
+    }
 
     @Test
     @DisplayName("Should handle missing paired train during linking phase")
     void parseExcelFile_shouldHandleMissingPairedTrain() throws IOException {
         MockMultipartFile file = createExcelFile(new String[][]{
                 {"0001А", "Скорые", "СПБ", "МСК", "Красная стрела", "РЖД", "09:00", "23:30", "08:30", "Фирменный", "Ежедневно", "Круглогодичный", "0002Б"},
-                {"0003В", "Скорые", "КЗН", "ЕКБ", "Тест", "РЖД", "10:00", "12:00", "15:00", "Обычный", "Ежедневно", "Круглогодичный", ""},
+                {"0003В", "Скорые", "КЗН", "ЕКБ", "Тест", "РЖД", "10:00", "12:00", "22:00", "Обычный", "Ежедневно", "Круглогодичный", ""},
         });
 
         TrainSchedule train1A = new TrainSchedule();
-        train1A.setTrainNumber("0001А");
         train1A.setId(1L);
+        train1A.setTrainNumber("0001А");
 
         TrainSchedule train3V = new TrainSchedule();
-        train3V.setTrainNumber("0003В");
         train3V.setId(3L);
+        train3V.setTrainNumber("0003В");
 
-        when(trainScheduleRepository.findByTrainNumber("0001А")).thenReturn(Optional.empty());
-        when(trainScheduleRepository.findByTrainNumber("0003В")).thenReturn(Optional.empty());
-
-        when(trainScheduleRepository.saveAll(anyList())).thenAnswer(invocation -> {
-            List<TrainSchedule> newTrains = invocation.getArgument(0);
-            newTrains.forEach(t -> {
-                if ("0001А".equals(t.getTrainNumber())) t.setId(1L);
-                else if ("0003В".equals(t.getTrainNumber())) t.setId(3L);
-            });
-            return newTrains;
-        });
-
-        when(trainScheduleRepository.findByTrainNumberIn(anySet())).thenReturn(Arrays.asList(train1A, train3V));
+        when(trainScheduleRepository.findByTrainNumberIn(anySet()))
+                .thenReturn(Collections.emptyList())
+                .thenReturn(List.of(train1A, train3V));
 
         ParsingStatsDto result = trainScheduleService.parseExcelFile(file);
 
@@ -302,11 +257,15 @@ class TrainScheduleServiceImplTest {
         assertEquals(2, result.getSuccessfullyParsed());
         assertEquals(1, result.getRecordsWithError());
         assertFalse(result.getErrorMessages().isEmpty());
-        assertTrue(result.getErrorMessages().get(0).contains("Couldn't establish connection for train 0001А: paired train 0002Б not found in the database."));
+        assertTrue(result.getErrorMessages().get(0).contains("Paired train 0002Б not found for train 0001А"));
 
-        verify(trainScheduleRepository, times(1)).saveAll(anyList());
+        verify(trainScheduleRepository, times(1)).saveAll(any());
 
-        assertNull(train1A.getPairTrain());
+        ArgumentCaptor<List<TrainSchedule>> captor = ArgumentCaptor.forClass(List.class);
+        verify(trainScheduleRepository, times(1)).saveAll(captor.capture());
+
+        TrainSchedule savedTrain1A = captor.getValue().stream().filter(t -> t.getTrainNumber().equals("0001А")).findFirst().orElseThrow();
+        assertNull(savedTrain1A.getPairTrain());
     }
 
     @Test
@@ -331,7 +290,7 @@ class TrainScheduleServiceImplTest {
         existingTrain.setPeriodicity("Ежедневно");
         existingTrain.setSeasonality("Круглогодичный");
 
-        when(trainScheduleRepository.findByTrainNumber(trainNumber)).thenReturn(Optional.of(existingTrain));
+        when(trainScheduleRepository.findByTrainNumberIn(Set.of(trainNumber))).thenReturn(List.of(existingTrain));
 
         ParsingStatsDto result = trainScheduleService.parseExcelFile(file);
 
@@ -343,6 +302,6 @@ class TrainScheduleServiceImplTest {
         assertEquals(0, result.getUpdatedRecords());
         assertTrue(result.getErrorMessages().isEmpty());
 
-        verify(trainScheduleRepository, never()).saveAll(argThat(list -> list.equals(existingTrain)));
+        verify(trainScheduleRepository, never()).saveAll(any());
     }
 }
