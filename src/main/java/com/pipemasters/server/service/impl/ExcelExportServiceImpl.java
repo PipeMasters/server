@@ -29,8 +29,8 @@ public class ExcelExportServiceImpl implements ExcelExportService {
 
             String[] headers = {
                     "Номер поезда", "Категория", "Станция отправления", "Станция прибытия",
-                    "Пользовательское имя", "Информация о ЖД", "Время в пути (ЧЧ:ММ)", "Время отправления",
-                    "Время прибытия", "Фирменный", "Периодичность", "Сезонность", "Парный поезд"
+                    "Инд. наименование", "Жд администрация, перевозчик, филиал", "Время в пути", "Время отправления",
+                    "Время прибытия", "Фирменность", "Периодичность", "Сезонность", "№ парного поезда"
             };
 
             Font headerFont = workbook.createFont();
@@ -57,7 +57,7 @@ public class ExcelExportServiceImpl implements ExcelExportService {
                 row.createCell(6).setCellValue(formatDuration(schedule.getTravelTime()));
                 row.createCell(7).setCellValue(formatLocalTime(schedule.getDepartureTime()));
                 row.createCell(8).setCellValue(formatLocalTime(schedule.getArrivalTime()));
-                row.createCell(9).setCellValue(schedule.isFirm() ? "Да" : "Нет");
+                row.createCell(9).setCellValue(schedule.isFirm() ? "Фирменный" : "Не фирменный");
                 row.createCell(10).setCellValue(schedule.getPeriodicity());
                 row.createCell(11).setCellValue(schedule.getSeasonality());
 
