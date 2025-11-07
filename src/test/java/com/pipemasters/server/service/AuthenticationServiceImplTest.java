@@ -7,7 +7,7 @@ import com.pipemasters.server.dto.response.AuthenticationResponseDto;
 import com.pipemasters.server.entity.User;
 import com.pipemasters.server.entity.UserAccount;
 import com.pipemasters.server.repository.UserAccountRepository;
-import com.pipemasters.server.service.impl.AuthenticationService;
+import com.pipemasters.server.service.impl.AuthenticationServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -27,7 +27,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class AuthenticationServiceTest {
+class AuthenticationServiceImplTest {
 
     @Mock
     private UserService userService;
@@ -42,11 +42,11 @@ class AuthenticationServiceTest {
     @Mock
     private ModelMapper modelMapper;
 
-    private AuthenticationService authenticationService;
+    private AuthenticationServiceImpl authenticationServiceImpl;
 
     @BeforeEach
     void setUp() {
-        authenticationService = new AuthenticationService(
+        authenticationServiceImpl = new AuthenticationServiceImpl(
                 userService,
                 userAccountRepository,
                 passwordEncoder,
@@ -78,7 +78,7 @@ class AuthenticationServiceTest {
         when(passwordEncoder.encode(request.getPassword())).thenReturn(encodedPassword);
         when(jwtService.generateToken(any(UserAccount.class))).thenReturn(expectedToken);
 
-        AuthenticationResponseDto response = authenticationService.register(request);
+        AuthenticationResponseDto response = authenticationServiceImpl.register(request);
 
         assertNotNull(response);
         assertEquals(expectedToken, response.getToken());
@@ -102,7 +102,7 @@ class AuthenticationServiceTest {
         when(userAccountRepository.findByUsername(request.getUsername())).thenReturn(Optional.of(userAccount));
         when(jwtService.generateToken(userAccount)).thenReturn(expectedToken);
 
-        AuthenticationResponseDto response = authenticationService.login(request);
+        AuthenticationResponseDto response = authenticationServiceImpl.login(request);
 
         assertNotNull(response);
         assertEquals(expectedToken, response.getToken());
@@ -119,7 +119,7 @@ class AuthenticationServiceTest {
         doThrow(new BadCredentialsException("Bad credentials"))
                 .when(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
 
-        assertThrows(BadCredentialsException.class, () -> authenticationService.login(request));
+        assertThrows(BadCredentialsException.class, () -> authenticationServiceImpl.login(request));
 
         verify(jwtService, never()).generateToken(any());
     }

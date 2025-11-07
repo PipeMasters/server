@@ -1,6 +1,7 @@
 package com.pipemasters.server.entity;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.SQLRestriction;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -10,6 +11,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "user_accounts")
+@SQLRestriction("deleted = false")
 public class UserAccount extends BaseEntity implements UserDetails {
 
     @Column(unique = true, nullable = false)
@@ -21,6 +23,9 @@ public class UserAccount extends BaseEntity implements UserDetails {
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     private User user;
+
+    @Column(nullable = false)
+    private boolean deleted = false;
 
     public UserAccount(String username, String password, User user) {
         this.username = username;
@@ -60,5 +65,13 @@ public class UserAccount extends BaseEntity implements UserDetails {
 
     public void setUser(User user) {
         this.user = user;
+    }
+
+    public boolean isDeleted() {
+        return deleted;
+    }
+
+    public void setDeleted(boolean deleted) {
+        this.deleted = deleted;
     }
 }

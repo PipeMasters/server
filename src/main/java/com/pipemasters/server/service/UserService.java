@@ -21,4 +21,5 @@ public interface UserService {
     UserResponseDto assignUserToBranch(Long userId, Long branchId);
     List<UserResponseDto> getUsersByBranchId(Long branchId);
     User createAndReturnUser(UserCreateDto dto);
+    void delete(Long id);
 }

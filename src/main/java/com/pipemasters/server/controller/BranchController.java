@@ -96,4 +96,10 @@ public class BranchController {
             @PathVariable int level) {
         return ResponseEntity.ok(branchService.getBranchesByLevel(level));
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        branchService.delete(id);
+        return ResponseEntity.noContent().build();
+    }
 }
