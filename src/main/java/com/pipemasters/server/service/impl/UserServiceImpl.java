@@ -2,6 +2,7 @@ package com.pipemasters.server.service.impl;
 
 import com.pipemasters.server.dto.PageDto;
 import com.pipemasters.server.dto.ParsingStatsDto;
+import com.pipemasters.server.dto.request.RegisterRequestDto;
 import com.pipemasters.server.dto.response.UserResponseDto;
 import com.pipemasters.server.dto.request.create.UserCreateDto;
 import com.pipemasters.server.dto.request.update.UserUpdateDto;
@@ -20,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -39,12 +41,14 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final BranchRepository branchRepository;
     private final ExcelExportService excelExportService;
+    private final AuthenticationService authenticationService;
     private final ModelMapper modelMapper;
 
-    public UserServiceImpl(UserRepository userRepository, BranchRepository branchRepository, ExcelExportService excelExportService, ModelMapper modelMapper) {
+    public UserServiceImpl(UserRepository userRepository, BranchRepository branchRepository, ExcelExportService excelExportService, @Lazy AuthenticationService authenticationService, ModelMapper modelMapper) {
         this.userRepository = userRepository;
         this.branchRepository = branchRepository;
         this.excelExportService = excelExportService;
+        this.authenticationService = authenticationService;
         this.modelMapper = modelMapper;
     }
 
@@ -170,118 +174,105 @@ public class UserServiceImpl implements UserService {
         try (InputStream is = file.getInputStream()) {
             Workbook workbook = WorkbookFactory.create(is);
             Sheet sheet = workbook.getSheetAt(0);
-            log.debug("Processing sheet '{}'. Last row number: {}", sheet.getSheetName(), sheet.getLastRowNum());
 
             for (Row row : sheet) {
-                if (row.getRowNum() < 3) {
+                if (row.getRowNum() < 1 || row.getCell(0) == null || getCellValueAsString(row.getCell(0), formatter).trim().isEmpty()) {
                     continue;
                 }
-
-                if (row.getCell(0) == null || getCellValueAsString(row.getCell(0), formatter).trim().isEmpty()) {
-                    continue;
-                }
-
                 totalRecords++;
                 try {
                     Map<String, String> rowData = new HashMap<>();
-
-                    String surname = getCellValueAsString(row.getCell(0), formatter);
-                    String name = getCellValueAsString(row.getCell(1), formatter);
-                    String patronymic = getCellValueAsString(row.getCell(2), formatter);
+                    rowData.put("surname", getCellValueAsString(row.getCell(0), formatter));
+                    rowData.put("name", getCellValueAsString(row.getCell(1), formatter));
+                    rowData.put("patronymic", getCellValueAsString(row.getCell(2), formatter));
                     String branchName = getCellValueAsString(row.getCell(3), formatter);
-                    String roles = getCellValueAsString(row.getCell(4), formatter);
+                    rowData.put("branchName", branchName);
+                    rowData.put("roles", getCellValueAsString(row.getCell(4), formatter));
+                    rowData.put("username", getCellValueAsString(row.getCell(5), formatter));
+                    rowData.put("password", getCellValueAsString(row.getCell(6), formatter));
 
-                    if (surname.isEmpty() || name.isEmpty()) {
+                    if (rowData.get("surname").isEmpty() || rowData.get("name").isEmpty()) {
                         throw new UserParsingException("Surname and Name cannot be empty.");
                     }
-
-                    rowData.put("surname", surname);
-                    rowData.put("name", name);
-                    rowData.put("patronymic", patronymic);
-                    rowData.put("branchName", branchName);
-                    rowData.put("roles", roles);
-
                     fileData.add(rowData);
-                    if (!branchName.isEmpty()) {
-                        branchNamesFromFile.add(branchName);
-                    }
+                    if (!branchName.isEmpty()) branchNamesFromFile.add(branchName);
                 } catch (Exception e) {
                     recordsWithError++;
-                    String errorMessage = "Error reading row " + (row.getRowNum() + 1) + ": " + e.getMessage();
-                    errorMessages.add(errorMessage);
-                    log.error(errorMessage, e);
+                    errorMessages.add("Error reading row " + (row.getRowNum() + 1) + ": " + e.getMessage());
                 }
             }
+        }
 
-            log.info("Finished reading file. Rows to process: {}. Unique branch names: {}", totalRecords, branchNamesFromFile.size());
+        Map<String, Branch> branchesMap = branchRepository.findByNameIn(branchNamesFromFile)
+                .stream().collect(Collectors.toMap(Branch::getName, Function.identity()));
+        Map<String, User> existingUsersMap = userRepository.findAll().stream()
+                .collect(Collectors.toMap(u -> generateUserKey(u.getSurname(), u.getName(), u.getPatronymic()), Function.identity(), (e, r) -> e));
+        existingRecordsInDbFound = existingUsersMap.size();
 
-            Map<String, Branch> branchesMap = branchRepository.findByNameIn(branchNamesFromFile)
-                    .stream().collect(Collectors.toMap(Branch::getName, Function.identity()));
-            log.debug("Found {} existing branches from the file list.", branchesMap.size());
+        List<User> usersToUpdate = new ArrayList<>();
+        for (Map<String, String> rowData : fileData) {
+            String userIdentifier = rowData.get("surname") + " " + rowData.get("name");
+            try {
+                String key = generateUserKey(rowData.get("surname"), rowData.get("name"), rowData.get("patronymic"));
+                User existingUser = existingUsersMap.get(key);
 
-            Map<String, User> existingUsersMap = userRepository.findAll().stream()
-                    .collect(Collectors.toMap(
-                            u -> generateUserKey(u.getSurname(), u.getName(), u.getPatronymic()),
-                            Function.identity(),
-                            (existing, replacement) -> {
-                                log.warn("Duplicate user found in DB for key: '{}'. Using the first one found (ID: {}).",
-                                        generateUserKey(existing.getSurname(), existing.getName(), existing.getPatronymic()), existing.getId());
-                                return existing;
-                            }
-                    ));
-            log.debug("Loaded {} unique users from DB for comparison.", existingUsersMap.size());
+                Branch branch = null;
+                String branchName = rowData.get("branchName");
+                if (!branchName.isEmpty()) {
+                    branch = branchesMap.get(branchName);
+                    if (branch == null) throw new UserParsingException("Branch '" + branchName + "' not found.");
+                }
 
-            List<User> usersToSaveOrUpdate = new ArrayList<>();
+                Set<Role> roles = parseRoles(rowData.get("roles"));
 
-            for(Map<String, String> rowData : fileData) {
-                String userIdentifier = rowData.get("surname") + " " + rowData.get("name");
-                try {
-                    String key = generateUserKey(rowData.get("surname"), rowData.get("name"), rowData.get("patronymic"));
-                    User existingUser = existingUsersMap.get(key);
-
-                    Branch branch = null;
-                    String branchName = rowData.get("branchName");
-                    if (!branchName.isEmpty()) {
-                        branch = branchesMap.get(branchName);
-                        if (branch == null) {
-                            throw new UserParsingException("Branch '" + branchName + "' not found.");
-                        }
+                if (existingUser != null) {
+                    boolean isChanged = false;
+                    if (!Objects.equals(existingUser.getBranch(), branch)) {
+                        isChanged = true;
+                        existingUser.setBranch(branch);
+                    }
+                    if (!existingUser.getRoles().equals(roles)) {
+                        isChanged = true;
+                        existingUser.setRoles(roles);
                     }
 
-                    Set<Role> roles = parseRoles(rowData.get("roles"));
+                    if (isChanged) {
+                        usersToUpdate.add(existingUser);
+                        updatedRecords++;
+                    }
+                } else {
+                    String username = rowData.get("username");
+                    String password = rowData.get("password");
 
-                    if (existingUser != null) {
-                        if (!existingUsersMap.containsKey(key)) existingRecordsInDbFound++;
+                    if (username == null || username.isEmpty() || password == null || password.isEmpty()) {
+                        throw new UserParsingException("Username and Password are required for new user: " + userIdentifier);
+                    }
 
-                        boolean isChanged = false;
-                        if (!Objects.equals(existingUser.getBranch(), branch)) { isChanged = true; existingUser.setBranch(branch); }
-                        if (!existingUser.getRoles().equals(roles)) { isChanged = true; existingUser.setRoles(roles); }
-
-                        if(isChanged) {
-                            usersToSaveOrUpdate.add(existingUser);
-                            updatedRecords++;
-                            log.debug("User '{}' marked for update.", key);
-                        }
+                    RegisterRequestDto registerRequest = new RegisterRequestDto();
+                    registerRequest.setName(rowData.get("name"));
+                    registerRequest.setSurname(rowData.get("surname"));
+                    registerRequest.setPatronymic(rowData.get("patronymic"));
+                    registerRequest.setUsername(username);
+                    registerRequest.setPassword(password);
+                    registerRequest.setRoles(roles);
+                    if (branch != null) {
+                        registerRequest.setBranchId(branch.getId());
                     } else {
-                        User newUser = new User(rowData.get("name"), rowData.get("surname"), rowData.get("patronymic"), roles, branch);
-                        usersToSaveOrUpdate.add(newUser);
-                        successfullyParsedNew++;
-                        log.debug("New user '{}' prepared for creation.", key);
+                        throw new UserParsingException("Branch is required for new user: " + userIdentifier);
                     }
-                } catch (Exception e) {
-                    recordsWithError++;
-                    errorMessages.add("Failed to process user '" + userIdentifier + "': " + e.getMessage());
+
+                    authenticationService.registerFromImport(registerRequest);
+                    successfullyParsedNew++;
                 }
+            } catch (Exception e) {
+                recordsWithError++;
+                errorMessages.add("Failed to process user '" + userIdentifier + "': " + e.getMessage());
             }
+        }
 
-            if (!usersToSaveOrUpdate.isEmpty()) {
-                userRepository.saveAll(usersToSaveOrUpdate);
-                log.info("{} users were saved or updated in the database.", usersToSaveOrUpdate.size());
-            }
-
-        } catch (IOException e) {
-            log.error("Failed to read or process the Excel file: {}", e.getMessage(), e);
-            throw e;
+        if (!usersToUpdate.isEmpty()) {
+            userRepository.saveAll(usersToUpdate);
+            log.info("{} users were updated in the database.", usersToUpdate.size());
         }
 
         return new ParsingStatsDto(totalRecords, successfullyParsedNew, recordsWithError, existingRecordsInDbFound, updatedRecords, errorMessages);
@@ -308,7 +299,6 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(readOnly = true)
     public ByteArrayOutputStream exportUsersToExcel() throws IOException {
-        log.info("Starting export of all users to Excel.");
         List<User> users = userRepository.findAllWithBranch();
         log.debug("Found {} users to export.", users.size());
 

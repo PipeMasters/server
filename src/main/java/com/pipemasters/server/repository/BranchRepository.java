@@ -30,5 +30,5 @@ public interface BranchRepository extends GeneralRepository<Branch, Long> {
         """, nativeQuery = true)
     List<Branch> findByLevel(int level);
     List<Branch> findByNameIn(Collection<String> names);
-    List<Branch> findAllByOrderByIdAsc();
+    List<Branch> findAllByOrderByNameAsc();
 }

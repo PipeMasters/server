@@ -196,7 +196,7 @@ public class BranchServiceImpl implements BranchService {
             log.debug("Processing sheet '{}'. Last row number: {}", sheet.getSheetName(), sheet.getLastRowNum());
 
             for (Row row : sheet) {
-                if (row.getRowNum() < 3) {
+                if (row.getRowNum() < 1) {
                     continue;
                 }
 
@@ -312,13 +312,9 @@ public class BranchServiceImpl implements BranchService {
     @Override
     @Transactional(readOnly = true)
     public ByteArrayOutputStream exportBranchesToExcel() throws IOException {
-        log.info("Starting export of all branches to Excel.");
-        List<Branch> branches = branchRepository.findAllByOrderByIdAsc();
+        List<Branch> branches = branchRepository.findAllByOrderByNameAsc();
         log.debug("Found {} branches to export.", branches.size());
-
         ByteArrayOutputStream outputStream = excelExportService.exportBranchesToExcel(branches);
-        log.info("Excel file successfully created in memory.");
-
         return outputStream;
     }
 

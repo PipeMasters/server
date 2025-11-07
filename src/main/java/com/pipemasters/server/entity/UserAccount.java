@@ -22,6 +22,9 @@ public class UserAccount extends BaseEntity implements UserDetails {
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     private User user;
 
+    @Column(nullable = false)
+    private boolean deleted = false;
+
     public UserAccount(String username, String password, User user) {
         this.username = username;
         this.password = password;
@@ -60,5 +63,13 @@ public class UserAccount extends BaseEntity implements UserDetails {
 
     public void setUser(User user) {
         this.user = user;
+    }
+
+    public boolean isDeleted() {
+        return deleted;
+    }
+
+    public void setDeleted(boolean deleted) {
+        this.deleted = deleted;
     }
 }

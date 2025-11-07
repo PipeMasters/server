@@ -10,4 +10,7 @@ public interface TrainScheduleRepository extends GeneralRepository<TrainSchedule
     Optional<TrainSchedule> findByTrainNumber(String trainNumber);
     List<TrainSchedule> findByTrainNumberIn(Collection<String> trainNumbers);
     void deleteById(Long id);
+    List<TrainSchedule> findByPairTrainIdIn(Collection<Long> ids);
+    void deleteAllByIdInBatch(Iterable<Long> ids);
+    List<TrainSchedule> findAllByOrderByTrainNumberAsc();
 }

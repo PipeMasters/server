@@ -78,7 +78,7 @@ public class ExcelExportService {
         try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
             Sheet sheet = workbook.createSheet("Филиалы");
 
-            String[] headers = {"ID", "Название", "Родительский филиал"};
+            String[] headers = {"Название", "Родительский филиал"};
 
             Font headerFont = workbook.createFont();
             headerFont.setBold(true);
@@ -95,13 +95,12 @@ public class ExcelExportService {
             int rowNum = 1;
             for (Branch branch : branches) {
                 Row row = sheet.createRow(rowNum++);
-                row.createCell(0).setCellValue(branch.getId());
-                row.createCell(1).setCellValue(branch.getName());
+                row.createCell(0).setCellValue(branch.getName());
 
                 String parentName = Optional.ofNullable(branch.getParent())
                         .map(Branch::getName)
                         .orElse("");
-                row.createCell(2).setCellValue(parentName);
+                row.createCell(1).setCellValue(parentName);
             }
 
             for (int i = 0; i < headers.length; i++) {
@@ -117,7 +116,7 @@ public class ExcelExportService {
         try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
             Sheet sheet = workbook.createSheet("Пользователи");
 
-            String[] headers = {"ID", "Фамилия", "Имя", "Отчество", "Филиал", "Роли"};
+            String[] headers = {"Фамилия", "Имя", "Отчество", "Филиал", "Роли"};
 
             Font headerFont = workbook.createFont();
             headerFont.setBold(true);
@@ -134,22 +133,21 @@ public class ExcelExportService {
             int rowNum = 1;
             for (User user : users) {
                 Row row = sheet.createRow(rowNum++);
-                row.createCell(0).setCellValue(user.getId());
-                row.createCell(1).setCellValue(user.getSurname());
-                row.createCell(2).setCellValue(user.getName());
-                row.createCell(3).setCellValue(user.getPatronymic());
+                row.createCell(0).setCellValue(user.getSurname());
+                row.createCell(1).setCellValue(user.getName());
+                row.createCell(2).setCellValue(user.getPatronymic());
 
                 String branchName = Optional.ofNullable(user.getBranch())
                         .map(Branch::getName)
                         .orElse("");
-                row.createCell(4).setCellValue(branchName);
+                row.createCell(3).setCellValue(branchName);
 
                 String roles = Optional.ofNullable(user.getRoles())
                         .orElse(Collections.emptySet())
                         .stream()
                         .map(Role::name)
                         .collect(Collectors.joining(", "));
-                row.createCell(5).setCellValue(roles);
+                row.createCell(4).setCellValue(roles);
             }
 
             for (int i = 0; i < headers.length; i++) {
