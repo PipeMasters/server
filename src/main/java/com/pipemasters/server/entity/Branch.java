@@ -77,8 +77,7 @@ public class Branch extends BaseEntity {
         return "Branch{" +
                 "id=" + getId() +
                 ", name='" + name + '\'' +
-                ", parent=" + parent +
-                ", users=" + users +
+                ", parentId=" + (parent != null ? parent.getId() : "null") +
                 '}';
     }
 }

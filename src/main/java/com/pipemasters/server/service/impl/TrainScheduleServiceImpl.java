@@ -8,12 +8,12 @@ import com.pipemasters.server.dto.response.TrainScheduleResponseDto;
 import com.pipemasters.server.entity.TrainSchedule;
 import com.pipemasters.server.exceptions.trainSchedule.TrainScheduleNotFoundException;
 import com.pipemasters.server.repository.TrainScheduleRepository;
+import com.pipemasters.server.service.ExcelExportService;
 import com.pipemasters.server.service.TrainScheduleService;
 import org.apache.poi.ss.usermodel.*;
 import org.modelmapper.ModelMapper;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -24,12 +24,15 @@ import com.pipemasters.server.exceptions.trainSchedule.TrainParsingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.Duration;
 import java.time.LocalTime;
 import java.time.format.DateTimeParseException;
 import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 public class TrainScheduleServiceImpl implements TrainScheduleService {
@@ -37,10 +40,12 @@ public class TrainScheduleServiceImpl implements TrainScheduleService {
     private final Logger log = LoggerFactory.getLogger(TrainScheduleServiceImpl.class);
     private final TrainScheduleRepository trainScheduleRepository;
     private final ModelMapper modelMapper;
+    private final ExcelExportService excelExportService;
 
-    public TrainScheduleServiceImpl(TrainScheduleRepository trainScheduleRepository, ModelMapper modelMapper) {
+    public TrainScheduleServiceImpl(TrainScheduleRepository trainScheduleRepository, ModelMapper modelMapper, ExcelExportService excelExportService) {
         this.trainScheduleRepository = trainScheduleRepository;
         this.modelMapper = modelMapper;
+        this.excelExportService = excelExportService;
     }
 
     @Override
@@ -49,171 +54,123 @@ public class TrainScheduleServiceImpl implements TrainScheduleService {
     public ParsingStatsDto parseExcelFile(MultipartFile file) throws IOException {
         log.info("Starting Excel file parsing for file: {}", file.getOriginalFilename());
 
-        List<TrainSchedule> trainsToSaveOrUpdate = new ArrayList<>();
         List<String> errorMessages = new ArrayList<>();
-
-        int totalRecords = 0;
-        int successfullyParsedNew = 0;
-        int recordsWithError = 0;
-        int existingRecordsInDbFound = 0;
-        int updatedRecords = 0;
-
+        int totalRecords = 0, successfullyParsedNew = 0, recordsWithError = 0, existingRecordsInDbFound = 0, updatedRecords = 0;
         Map<String, String> pairedTrainNumbersMap = new HashMap<>();
         Set<String> allRelatedTrainNumbers = new HashSet<>();
-
         DataFormatter formatter = new DataFormatter();
 
         try (InputStream is = file.getInputStream()) {
-            Workbook workbook;
-            try {
-                workbook = WorkbookFactory.create(is);
-            } catch (Exception e) {
-                log.error("Failed to create Workbook from file: {}. File might be corrupted or has an unsupported format.", file.getOriginalFilename(), e);
-                throw new FileReadException("It is not possible to create a Workbook from a file. The file may be corrupted or has an unsupported format.", e);
-            }
-
+            Workbook workbook = WorkbookFactory.create(is);
             Sheet sheet = workbook.getSheetAt(0);
-            log.debug("Processing sheet at index 0. Last row number: {}", sheet.getLastRowNum());
+            int rowStart = sheet.getFirstRowNum() + 1;
 
-            int rowStart = sheet.getFirstRowNum();
-            if (sheet.getPhysicalNumberOfRows() > 2) {
-                rowStart += 2;
-            }
-
+            Set<String> trainNumbersFromFile = new HashSet<>();
             for (int rowNum = rowStart; rowNum <= sheet.getLastRowNum(); rowNum++) {
                 Row row = sheet.getRow(rowNum);
-
-                if (row == null) {
-                    log.trace("Skipping null row: {}", rowNum + 1);
-                    continue;
+                if (row != null && row.getCell(0) != null) {
+                    String trainNumber = getCellValueAsString(row.getCell(0), formatter);
+                    if (!trainNumber.isEmpty()) {
+                        trainNumbersFromFile.add(trainNumber);
+                    }
                 }
+            }
 
-                Cell firstCell = row.getCell(0);
+            Map<String, TrainSchedule> existingTrainsMap = new HashMap<>();
+            if (!trainNumbersFromFile.isEmpty()) {
+                existingTrainsMap = trainScheduleRepository.findByTrainNumberIn(trainNumbersFromFile)
+                        .stream()
+                        .collect(Collectors.toMap(TrainSchedule::getTrainNumber, Function.identity()));
+            }
 
-                if (firstCell == null || getCellValueAsString(firstCell, formatter).trim().isEmpty()) {
-                    log.trace("Skipping empty or blank row (first cell is null or empty after trim): {}", rowNum + 1);
+            List<TrainSchedule> trainsToSaveOrUpdate = new ArrayList<>();
+            for (int rowNum = rowStart; rowNum <= sheet.getLastRowNum(); rowNum++) {
+                Row row = sheet.getRow(rowNum);
+                if (row == null || row.getCell(0) == null || getCellValueAsString(row.getCell(0), formatter).isEmpty()) {
                     continue;
                 }
 
                 totalRecords++;
+                String currentTrainNumberStr = getCellValueAsString(row.getCell(0), formatter);
 
                 try {
-                    String currentTrainNumberStr = getCellValueAsString(firstCell, formatter);
-                    log.trace("Row {}: Train number found: {}", rowNum + 1, currentTrainNumberStr);
-
-
-                    if (currentTrainNumberStr.isEmpty()) {
-                        throw new TrainParsingException("The train number cannot be empty.");
-                    }
                     allRelatedTrainNumbers.add(currentTrainNumberStr);
-
                     String pairedTrainNumberStr = getCellValueAsString(row.getCell(12), formatter);
                     if (!pairedTrainNumberStr.isEmpty()) {
                         pairedTrainNumbersMap.put(currentTrainNumberStr, pairedTrainNumberStr);
                         allRelatedTrainNumbers.add(pairedTrainNumberStr);
-                        log.debug("Row {}: Paired train number {} found for train {}.", rowNum + 1, pairedTrainNumberStr, currentTrainNumberStr);
                     }
 
-                    Optional<TrainSchedule> existingTrainOptional = trainScheduleRepository.findByTrainNumber(currentTrainNumberStr);
                     TrainSchedule trainScheduleFromExcel = new TrainSchedule();
                     trainScheduleFromExcel.setTrainNumber(currentTrainNumberStr);
                     fillTrainScheduleFieldsFromRow(trainScheduleFromExcel, row, formatter, rowNum);
 
-                    if (existingTrainOptional.isPresent()) {
+                    TrainSchedule existingTrainInDb = existingTrainsMap.get(currentTrainNumberStr);
+
+                    if (existingTrainInDb != null) {
                         existingRecordsInDbFound++;
-                        TrainSchedule existingTrainInDb = existingTrainOptional.get();
-                        log.debug("Row {}: Train {} found in database. Checking for updates.", rowNum + 1, currentTrainNumberStr);
-
-
                         if (areFieldsDifferent(existingTrainInDb, trainScheduleFromExcel)) {
                             updateTrainScheduleFields(existingTrainInDb, trainScheduleFromExcel);
                             trainsToSaveOrUpdate.add(existingTrainInDb);
                             updatedRecords++;
-                            log.info("Row {}: Train {} data updated. Added to save/update list.", rowNum + 1, currentTrainNumberStr);
-                        } else {
-                            log.debug("Row {}: Train {} found in database, no changes detected.", rowNum + 1, currentTrainNumberStr);
                         }
                     } else {
                         trainsToSaveOrUpdate.add(trainScheduleFromExcel);
                         successfullyParsedNew++;
-                        log.info("Row {}: New train {} successfully parsed. Added to save/update list.", rowNum + 1, currentTrainNumberStr);
                     }
-
-                } catch (TrainParsingException e) {
-                    recordsWithError++;
-                    errorMessages.add("Error parsing row " + (rowNum + 1) + ": " + e.getMessage());
-                    log.warn("Parsing error in row {}: {}", rowNum + 1, e.getMessage());
                 } catch (Exception e) {
                     recordsWithError++;
-                    errorMessages.add("Unexpected error processing row " + (rowNum + 1) + ": " + e.getMessage());
-                    log.error("Unexpected error in row {}: {}", rowNum + 1, e.getMessage(), e);
+                    errorMessages.add("Error processing row " + (rowNum + 1) + " for train " + currentTrainNumberStr + ": " + e.getMessage());
+                    log.warn("Error on row {}: {}", rowNum + 1, e.getMessage());
                 }
             }
-        }
 
-        if (!trainsToSaveOrUpdate.isEmpty()) {
-            log.info("Saving/updating {} train schedules to the database.", trainsToSaveOrUpdate.size());
-            trainScheduleRepository.saveAll(trainsToSaveOrUpdate);
-            log.info("Finished saving/updating train schedules.");
-        } else {
-            log.info("No train schedules to save or update.");
-        }
-
-
-        if (!pairedTrainNumbersMap.isEmpty()) {
-            log.info("Starting to process paired train links for {} entries.", pairedTrainNumbersMap.size());
-            List<TrainSchedule> relatedTrains = new ArrayList<>();
-            if (!allRelatedTrainNumbers.isEmpty()) {
-                log.debug("Loading all related trains from database for linking ({} unique train numbers).", allRelatedTrainNumbers.size());
-                relatedTrains = trainScheduleRepository.findByTrainNumberIn(allRelatedTrainNumbers);
-                log.debug("Loaded {} related trains.", relatedTrains.size());
+            if (!trainsToSaveOrUpdate.isEmpty()) {
+                log.info("Saving/updating {} train schedules to the database.", trainsToSaveOrUpdate.size());
+                trainScheduleRepository.saveAll(trainsToSaveOrUpdate);
+                log.info("Finished saving/updating train schedules.");
             }
 
-            Map<String, TrainSchedule> allTrainsForLinking = new HashMap<>();
-            relatedTrains.forEach(train -> allTrainsForLinking.put(train.getTrainNumber(), train));
-            log.debug("Created map of all related trains for quick lookup.");
+            if (!pairedTrainNumbersMap.isEmpty()) {
+                log.info("Starting to process paired train links for {} entries.", pairedTrainNumbersMap.size());
+                Map<String, TrainSchedule> allTrainsForLinking = trainScheduleRepository.findByTrainNumberIn(allRelatedTrainNumbers)
+                        .stream()
+                        .collect(Collectors.toMap(TrainSchedule::getTrainNumber, Function.identity()));
 
-            List<TrainSchedule> trainsWithUpdatedPairedLinks = new ArrayList<>();
+                List<TrainSchedule> trainsWithUpdatedPairedLinks = new ArrayList<>();
+                for (Map.Entry<String, String> entry : pairedTrainNumbersMap.entrySet()) {
+                    String currentTrainNumber = entry.getKey();
+                    String pairedTrainNumber = entry.getValue();
 
-            for (Map.Entry<String, String> entry : pairedTrainNumbersMap.entrySet()) {
-                String currentTrainNumber = entry.getKey();
-                String pairedTrainNumber = entry.getValue();
-                log.trace("Processing link: current train {} to paired train {}.", currentTrainNumber, pairedTrainNumber);
+                    TrainSchedule currentTrain = allTrainsForLinking.get(currentTrainNumber);
+                    TrainSchedule pairedTrain = allTrainsForLinking.get(pairedTrainNumber);
 
-
-                TrainSchedule currentTrain = allTrainsForLinking.get(currentTrainNumber);
-                TrainSchedule pairedTrain = allTrainsForLinking.get(pairedTrainNumber);
-
-                if (currentTrain != null) {
-                    String currentPairedTrainNumberInDb = (currentTrain.getPairTrain() != null) ? currentTrain.getPairTrain().getTrainNumber() : null;
-
-                    if (!Objects.equals(currentPairedTrainNumberInDb, pairedTrainNumber)) {
-                        if (pairedTrain != null) {
-                            currentTrain.setPairTrain(pairedTrain);
-                            trainsWithUpdatedPairedLinks.add(currentTrain);
-                            log.info("Updated paired link for train {}. New pair: {}.", currentTrainNumber, pairedTrainNumber);
-                        } else {
-                            errorMessages.add("Couldn't establish connection for train " + currentTrainNumber + ": paired train " + pairedTrainNumber + " not found in the database.");
-                            recordsWithError++;
-                            log.warn("Paired train {} for train {} not found in DB. Link not established.", pairedTrainNumber, currentTrainNumber);
+                    if (currentTrain != null) {
+                        String currentPairedTrainNumberInDb = (currentTrain.getPairTrain() != null) ? currentTrain.getPairTrain().getTrainNumber() : null;
+                        if (!Objects.equals(currentPairedTrainNumberInDb, pairedTrainNumber)) {
+                            if (pairedTrain != null) {
+                                currentTrain.setPairTrain(pairedTrain);
+                                trainsWithUpdatedPairedLinks.add(currentTrain);
+                            } else {
+                                recordsWithError++;
+                                errorMessages.add("Paired train " + pairedTrainNumber + " not found for train " + currentTrainNumber);
+                            }
                         }
                     } else {
-                        log.debug("Paired link for train {} already correct ({}). No update needed.", currentTrainNumber, pairedTrainNumber);
+                        recordsWithError++;
+                        errorMessages.add("Train " + currentTrainNumber + " not found for linking.");
                     }
-                } else {
-                    errorMessages.add("Train " + currentTrainNumber + " was not found in the database for linking to paired train " + pairedTrainNumber + ".");
-                    recordsWithError++;
-                    log.warn("Train {} not found in DB for linking with paired train {}.", currentTrainNumber, pairedTrainNumber);
+                }
+
+                if (!trainsWithUpdatedPairedLinks.isEmpty()) {
+                    log.info("Saving {} train schedules with updated paired links.", trainsWithUpdatedPairedLinks.size());
+                    trainScheduleRepository.saveAll(trainsWithUpdatedPairedLinks);
                 }
             }
-            if (!trainsWithUpdatedPairedLinks.isEmpty()) {
-                log.info("Saving {} train schedules with updated paired links.", trainsWithUpdatedPairedLinks.size());
-                trainScheduleRepository.saveAll(trainsWithUpdatedPairedLinks);
-            } else {
-                log.info("No paired links needed to be updated.");
-            }
-        } else {
-            log.info("No paired train numbers found in the Excel file to process.");
+
+        } catch (Exception e) {
+            log.error("Failed to parse Excel file due to an unexpected error.", e);
+            throw new IOException("Failed to parse Excel file.", e);
         }
 
         ParsingStatsDto stats = new ParsingStatsDto(
@@ -381,11 +338,48 @@ public class TrainScheduleServiceImpl implements TrainScheduleService {
     @CacheEvict(value = "trainSchedules", allEntries = true)
     @Transactional
     public void delete(Long id) {
-        log.info("Deleting train schedule with id: {}", id);
-        if (!trainScheduleRepository.existsById(id)) {
+        Set<Long> idsToDelete = new HashSet<>();
+        Deque<Long> queue = new ArrayDeque<>();
+
+        if (trainScheduleRepository.existsById(id)) {
+            queue.add(id);
+            idsToDelete.add(id);
+        }
+
+        while (!queue.isEmpty()) {
+            Long currentId = queue.poll();
+
+            trainScheduleRepository.findById(currentId).ifPresent(train -> {
+                if (train.getPairTrain() != null) {
+                    Long pairId = train.getPairTrain().getId();
+                    if (idsToDelete.add(pairId)) {
+                        queue.add(pairId);
+                    }
+                }
+            });
+        }
+
+        if (idsToDelete.isEmpty()) {
+            log.warn("Train schedule with id {} not found for deletion.", id);
             throw new TrainScheduleNotFoundException("Train schedule with id " + id + " not found for deletion.");
         }
-        trainScheduleRepository.deleteById(id);
-        log.info("Successfully marked train schedule with id: {} as deleted.", id);
+
+        List<TrainSchedule> referencingSchedules = trainScheduleRepository.findByPairTrainIdIn(idsToDelete);
+        if (!referencingSchedules.isEmpty()) {
+            for (TrainSchedule schedule : referencingSchedules) {
+                schedule.setPairTrain(null);
+            }
+            trainScheduleRepository.saveAll(referencingSchedules);
+        }
+        trainScheduleRepository.deleteAllByIdInBatch(idsToDelete);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ByteArrayOutputStream exportSchedulesToExcel() throws IOException {
+        log.info("Starting export of all train schedules to Excel.");
+        List<TrainSchedule> schedules = trainScheduleRepository.findAllByOrderByTrainNumberAsc();
+        ByteArrayOutputStream outputStream = excelExportService.exportTrainScheduleToExcel(schedules);
+        return outputStream;
     }
 }

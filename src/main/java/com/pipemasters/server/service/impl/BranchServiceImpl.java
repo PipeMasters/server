@@ -1,33 +1,49 @@
 package com.pipemasters.server.service.impl;
 
 import com.pipemasters.server.dto.PageDto;
+import com.pipemasters.server.dto.ParsingStatsDto;
 import com.pipemasters.server.dto.request.BranchRequestDto;
 import com.pipemasters.server.dto.response.BranchResponseDto;
 import com.pipemasters.server.entity.Branch;
 import com.pipemasters.server.exceptions.branch.BranchHasChildrenException;
 import com.pipemasters.server.exceptions.branch.BranchNotFoundException;
+import com.pipemasters.server.exceptions.branch.BranchParsingException;
 import com.pipemasters.server.exceptions.branch.InvalidBranchHierarchyException;
 import com.pipemasters.server.exceptions.branch.InvalidBranchLevelException;
 import com.pipemasters.server.repository.BranchRepository;
 import com.pipemasters.server.service.BranchService;
+import com.pipemasters.server.service.ExcelExportService;
+import org.apache.poi.ss.usermodel.*;
 import org.modelmapper.ModelMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.List;
 
 @Service
 public class BranchServiceImpl implements BranchService {
 
+    private final Logger log = LoggerFactory.getLogger(BranchServiceImpl.class);
     private final BranchRepository branchRepository;
+    private final ExcelExportService excelExportService;
     private final ModelMapper modelMapper;
 
-    public BranchServiceImpl(BranchRepository branchRepository, ModelMapper modelMapper) {
+    public BranchServiceImpl(BranchRepository branchRepository, ExcelExportService excelExportService, ModelMapper modelMapper) {
         this.branchRepository = branchRepository;
+        this.excelExportService = excelExportService;
         this.modelMapper = modelMapper;
     }
 
@@ -175,6 +191,149 @@ public class BranchServiceImpl implements BranchService {
 
         branchToDelete.setDeleted(true);
         branchRepository.save(branchToDelete);
+    }
+
+    @Override
+    @CacheEvict(value = {"branches", "branches_parent", "branches_child", "branches_level", "branches_pages"}, allEntries = true)
+    @Transactional
+    public ParsingStatsDto parseExcelFile(MultipartFile file) throws IOException {
+        log.info("Starting Excel file parsing for branches. File: {}", file.getOriginalFilename());
+
+        List<String> errorMessages = new ArrayList<>();
+        int totalRecords = 0;
+        int successfullyParsedNew = 0;
+        int recordsWithError = 0;
+        int existingRecordsInDbFound = 0;
+        int updatedRecords = 0;
+
+        Map<String, String> branchParentMap = new HashMap<>();
+        Set<String> allBranchNamesFromFile = new HashSet<>();
+        Set<String> childBranchNamesFromFile = new HashSet<>();
+
+        DataFormatter formatter = new DataFormatter();
+
+        try (InputStream is = file.getInputStream()) {
+            Workbook workbook = WorkbookFactory.create(is);
+            Sheet sheet = workbook.getSheetAt(0);
+            log.debug("Processing sheet '{}'. Total rows to check: {}", sheet.getSheetName(), sheet.getLastRowNum());
+
+            for (Row row : sheet) {
+                if (row.getRowNum() < 1) {
+                    continue;
+                }
+
+                if (row.getCell(0) == null || getCellValueAsString(row.getCell(0), formatter).trim().isEmpty()) {
+                    continue;
+                }
+
+                totalRecords++;
+
+                try {
+                    String name = getCellValueAsString(row.getCell(0), formatter);
+                    String parentName = getCellValueAsString(row.getCell(1), formatter);
+
+                    if (name.isEmpty()) {
+                        throw new BranchParsingException("Branch name cannot be empty.");
+                    }
+
+                    childBranchNamesFromFile.add(name);
+                    allBranchNamesFromFile.add(name);
+
+                    if (!parentName.isEmpty()) {
+                        branchParentMap.put(name, parentName);
+                        allBranchNamesFromFile.add(parentName);
+                    }
+                } catch (BranchParsingException e) {
+                    recordsWithError++;
+                    errorMessages.add("Error parsing row " + (row.getRowNum() + 1) + ": " + e.getMessage());
+                    log.warn("Parsing error in row {}: {}", row.getRowNum() + 1, e.getMessage());
+                } catch (Exception e) {
+                    recordsWithError++;
+                    errorMessages.add("Unexpected error processing row " + (row.getRowNum() + 1) + ": " + e.getMessage());
+                    log.error("Unexpected error in row {}: {}", row.getRowNum() + 1, e.getMessage(), e);
+                }
+            }
+
+
+            Map<String, Branch> existingBranchesMap = branchRepository.findByNameIn(allBranchNamesFromFile)
+                    .stream()
+                    .collect(Collectors.toMap(Branch::getName, Function.identity()));
+
+            existingRecordsInDbFound = (int) childBranchNamesFromFile.stream()
+                    .filter(existingBranchesMap::containsKey)
+                    .count();
+
+
+            List<Branch> branchesToSave = new ArrayList<>();
+            for (String branchName : allBranchNamesFromFile) {
+                if (!existingBranchesMap.containsKey(branchName)) {
+                    Branch newBranch = new Branch(branchName, null);
+                    branchesToSave.add(newBranch);
+                    existingBranchesMap.put(branchName, newBranch);
+                }
+            }
+
+            if (!branchesToSave.isEmpty()) {
+                branchRepository.saveAll(branchesToSave);
+                successfullyParsedNew = branchesToSave.size();
+                log.info("{} new branches have been saved to the database.", successfullyParsedNew);
+            }
+
+            List<Branch> branchesToUpdate = new ArrayList<>();
+            for (Map.Entry<String, String> entry : branchParentMap.entrySet()) {
+                String childName = entry.getKey();
+                String parentName = entry.getValue();
+
+                Branch childBranch = existingBranchesMap.get(childName);
+                Branch parentBranch = existingBranchesMap.get(parentName);
+
+                if (childBranch == null) {
+                    log.warn("Child branch '{}' not found in the map while setting parent. Skipping.", childName);
+                    continue;
+                }
+
+                if (parentBranch == null) {
+                    recordsWithError++;
+                    errorMessages.add("Parent branch '" + parentName + "' for child '" + childName + "' not found.");
+                    log.warn("Parent branch '{}' for child '{}' not found. Link cannot be established.", parentName, childName);
+                    continue;
+                }
+
+                boolean needsUpdate = childBranch.getParent() == null || !childBranch.getParent().getId().equals(parentBranch.getId());
+
+                if (needsUpdate) {
+                    childBranch.setParent(parentBranch);
+                    branchesToUpdate.add(childBranch);
+                    updatedRecords++;
+                }
+            }
+
+            if (!branchesToUpdate.isEmpty()) {
+                branchRepository.saveAll(branchesToUpdate);
+                log.info("{} branches have been updated with new parent information.", updatedRecords);
+            }
+
+        } catch (IOException e) {
+            log.error("Failed to read or process the Excel file: {}", e.getMessage(), e);
+            throw e;
+        }
+        return new ParsingStatsDto(totalRecords, successfullyParsedNew, recordsWithError, existingRecordsInDbFound, updatedRecords, errorMessages);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ByteArrayOutputStream exportBranchesToExcel() throws IOException {
+        List<Branch> branches = branchRepository.findAllByOrderByNameAsc();
+        log.debug("Found {} branches to export.", branches.size());
+        ByteArrayOutputStream outputStream = excelExportService.exportBranchesToExcel(branches);
+        return outputStream;
+    }
+
+    private String getCellValueAsString(Cell cell, DataFormatter formatter) {
+        if (cell == null) {
+            return "";
+        }
+        return formatter.formatCellValue(cell).trim();
     }
 
 
