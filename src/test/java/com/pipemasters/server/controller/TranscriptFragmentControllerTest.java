@@ -1,5 +1,7 @@
 package com.pipemasters.server.controller;
 
+import com.pipemasters.server.dto.PageDto;
+import com.pipemasters.server.dto.UploadBatchDtoSmallResponse;
 import com.pipemasters.server.dto.response.MediaFileFragmentsDto;
 import com.pipemasters.server.dto.response.SttFragmentDto;
 import com.pipemasters.server.dto.response.UploadBatchSearchDto;
@@ -9,6 +11,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -28,26 +32,15 @@ class TranscriptFragmentControllerTest {
 
     @Test
     void search_UploadBatch() {
-        UploadBatchSearchDto dto = new UploadBatchSearchDto();
-        when(transcriptService.searchUploadBatches("q")).thenReturn(List.of(dto));
-
-        ResponseEntity<?> response = controller.search("q", true);
-
+        String query = "q";
+        Pageable pageable = PageRequest.of(0, 10);
+        UploadBatchDtoSmallResponse responseDto = new UploadBatchDtoSmallResponse();
+        PageDto<UploadBatchDtoSmallResponse> expectedPage = new PageDto<>(List.of(responseDto), 0, 10, 1);
+        when(transcriptService.searchUploadBatches(query, pageable)).thenReturn(expectedPage);
+        ResponseEntity<PageDto<UploadBatchDtoSmallResponse>> response = controller.search(query, pageable);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(List.of(dto), response.getBody());
-        verify(transcriptService).searchUploadBatches("q");
-    }
-
-    @Test
-    void search_Fragments() {
-        SttFragmentDto dto = new SttFragmentDto();
-        when(transcriptService.search("q")).thenReturn(List.of(dto));
-
-        ResponseEntity<?> response = controller.search("q", false);
-
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(List.of(dto), response.getBody());
-        verify(transcriptService).search("q");
+        assertEquals(expectedPage, response.getBody());
+        verify(transcriptService).searchUploadBatches(query, pageable);
     }
 
     @Test

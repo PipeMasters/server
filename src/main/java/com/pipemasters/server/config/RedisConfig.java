@@ -123,6 +123,11 @@ public class RedisConfig {
                 .serializeValuesWith(userSerializationPair)
                 .disableCachingNullValues();
 
+        RedisCacheConfiguration uploadBatchSearchCacheConfig = RedisCacheConfiguration.defaultCacheConfig()
+                .entryTtl(Duration.ofMinutes(10))
+                .serializeValuesWith(pageDtoSerializationPair)
+                .disableCachingNullValues();
+
         return RedisCacheManager.builder(redisConnectionFactory)
                 .cacheDefaults(defaultCacheConfig)
                 .withCacheConfiguration("filteredBatches", filteredBatchesCacheConfig)
@@ -130,6 +135,7 @@ public class RedisConfig {
                 .withCacheConfiguration("branches_pages", branchesCacheConfig)
                 .withCacheConfiguration("trains_pages", trainsCacheConfig)
                 .withCacheConfiguration("users_pages", usersPagesCacheConfig)
+                .withCacheConfiguration("upload_batch_search", uploadBatchSearchCacheConfig)
                 .build();
     }
 
