@@ -1,6 +1,7 @@
 package com.pipemasters.server.entity;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.SQLRestriction;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -8,6 +9,7 @@ import java.util.List;
 @Entity
 @Table(name = "branches",
         indexes = {@Index(columnList = "parent_id")})
+@SQLRestriction("deleted = false")
 public class Branch extends BaseEntity {
 
     @Column(nullable = false, unique = true, length = 128)
@@ -19,6 +21,9 @@ public class Branch extends BaseEntity {
 
     @OneToMany(mappedBy = "branch", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<User> users = new ArrayList<>();
+
+    @Column(nullable = false)
+    private boolean deleted = false;
 
     public Branch(String name, Branch parent) {
         this.name = name;
@@ -57,6 +62,14 @@ public class Branch extends BaseEntity {
 
     public void setUsers(List<User> users) {
         this.users = users;
+    }
+
+    public boolean isDeleted() {
+        return deleted;
+    }
+
+    public void setDeleted(boolean deleted) {
+        this.deleted = deleted;
     }
 
     @Override

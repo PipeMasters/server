@@ -20,4 +20,5 @@ public interface BranchService {
     List<BranchResponseDto> getChildBranches(Long parentId, boolean includeParent);
     List<BranchResponseDto> getParentBranches();
     List<BranchResponseDto> getBranchesByLevel(int level);
+    void delete(Long id);
 }
