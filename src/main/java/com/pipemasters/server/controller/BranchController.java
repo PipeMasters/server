@@ -108,6 +108,12 @@ public class BranchController {
         return ResponseEntity.ok(branchService.getBranchesByLevel(level));
     }
 
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        branchService.delete(id);
+        return ResponseEntity.noContent().build();
+    }
+
     @PostMapping(value = "/upload/excel", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ParsingStatsDto> uploadExcelFile(@RequestParam("file") MultipartFile file) throws IOException {
         if (file.isEmpty()) {

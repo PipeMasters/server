@@ -1,6 +1,7 @@
 package com.pipemasters.server.entity;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.SQLRestriction;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -10,6 +11,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "user_accounts")
+@SQLRestriction("deleted = false")
 public class UserAccount extends BaseEntity implements UserDetails {
 
     @Column(unique = true, nullable = false)

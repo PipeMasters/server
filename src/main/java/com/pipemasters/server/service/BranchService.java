@@ -24,6 +24,7 @@ public interface BranchService {
     List<BranchResponseDto> getChildBranches(Long parentId, boolean includeParent);
     List<BranchResponseDto> getParentBranches();
     List<BranchResponseDto> getBranchesByLevel(int level);
+    void delete(Long id);
     ParsingStatsDto parseExcelFile(MultipartFile file) throws IOException;
     ByteArrayOutputStream exportBranchesToExcel() throws IOException;
 

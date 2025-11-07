@@ -3,7 +3,7 @@ package com.pipemasters.server.controller;
 import com.pipemasters.server.dto.request.AuthenticationRequestDto;
 import com.pipemasters.server.dto.request.RegisterRequestDto;
 import com.pipemasters.server.dto.response.AuthenticationResponseDto;
-import com.pipemasters.server.service.impl.AuthenticationService;
+import com.pipemasters.server.service.AuthenticationService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;

@@ -3,6 +3,7 @@ package com.pipemasters.server.exceptions;
 import com.pipemasters.server.dto.ParsingStatsDto;
 import com.pipemasters.server.exceptions.audio.AudioExtractionException;
 import com.pipemasters.server.exceptions.branch.BranchParsingException;
+import com.pipemasters.server.exceptions.branch.BranchHasChildrenException;
 import com.pipemasters.server.exceptions.branch.InvalidBranchHierarchyException;
 import com.pipemasters.server.exceptions.branch.InvalidBranchLevelException;
 import com.pipemasters.server.exceptions.file.MediaFileNotFoundException;
@@ -234,6 +235,14 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         log.error("TrainScheduleNotFoundException: {}", ex.getMessage(), ex);
         return new ResponseEntity<>(createErrorBody(
                 HttpStatus.NOT_FOUND, "TrainSchedule Not Found", ex.getMessage()), HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(BranchHasChildrenException.class)
+    public ResponseEntity<Object> handleBranchHasChildrenException(
+            BranchHasChildrenException ex) {
+        log.error("BranchHasChildrenException: {}", ex.getMessage());
+        return new ResponseEntity<>(createErrorBody(
+                HttpStatus.CONFLICT, "Conflict", ex.getMessage()), HttpStatus.CONFLICT);
     }
 
     @ExceptionHandler(BranchParsingException.class)

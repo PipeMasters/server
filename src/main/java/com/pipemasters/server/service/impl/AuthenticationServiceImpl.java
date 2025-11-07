@@ -6,7 +6,9 @@ import com.pipemasters.server.dto.request.create.UserCreateDto;
 import com.pipemasters.server.dto.response.AuthenticationResponseDto;
 import com.pipemasters.server.entity.User;
 import com.pipemasters.server.entity.UserAccount;
+import com.pipemasters.server.exceptions.user.UserNotFoundException;
 import com.pipemasters.server.repository.UserAccountRepository;
+import com.pipemasters.server.service.AuthenticationService;
 import com.pipemasters.server.service.JwtService;
 import com.pipemasters.server.service.UserService;
 import org.modelmapper.ModelMapper;
@@ -19,7 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-public class AuthenticationService {
+public class AuthenticationServiceImpl implements AuthenticationService {
     private final Logger log = LoggerFactory.getLogger(AuthenticationService.class);
     private final UserService userService;
     private final UserAccountRepository userAccountRepository;
@@ -28,8 +30,8 @@ public class AuthenticationService {
     private final AuthenticationManager authenticationManager;
     private final ModelMapper modelMapper;
 
-    public AuthenticationService(UserService userService, UserAccountRepository userAccountRepository,
-                                 PasswordEncoder passwordEncoder, JwtService jwtService, AuthenticationManager authenticationManager, ModelMapper modelMapper) {
+    public AuthenticationServiceImpl(UserService userService, UserAccountRepository userAccountRepository,
+                                     PasswordEncoder passwordEncoder, JwtService jwtService, AuthenticationManager authenticationManager, ModelMapper modelMapper) {
         this.userService = userService;
         this.userAccountRepository = userAccountRepository;
         this.passwordEncoder = passwordEncoder;
@@ -75,6 +77,7 @@ public class AuthenticationService {
         userAccountRepository.save(userAccount);
     }
 
+    @Transactional(readOnly = true)
     public AuthenticationResponseDto login(AuthenticationRequestDto request) {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
