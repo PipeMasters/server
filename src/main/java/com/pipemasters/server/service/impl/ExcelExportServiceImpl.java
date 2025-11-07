@@ -4,6 +4,7 @@ import com.pipemasters.server.entity.Branch;
 import com.pipemasters.server.entity.TrainSchedule;
 import com.pipemasters.server.entity.User;
 import com.pipemasters.server.entity.enums.Role;
+import com.pipemasters.server.service.ExcelExportService;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
@@ -19,8 +20,9 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
-public class ExcelExportService {
+public class ExcelExportServiceImpl implements ExcelExportService {
 
+    @Override
     public ByteArrayOutputStream exportTrainScheduleToExcel(List<TrainSchedule> schedules) throws IOException {
         try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
             Sheet sheet = workbook.createSheet("Расписание поездов");
@@ -74,6 +76,7 @@ public class ExcelExportService {
         }
     }
 
+    @Override
     public ByteArrayOutputStream exportBranchesToExcel(List<Branch> branches) throws IOException {
         try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
             Sheet sheet = workbook.createSheet("Филиалы");
@@ -112,6 +115,7 @@ public class ExcelExportService {
         }
     }
 
+    @Override
     public ByteArrayOutputStream exportUsersToExcel(List<User> users) throws IOException {
         try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
             Sheet sheet = workbook.createSheet("Пользователи");

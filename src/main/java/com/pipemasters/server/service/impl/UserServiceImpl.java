@@ -15,6 +15,8 @@ import com.pipemasters.server.exceptions.user.UserNotFoundException;
 import com.pipemasters.server.exceptions.user.UserParsingException;
 import com.pipemasters.server.repository.BranchRepository;
 import com.pipemasters.server.repository.UserRepository;
+import com.pipemasters.server.service.AuthenticationService;
+import com.pipemasters.server.service.ExcelExportService;
 import com.pipemasters.server.service.UserService;
 import org.apache.poi.ss.usermodel.*;
 import org.modelmapper.ModelMapper;
@@ -224,7 +226,6 @@ public class UserServiceImpl implements UserService {
                 .stream().collect(Collectors.toMap(Branch::getName, Function.identity()));
         Map<String, User> existingUsersMap = userRepository.findAll().stream()
                 .collect(Collectors.toMap(u -> generateUserKey(u.getSurname(), u.getName(), u.getPatronymic()), Function.identity(), (e, r) -> e));
-        existingRecordsInDbFound = existingUsersMap.size();
 
         List<User> usersToUpdate = new ArrayList<>();
         for (Map<String, String> rowData : fileData) {
@@ -243,6 +244,7 @@ public class UserServiceImpl implements UserService {
                 Set<Role> roles = parseRoles(rowData.get("roles"));
 
                 if (existingUser != null) {
+                    existingRecordsInDbFound++;
                     boolean isChanged = false;
                     if (!Objects.equals(existingUser.getBranch(), branch)) {
                         isChanged = true;

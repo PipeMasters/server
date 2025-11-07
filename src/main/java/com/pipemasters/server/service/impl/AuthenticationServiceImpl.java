@@ -6,7 +6,6 @@ import com.pipemasters.server.dto.request.create.UserCreateDto;
 import com.pipemasters.server.dto.response.AuthenticationResponseDto;
 import com.pipemasters.server.entity.User;
 import com.pipemasters.server.entity.UserAccount;
-import com.pipemasters.server.exceptions.user.UserNotFoundException;
 import com.pipemasters.server.repository.UserAccountRepository;
 import com.pipemasters.server.service.AuthenticationService;
 import com.pipemasters.server.service.JwtService;
@@ -40,6 +39,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         this.modelMapper = modelMapper;
     }
 
+    @Override
     @Transactional
     public AuthenticationResponseDto register(RegisterRequestDto request) {
         User savedUser = userService.createAndReturnUser(modelMapper.map(request, UserCreateDto.class));
@@ -57,6 +57,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         return new AuthenticationResponseDto(jwtToken);
     }
 
+    @Override
     @Transactional
     public void registerFromImport(RegisterRequestDto request) {
         UserCreateDto userCreateDto = modelMapper.map(request, UserCreateDto.class);
@@ -77,6 +78,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         userAccountRepository.save(userAccount);
     }
 
+    @Override
     @Transactional(readOnly = true)
     public AuthenticationResponseDto login(AuthenticationRequestDto request) {
         authenticationManager.authenticate(

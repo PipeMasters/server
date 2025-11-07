@@ -8,6 +8,7 @@ import com.pipemasters.server.dto.response.TrainScheduleResponseDto;
 import com.pipemasters.server.entity.TrainSchedule;
 import com.pipemasters.server.exceptions.trainSchedule.TrainScheduleNotFoundException;
 import com.pipemasters.server.repository.TrainScheduleRepository;
+import com.pipemasters.server.service.ExcelExportService;
 import com.pipemasters.server.service.TrainScheduleService;
 import org.apache.poi.ss.usermodel.*;
 import org.modelmapper.ModelMapper;
@@ -81,9 +82,6 @@ public class TrainScheduleServiceImpl implements TrainScheduleService {
                         .stream()
                         .collect(Collectors.toMap(TrainSchedule::getTrainNumber, Function.identity()));
             }
-            existingRecordsInDbFound = existingTrainsMap.size();
-            log.debug("Found {} existing trains in the database using a single query.", existingRecordsInDbFound);
-
 
             List<TrainSchedule> trainsToSaveOrUpdate = new ArrayList<>();
             for (int rowNum = rowStart; rowNum <= sheet.getLastRowNum(); rowNum++) {
@@ -110,6 +108,7 @@ public class TrainScheduleServiceImpl implements TrainScheduleService {
                     TrainSchedule existingTrainInDb = existingTrainsMap.get(currentTrainNumberStr);
 
                     if (existingTrainInDb != null) {
+                        existingRecordsInDbFound++;
                         if (areFieldsDifferent(existingTrainInDb, trainScheduleFromExcel)) {
                             updateTrainScheduleFields(existingTrainInDb, trainScheduleFromExcel);
                             trainsToSaveOrUpdate.add(existingTrainInDb);

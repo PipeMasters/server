@@ -12,6 +12,7 @@ import com.pipemasters.server.exceptions.branch.InvalidBranchHierarchyException;
 import com.pipemasters.server.exceptions.branch.InvalidBranchLevelException;
 import com.pipemasters.server.repository.BranchRepository;
 import com.pipemasters.server.service.BranchService;
+import com.pipemasters.server.service.ExcelExportService;
 import org.apache.poi.ss.usermodel.*;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
@@ -193,6 +194,7 @@ public class BranchServiceImpl implements BranchService {
     }
 
     @Override
+    @CacheEvict(value = {"branches", "branches_parent", "branches_child", "branches_level", "branches_pages"}, allEntries = true)
     @Transactional
     public ParsingStatsDto parseExcelFile(MultipartFile file) throws IOException {
         log.info("Starting Excel file parsing for branches. File: {}", file.getOriginalFilename());
@@ -206,13 +208,14 @@ public class BranchServiceImpl implements BranchService {
 
         Map<String, String> branchParentMap = new HashMap<>();
         Set<String> allBranchNamesFromFile = new HashSet<>();
+        Set<String> childBranchNamesFromFile = new HashSet<>();
 
         DataFormatter formatter = new DataFormatter();
 
         try (InputStream is = file.getInputStream()) {
             Workbook workbook = WorkbookFactory.create(is);
             Sheet sheet = workbook.getSheetAt(0);
-            log.debug("Processing sheet '{}'. Last row number: {}", sheet.getSheetName(), sheet.getLastRowNum());
+            log.debug("Processing sheet '{}'. Total rows to check: {}", sheet.getSheetName(), sheet.getLastRowNum());
 
             for (Row row : sheet) {
                 if (row.getRowNum() < 1) {
@@ -220,7 +223,6 @@ public class BranchServiceImpl implements BranchService {
                 }
 
                 if (row.getCell(0) == null || getCellValueAsString(row.getCell(0), formatter).trim().isEmpty()) {
-                    log.trace("Skipping empty or blank row (first cell is empty): {}", row.getRowNum() + 1);
                     continue;
                 }
 
@@ -234,9 +236,9 @@ public class BranchServiceImpl implements BranchService {
                         throw new BranchParsingException("Branch name cannot be empty.");
                     }
 
-                    log.trace("Row {}: Read branch '{}' with parent '{}'", row.getRowNum() + 1, name, parentName);
-
+                    childBranchNamesFromFile.add(name);
                     allBranchNamesFromFile.add(name);
+
                     if (!parentName.isEmpty()) {
                         branchParentMap.put(name, parentName);
                         allBranchNamesFromFile.add(parentName);
@@ -252,13 +254,15 @@ public class BranchServiceImpl implements BranchService {
                 }
             }
 
-            log.info("Finished reading file. Total rows to process: {}. Unique branch names found: {}", totalRecords, allBranchNamesFromFile.size());
 
             Map<String, Branch> existingBranchesMap = branchRepository.findByNameIn(allBranchNamesFromFile)
                     .stream()
                     .collect(Collectors.toMap(Branch::getName, Function.identity()));
-            log.debug("Found {} existing branches in the database from the list of {} names.", existingBranchesMap.size(), allBranchNamesFromFile.size());
-            existingRecordsInDbFound = existingBranchesMap.size();
+
+            existingRecordsInDbFound = (int) childBranchNamesFromFile.stream()
+                    .filter(existingBranchesMap::containsKey)
+                    .count();
+
 
             List<Branch> branchesToSave = new ArrayList<>();
             for (String branchName : allBranchNamesFromFile) {
@@ -266,7 +270,6 @@ public class BranchServiceImpl implements BranchService {
                     Branch newBranch = new Branch(branchName, null);
                     branchesToSave.add(newBranch);
                     existingBranchesMap.put(branchName, newBranch);
-                    log.debug("New branch '{}' prepared for creation.", branchName);
                 }
             }
 
@@ -302,7 +305,6 @@ public class BranchServiceImpl implements BranchService {
                     childBranch.setParent(parentBranch);
                     branchesToUpdate.add(childBranch);
                     updatedRecords++;
-                    log.debug("Updating parent for branch '{}' to '{}'.", childName, parentName);
                 }
             }
 
@@ -315,17 +317,7 @@ public class BranchServiceImpl implements BranchService {
             log.error("Failed to read or process the Excel file: {}", e.getMessage(), e);
             throw e;
         }
-
-        ParsingStatsDto stats = new ParsingStatsDto(
-                totalRecords,
-                successfullyParsedNew,
-                recordsWithError,
-                existingRecordsInDbFound,
-                updatedRecords,
-                errorMessages
-        );
-        log.info("Excel parsing for branches finished. Stats: {}", stats);
-        return stats;
+        return new ParsingStatsDto(totalRecords, successfullyParsedNew, recordsWithError, existingRecordsInDbFound, updatedRecords, errorMessages);
     }
 
     @Override
