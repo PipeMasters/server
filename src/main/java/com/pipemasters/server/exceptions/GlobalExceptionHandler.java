@@ -2,6 +2,7 @@ package com.pipemasters.server.exceptions;
 
 import com.pipemasters.server.dto.ParsingStatsDto;
 import com.pipemasters.server.exceptions.audio.AudioExtractionException;
+import com.pipemasters.server.exceptions.branch.BranchParsingException;
 import com.pipemasters.server.exceptions.branch.BranchHasChildrenException;
 import com.pipemasters.server.exceptions.branch.InvalidBranchHierarchyException;
 import com.pipemasters.server.exceptions.branch.InvalidBranchLevelException;
@@ -18,6 +19,7 @@ import com.pipemasters.server.exceptions.trainSchedule.FileReadException;
 import com.pipemasters.server.exceptions.trainSchedule.TrainParsingException;
 import com.pipemasters.server.exceptions.trainSchedule.TrainScheduleNotFoundException;
 import com.pipemasters.server.exceptions.user.UserNotFoundException;
+import com.pipemasters.server.exceptions.user.UserParsingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -241,6 +243,38 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         log.error("BranchHasChildrenException: {}", ex.getMessage());
         return new ResponseEntity<>(createErrorBody(
                 HttpStatus.CONFLICT, "Conflict", ex.getMessage()), HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(BranchParsingException.class)
+    public ResponseEntity<ParsingStatsDto> handleBranchParsingException(BranchParsingException ex) {
+        log.error("BranchParsingException: {}", ex.getMessage());
+        return new ResponseEntity<>(
+                new ParsingStatsDto(
+                        0,
+                        0,
+                        1,
+                        0,
+                        0,
+                        Collections.singletonList("Data parsing error: " + ex.getMessage())
+                ),
+                HttpStatus.BAD_REQUEST
+        );
+    }
+
+    @ExceptionHandler(UserParsingException.class)
+    public ResponseEntity<ParsingStatsDto> handleUserParsingException(UserParsingException ex) {
+        log.error("UserParsingException: {}", ex.getMessage());
+        return new ResponseEntity<>(
+                new ParsingStatsDto(
+                        0,
+                        0,
+                        1,
+                        0,
+                        0,
+                        Collections.singletonList("Data parsing error: " + ex.getMessage())
+                ),
+                HttpStatus.BAD_REQUEST
+        );
     }
 
     private Map<String, Object> createErrorBody(HttpStatus status, String error, String message) {

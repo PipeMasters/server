@@ -11,4 +11,6 @@ public interface UserRepository extends GeneralRepository<User, Long> {
     @Query("SELECT u FROM User u JOIN FETCH u.branch WHERE u.id = :id")
     Optional<User> findByIdWithBranch(@Param("id") Long id);
     List<User> findByBranchId(Long branchId);
+    @Query("SELECT u FROM User u LEFT JOIN FETCH u.branch ORDER BY u.surname ASC")
+    List<User> findAllWithBranch();
 }
