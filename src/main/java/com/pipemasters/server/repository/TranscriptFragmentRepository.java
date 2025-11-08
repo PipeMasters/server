@@ -2,6 +2,8 @@ package com.pipemasters.server.repository;
 
 import com.pipemasters.server.entity.TranscriptFragment;
 import com.pipemasters.server.entity.UploadBatch;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -49,11 +51,26 @@ public interface TranscriptFragmentRepository extends GeneralRepository<Transcri
             """, nativeQuery = true)
     List<BatchFragmentProjection> findBatchFragments(String query);
 
+//    @Query(value = """
+//            SELECT DISTINCT ub.* FROM upload_batches ub
+//                JOIN media_files mf ON mf.upload_batch_id = ub.id
+//                JOIN transcript_fragments tf ON tf.media_file_id = mf.id
+//            WHERE tf.tsv @@ plainto_tsquery('russian', :query)
+//            """, nativeQuery = true)
+//    List<UploadBatch> searchUploadBatches(String query);
+
     @Query(value = """
             SELECT DISTINCT ub.* FROM upload_batches ub
                 JOIN media_files mf ON mf.upload_batch_id = ub.id
                 JOIN transcript_fragments tf ON tf.media_file_id = mf.id
             WHERE tf.tsv @@ plainto_tsquery('russian', :query)
-            """, nativeQuery = true)
-    List<UploadBatch> searchUploadBatches(String query);
+            """,
+            countQuery = """
+            SELECT count(DISTINCT ub.id) FROM upload_batches ub
+                JOIN media_files mf ON mf.upload_batch_id = ub.id
+                JOIN transcript_fragments tf ON tf.media_file_id = mf.id
+            WHERE tf.tsv @@ plainto_tsquery('russian', :query)
+            """,
+            nativeQuery = true)
+    Page<UploadBatch> searchUploadBatches(@Param("query") String query, Pageable pageable);
 }

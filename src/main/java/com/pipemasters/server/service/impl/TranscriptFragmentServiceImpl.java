@@ -2,11 +2,13 @@ package com.pipemasters.server.service.impl;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.pipemasters.server.dto.PageDto;
+import com.pipemasters.server.dto.UploadBatchDtoSmallResponse;
 import com.pipemasters.server.dto.response.MediaFileFragmentsDto;
 import com.pipemasters.server.dto.response.SttFragmentDto;
-import com.pipemasters.server.dto.response.UploadBatchSearchDto;
 import com.pipemasters.server.entity.MediaFile;
 import com.pipemasters.server.entity.TranscriptFragment;
+import com.pipemasters.server.entity.UploadBatch;
 import com.pipemasters.server.exceptions.ServiceUnavailableException;
 import com.pipemasters.server.exceptions.file.MediaFileNotFoundException;
 import com.pipemasters.server.repository.MediaFileRepository;
@@ -20,6 +22,8 @@ import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -135,31 +139,44 @@ public class TranscriptFragmentServiceImpl implements TranscriptFragmentService 
         return repository.findByFragmentId(imotioFragmentId);
     }
 
+//    @Override
+//    @Cacheable("upload_batch_search")
+//    @Transactional(readOnly = true)
+//    public List<UploadBatchSearchDto> searchUploadBatches(String query) {
+//        var batches = repository.searchUploadBatches(query);
+//        var fragments = repository.findBatchFragments(query);
+//
+//        var grouped = fragments.stream().collect(
+//                java.util.stream.Collectors.groupingBy(
+//                        TranscriptFragmentRepository.BatchFragmentProjection::getBatchId,
+//                        java.util.stream.Collectors.groupingBy(
+//                                TranscriptFragmentRepository.BatchFragmentProjection::getMediaFileId,
+//                                java.util.stream.Collectors.mapping(
+//                                        TranscriptFragmentRepository.BatchFragmentProjection::getFragmentId,
+//                                        java.util.stream.Collectors.toList()))));
+//
+//        return batches.stream().map(batch -> {
+//            UploadBatchSearchDto dto = modelMapper.map(batch, UploadBatchSearchDto.class);
+//            var byFile = grouped.getOrDefault(batch.getId(), java.util.Collections.emptyMap());
+//            List<MediaFileFragmentsDto> fileDtos = byFile.entrySet().stream()
+//                    .map(e -> new MediaFileFragmentsDto(e.getKey(), e.getValue()))
+//                    .toList();
+//            dto.setFiles(fileDtos);
+//            return dto;
+//        }).toList();
+//    }
+
     @Override
     @Cacheable("upload_batch_search")
     @Transactional(readOnly = true)
-    public List<UploadBatchSearchDto> searchUploadBatches(String query) {
-        var batches = repository.searchUploadBatches(query);
-        var fragments = repository.findBatchFragments(query);
+    public PageDto<UploadBatchDtoSmallResponse> searchUploadBatches(String query, Pageable pageable) {
+        Page<UploadBatch> batchesPage = repository.searchUploadBatches(query, pageable);
 
-        var grouped = fragments.stream().collect(
-                java.util.stream.Collectors.groupingBy(
-                        TranscriptFragmentRepository.BatchFragmentProjection::getBatchId,
-                        java.util.stream.Collectors.groupingBy(
-                                TranscriptFragmentRepository.BatchFragmentProjection::getMediaFileId,
-                                java.util.stream.Collectors.mapping(
-                                        TranscriptFragmentRepository.BatchFragmentProjection::getFragmentId,
-                                        java.util.stream.Collectors.toList()))));
+        List<UploadBatchDtoSmallResponse> dtoList = batchesPage.getContent().stream()
+                .map(batch -> modelMapper.map(batch, UploadBatchDtoSmallResponse.class))
+                .toList();
 
-        return batches.stream().map(batch -> {
-            UploadBatchSearchDto dto = modelMapper.map(batch, UploadBatchSearchDto.class);
-            var byFile = grouped.getOrDefault(batch.getId(), java.util.Collections.emptyMap());
-            List<MediaFileFragmentsDto> fileDtos = byFile.entrySet().stream()
-                    .map(e -> new MediaFileFragmentsDto(e.getKey(), e.getValue()))
-                    .toList();
-            dto.setFiles(fileDtos);
-            return dto;
-        }).toList();
+        return new PageDto<>(dtoList, batchesPage.getNumber(), batchesPage.getSize(), batchesPage.getTotalElements());
     }
 
     @Override
