@@ -4,6 +4,7 @@ import com.pipemasters.server.dto.PageDto;
 import com.pipemasters.server.dto.request.UploadBatchRequestDto;
 import com.pipemasters.server.dto.UploadBatchFilter;
 import com.pipemasters.server.dto.request.create.UploadBatchCreateDto;
+import com.pipemasters.server.dto.request.update.UploadBatchUpdateDto;
 import com.pipemasters.server.dto.response.UploadBatchResponseDto;
 import com.pipemasters.server.entity.enums.AbsenceCause;
 import com.pipemasters.server.service.UploadBatchService;
@@ -110,7 +111,7 @@ public class UploadBatchController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<UploadBatchResponseDto> update(@PathVariable Long id, @RequestBody UploadBatchRequestDto dto) {
+    public ResponseEntity<UploadBatchResponseDto> update(@PathVariable Long id, @RequestBody UploadBatchUpdateDto dto) {
         return new ResponseEntity<>(uploadBatchService.update(id, dto), HttpStatus.OK);
     }
 }
