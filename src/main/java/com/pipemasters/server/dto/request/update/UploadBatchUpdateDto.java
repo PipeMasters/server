@@ -1,6 +1,5 @@
 package com.pipemasters.server.dto.request.update;
 
-import com.pipemasters.server.dto.request.create.UploadBatchCreateDto;
 import com.pipemasters.server.entity.enums.AbsenceCause;
 
 import java.time.LocalDate;
@@ -12,9 +11,9 @@ public class UploadBatchUpdateDto {
     private Long trainId;
     private String comment;
     private Long branchId;
-    private UploadBatchCreateDto.VideoAbsenceCreateDto absence;
+    private VideoAbsenceUpdateDto absence;
 
-    public UploadBatchUpdateDto(Long uploadedById, LocalDate trainDeparted, LocalDate trainArrived, Long trainId, String comment, Long branchId, UploadBatchCreateDto.VideoAbsenceCreateDto absence) {
+    public UploadBatchUpdateDto(Long uploadedById, LocalDate trainDeparted, LocalDate trainArrived, Long trainId, String comment, Long branchId, VideoAbsenceUpdateDto absence) {
         this.uploadedById = uploadedById;
         this.trainDeparted = trainDeparted;
         this.trainArrived = trainArrived;
@@ -75,11 +74,11 @@ public class UploadBatchUpdateDto {
         this.branchId = branchId;
     }
 
-    public UploadBatchCreateDto.VideoAbsenceCreateDto getAbsence() {
+    public VideoAbsenceUpdateDto getAbsence() {
         return absence;
     }
 
-    public void setAbsence(UploadBatchCreateDto.VideoAbsenceCreateDto absence) {
+    public void setAbsence(VideoAbsenceUpdateDto absence) {
         this.absence = absence;
     }
 
