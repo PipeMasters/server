@@ -4,6 +4,7 @@ import com.pipemasters.server.dto.*;
 import com.pipemasters.server.dto.UploadBatchDtoSmallResponse;
 import com.pipemasters.server.dto.request.UploadBatchRequestDto;
 import com.pipemasters.server.dto.request.create.UploadBatchCreateDto;
+import com.pipemasters.server.dto.request.update.UploadBatchUpdateDto;
 import com.pipemasters.server.dto.response.UploadBatchResponseDto;
 import com.pipemasters.server.entity.*;
 import com.pipemasters.server.exceptions.branch.BranchNotFoundException;
@@ -14,6 +15,7 @@ import com.pipemasters.server.repository.*;
 import com.pipemasters.server.repository.specifications.UploadBatchSpecifications;
 import com.pipemasters.server.service.UploadBatchService;
 import org.modelmapper.ModelMapper;
+import org.modelmapper.TypeMap;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
@@ -22,6 +24,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class UploadBatchServiceImpl implements UploadBatchService {
@@ -127,12 +131,43 @@ public class UploadBatchServiceImpl implements UploadBatchService {
     @Override
     @CacheEvict(value = {"filteredBatches", "batches"}, allEntries = true)
     @Transactional
-    public UploadBatchResponseDto update(Long uploadBatchId, UploadBatchRequestDto dto) {
-        var uploadBatchOrigin = uploadBatchRepository.findById(uploadBatchId)
+    public UploadBatchResponseDto update(Long uploadBatchId, UploadBatchUpdateDto dto) {
+        UploadBatch uploadBatchToUpdate = uploadBatchRepository.findById(uploadBatchId)
                 .orElseThrow(() -> new UploadBatchNotFoundException("UploadBatch not found with ID: " + uploadBatchId));
-        var uploadBatch = modelMapper.map(dto, UploadBatch.class);
-        uploadBatch.setId(uploadBatchOrigin.getId());
 
-        return modelMapper.map(uploadBatchRepository.save(uploadBatch), UploadBatchResponseDto.class);
+        Optional.ofNullable(dto.getComment()).ifPresent(uploadBatchToUpdate::setComment);
+        Optional.ofNullable(dto.getTrainDeparted()).ifPresent(uploadBatchToUpdate::setTrainDeparted);
+        Optional.ofNullable(dto.getTrainArrived()).ifPresent(uploadBatchToUpdate::setTrainArrived);
+
+        Optional.ofNullable(dto.getTrainId()).ifPresent(trainId -> {
+            Train train = trainRepository.findById(trainId)
+                    .orElseThrow(() -> new TrainNotFoundException("Train not found with ID: " + trainId));
+            uploadBatchToUpdate.setTrain(train);
+        });
+
+        Optional.ofNullable(dto.getBranchId()).ifPresent(branchId -> {
+            Branch branch = branchRepository.findById(branchId)
+                    .orElseThrow(() -> new BranchNotFoundException("Branch not found with ID: " + branchId));
+            uploadBatchToUpdate.setBranch(branch);
+        });
+
+        Optional.ofNullable(dto.getUploadedById()).ifPresent(userId -> {
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new UserNotFoundException("User not found with ID: " + userId));
+            uploadBatchToUpdate.setUploadedBy(user);
+        });
+
+        Optional.ofNullable(dto.getAbsence()).ifPresent(absenceDto -> {
+            VideoAbsence absenceRecord = uploadBatchToUpdate.getAbsence();
+            if (absenceRecord != null) {
+                Optional.ofNullable(absenceDto.getCause()).ifPresent(absenceRecord::setCause);
+                Optional.ofNullable(absenceDto.getComment()).ifPresent(absenceRecord::setComment);
+            } else {
+                uploadBatchToUpdate.setAbsence(new VideoAbsence(uploadBatchToUpdate, absenceDto.getCause(), absenceDto.getComment()));
+            }
+        });
+
+        UploadBatch updatedBatch = uploadBatchRepository.save(uploadBatchToUpdate);
+        return modelMapper.map(updatedBatch, UploadBatchResponseDto.class);
     }
 }
