@@ -4,6 +4,7 @@ import com.pipemasters.server.dto.*;
 import com.pipemasters.server.dto.request.UploadBatchRequestDto;
 import com.pipemasters.server.dto.request.create.UploadBatchCreateDto;
 import com.pipemasters.server.dto.request.create.UploadBatchCreateDto.VideoAbsenceCreateDto;
+import com.pipemasters.server.dto.request.update.UploadBatchUpdateDto;
 import com.pipemasters.server.dto.response.UploadBatchResponseDto;
 import com.pipemasters.server.entity.*;
 import com.pipemasters.server.entity.enums.AbsenceCause;
@@ -165,73 +166,55 @@ class UploadBatchServiceImplTest {
     }
 
     @Test
-    void updateUploadBatchDto_ShouldUpdateExistingEntity() {
-        UploadBatchRequestDto updatedDto = new UploadBatchRequestDto();
-        updatedDto.setId(1L);
-        updatedDto.setComment("Updated comment");
-        updatedDto.setCreatedAt(Instant.now().minus(1, ChronoUnit.DAYS));
-        updatedDto.setDirectory(UUID.randomUUID().toString());
-        updatedDto.setDeleted(false);
+    void update_ShouldUpdateFieldsFromDto() {
+        UploadBatchUpdateDto updateDto = new UploadBatchUpdateDto();
+        updateDto.setComment("Updated Comment");
+        updateDto.setTrainId(99L);
 
-        UploadBatch existingUploadBatch = new UploadBatch();
-        existingUploadBatch.setId(1L);
-        existingUploadBatch.setComment("Original comment");
-        existingUploadBatch.setDirectory(UUID.randomUUID());
-        existingUploadBatch.setCreatedAt(Instant.now().minus(2, ChronoUnit.DAYS));
-        existingUploadBatch.setDeleted(false);
-        existingUploadBatch.setDeletedAt(existingUploadBatch.getCreatedAt().plus(180, ChronoUnit.DAYS));
+        UploadBatch existingBatch = new UploadBatch();
+        existingBatch.setId(1L);
+        existingBatch.setComment("Original Comment");
 
-        UploadBatch mappedFromDto = new UploadBatch();
-        mappedFromDto.setComment(updatedDto.getComment());
-        mappedFromDto.setDirectory(UUID.fromString(updatedDto.getDirectory()));
-        mappedFromDto.setCreatedAt(updatedDto.getCreatedAt());
-        mappedFromDto.setDeleted(updatedDto.isDeleted());
+        Train newTrain = new Train(1L, "eqeqe", 12, null, null);
+        newTrain.setId(99L);
 
-        UploadBatch savedUploadBatch = new UploadBatch();
-        savedUploadBatch.setId(existingUploadBatch.getId());
-        savedUploadBatch.setComment(updatedDto.getComment());
-        savedUploadBatch.setDirectory(UUID.fromString(updatedDto.getDirectory()));
-        savedUploadBatch.setCreatedAt(updatedDto.getCreatedAt());
-        savedUploadBatch.setDeleted(updatedDto.isDeleted());
-        savedUploadBatch.setDeletedAt(savedUploadBatch.getCreatedAt().plus(180, ChronoUnit.DAYS));
+        UploadBatchResponseDto expectedResponse = new UploadBatchResponseDto();
+        expectedResponse.setId(1L);
+        expectedResponse.setComment("Updated Comment");
 
-        UploadBatchResponseDto expectedResponseDto = new UploadBatchResponseDto();
-        expectedResponseDto.setId(savedUploadBatch.getId());
-        expectedResponseDto.setComment(savedUploadBatch.getComment());
-        expectedResponseDto.setDirectory(savedUploadBatch.getDirectory().toString());
-        expectedResponseDto.setCreatedAt(savedUploadBatch.getCreatedAt());
-        expectedResponseDto.setDeleted(savedUploadBatch.isDeleted());
-        expectedResponseDto.setDeletedAt(savedUploadBatch.getDeletedAt());
+        when(uploadBatchRepository.findById(1L)).thenReturn(Optional.of(existingBatch));
+        when(trainRepository.findById(99L)).thenReturn(Optional.of(newTrain));
+        when(uploadBatchRepository.save(any(UploadBatch.class))).thenReturn(existingBatch);
+        when(modelMapper.map(existingBatch, UploadBatchResponseDto.class)).thenReturn(expectedResponse);
 
-        when(uploadBatchRepository.findById(1L)).thenReturn(Optional.of(existingUploadBatch));
-        when(modelMapper.map(eq(updatedDto), eq(UploadBatch.class))).thenReturn(mappedFromDto);
-        when(uploadBatchRepository.save(any(UploadBatch.class))).thenReturn(savedUploadBatch);
-        when(modelMapper.map(eq(savedUploadBatch), eq(UploadBatchResponseDto.class))).thenReturn(expectedResponseDto);
-
-        UploadBatchResponseDto result = uploadBatchService.update(1L, updatedDto);
+        UploadBatchResponseDto result = uploadBatchService.update(1L, updateDto);
 
         assertNotNull(result);
-        assertEquals(expectedResponseDto, result);
-        assertEquals("Updated comment", result.getComment());
-        assertEquals(1L, result.getId());
-        assertEquals(updatedDto.getDirectory(), result.getDirectory());
-        assertEquals(updatedDto.getCreatedAt(), result.getCreatedAt());
-        assertFalse(result.isDeleted());
+        assertEquals("Updated Comment", result.getComment());
+
+        ArgumentCaptor<UploadBatch> batchCaptor = ArgumentCaptor.forClass(UploadBatch.class);
+        verify(uploadBatchRepository).save(batchCaptor.capture());
+        UploadBatch savedBatch = batchCaptor.getValue();
+
+        assertEquals("Updated Comment", savedBatch.getComment());
+        assertEquals(99L, savedBatch.getTrain().getId());
 
         verify(uploadBatchRepository).findById(1L);
-        verify(modelMapper).map(eq(updatedDto), eq(UploadBatch.class));
+        verify(trainRepository).findById(99L);
         verify(uploadBatchRepository).save(any(UploadBatch.class));
         verify(modelMapper).map(any(UploadBatch.class), eq(UploadBatchResponseDto.class));
     }
 
     @Test
-    void updateUploadBatchDto_ShouldThrowExceptionWhenNotFound() {
+    void update_ShouldThrowExceptionWhenNotFound() {
         when(uploadBatchRepository.findById(1L)).thenReturn(Optional.empty());
 
         assertThrows(UploadBatchNotFoundException.class,
-                () -> uploadBatchService.update(1L, new UploadBatchRequestDto()));
+                () -> uploadBatchService.update(1L, new UploadBatchUpdateDto()));
+
         verify(uploadBatchRepository).findById(1L);
-        verifyNoMoreInteractions(modelMapper, uploadBatchRepository);
+        verify(uploadBatchRepository, never()).save(any());
+        verify(modelMapper, never()).map(any(), any());
     }
 
     @Test
